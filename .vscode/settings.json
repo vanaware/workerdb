@@ -1,0 +1,37 @@
+{
+  "deno.enable": true,
+  "deno.lint": true,
+  "deno.unstable": [
+    "bundle"
+  ],
+  "deno.codeLens.implementations": true,
+  "deno.codeLens.references": true,
+  "deno.codeLens.referencesAllFunctions": true,
+  "deno.codeLens.test": true,
+  "deno.testing.enable": true,
+  "deno.defaultTaskCommand": "run",
+  "deno.testing.args": ["--allow-all", "--unstable-bundle", "--envfile"],
+
+  "qwen-code.provider": "api-key",
+  "qwen-code.codingPlanRegion": "global",
+
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "denoland.vscode-deno",
+  "[typescript]": {
+    "editor.defaultFormatter": "denoland.vscode-deno"
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "denoland.vscode-deno"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "denoland.vscode-deno"
+  },
+  "[javascriptreact]": {
+  "editor.defaultFormatter": "denoland.vscode-deno"
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "denoland.vscode-deno",
+    "json.validate.enable": true
+  },
+
+}

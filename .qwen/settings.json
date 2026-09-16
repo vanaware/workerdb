@@ -1,0 +1,736 @@
+{
+  "modelProviders": {
+    "gemini": [
+      {
+        "id": "gemini-pro-latest",
+        "name": "Gemini Pro Latest",
+        "baseUrl": "https://generativelanguage.googleapis.com",
+        "envKey": "GEMINI_API_KEY",
+        "generationConfig": {
+          "enableCacheControl": true,
+          "timeout": 180000,
+          "maxRetries": 5,
+          "retryInitialDelayMs": 3000,
+          "retryMaxDelayMs": 60000,
+          "contextWindowSize": 128000,
+          "samplingParams": {
+            "temperature": 0.2,
+            "top_p": 0.95,
+            "max_tokens": 8192
+          }
+        }
+      },
+      {
+        "id": "gemini-3.8-flash",
+        "name": "gemini-3.8-flash",
+        "baseUrl": "https://generativelanguage.googleapis.com",
+        "envKey": "GEMINI_API_KEY",
+        "generationConfig": {
+          "enableCacheControl": true,
+          "timeout": 180000,
+          "maxRetries": 5,
+          "retryInitialDelayMs": 3000,
+          "retryMaxDelayMs": 60000,
+          "contextWindowSize": 128000,
+          "samplingParams": {
+            "temperature": 0.2,
+            "top_p": 0.95,
+            "max_tokens": 8192
+          }
+        }
+      },
+      {
+        "id": "gemini-3.7-flash",
+        "name": "gemini-3.7-flash",
+        "baseUrl": "https://generativelanguage.googleapis.com",
+        "envKey": "GEMINI_API_KEY",
+        "generationConfig": {
+          "enableCacheControl": true,
+          "timeout": 180000,
+          "maxRetries": 5,
+          "retryInitialDelayMs": 3000,
+          "retryMaxDelayMs": 60000,
+          "contextWindowSize": 128000,
+          "samplingParams": {
+            "temperature": 0.2,
+            "top_p": 0.95,
+            "max_tokens": 8192
+          }
+        }
+      },
+      {
+        "id": "gemini-3.6-flash",
+        "name": "gemini-3.6-flash",
+        "baseUrl": "https://generativelanguage.googleapis.com",
+        "envKey": "GEMINI_API_KEY",
+        "generationConfig": {
+          "enableCacheControl": true,
+          "timeout": 180000,
+          "maxRetries": 5,
+          "retryInitialDelayMs": 3000,
+          "retryMaxDelayMs": 60000,
+          "contextWindowSize": 128000,
+          "samplingParams": {
+            "temperature": 0.2,
+            "top_p": 0.95,
+            "max_tokens": 8192
+          }
+        }
+      },
+      {
+        "id": "gemini-flash-lite-latest",
+        "name": "gemini-flash-lite-latest",
+        "baseUrl": "https://generativelanguage.googleapis.com",
+        "envKey": "GEMINI_API_KEY",
+        "generationConfig": {
+          "enableCacheControl": true,
+          "timeout": 180000,
+          "maxRetries": 5,
+          "retryInitialDelayMs": 3000,
+          "retryMaxDelayMs": 60000,
+          "contextWindowSize": 128000,
+          "samplingParams": {
+            "temperature": 0.2,
+            "top_p": 0.95,
+            "max_tokens": 8192
+          }
+        }
+      },
+      {
+        "id": "gemini-3.1-flash-lite-image",
+        "name": "gemini-3.1-flash-lite-image",
+        "baseUrl": "https://generativelanguage.googleapis.com",
+        "envKey": "GEMINI_API_KEY",
+        "generationConfig": {
+          "enableCacheControl": true,
+          "modalities": {
+            "image": true
+          },
+          "timeout": 180000,
+          "maxRetries": 5,
+          "retryInitialDelayMs": 3000,
+          "retryMaxDelayMs": 60000,
+          "contextWindowSize": 65536,
+          "samplingParams": {
+            "temperature": 0.2,
+            "top_p": 0.95,
+            "max_tokens": 8192
+          }
+        }
+      },
+      {
+        "id": "gemma-4-26b-a4b-it",
+        "name": "gemma-4-26b-a4b-it",
+        "baseUrl": "https://generativelanguage.googleapis.com",
+        "envKey": "GEMINI_API_KEY",
+        "generationConfig": {
+          "enableCacheControl": true,
+          "timeout": 180000,
+          "maxRetries": 5,
+          "retryInitialDelayMs": 3000,
+          "retryMaxDelayMs": 60000,
+          "contextWindowSize": 128000,
+          "samplingParams": {
+            "temperature": 0.2,
+            "top_p": 0.95,
+            "max_tokens": 8192
+          }
+        }
+      },
+      {
+        "id": "gemma-4-31b-it",
+        "name": "gemma-4-31b-it",
+        "baseUrl": "https://generativelanguage.googleapis.com",
+        "envKey": "GEMINI_API_KEY",
+        "generationConfig": {
+          "enableCacheControl": true,
+          "timeout": 180000,
+          "maxRetries": 5,
+          "retryInitialDelayMs": 3000,
+          "retryMaxDelayMs": 60000,
+          "contextWindowSize": 128000,
+          "samplingParams": {
+            "temperature": 0.2,
+            "top_p": 0.95,
+            "max_tokens": 8192
+          }
+        }
+      }
+    ],
+    "openai": [
+      {
+        "id": "gemini-pro-latest",
+        "name": "Openai - Gemini Pro Latest",
+        "baseUrl": "https://generativelanguage.googleapis.com/v1beta/openai/",
+        "envKey": "GEMINI_API_KEY",
+        "generationConfig": {
+          "enableCacheControl": true,
+          "timeout": 180000,
+          "maxRetries": 5,
+          "retryInitialDelayMs": 3000,
+          "retryMaxDelayMs": 60000,
+          "contextWindowSize": 128000,
+          "samplingParams": {
+            "temperature": 0.2,
+            "top_p": 0.95,
+            "max_tokens": 8192
+          }
+        }
+      },
+      {
+        "id": "openrouter/free",
+        "name": "OpenRouter Free Router (fallback universal)",
+        "baseUrl": "https://openrouter.ai/api/v1",
+        "envKey": "OPENROUTER_API_KEY",
+        "generationConfig": {
+          "contextWindowSize": 128000,
+          "timeout": 120000,
+          "maxRetries": 2,
+          "retryInitialDelayMs": 3000,
+          "retryMaxDelayMs": 15000,
+          "enableCacheControl": false,
+          "customHeaders": {
+            "HTTP-Referer": "https://github.com/vanaware/workerdb",
+            "X-OpenRouter-Title": "WorkerDB"
+          },
+          "extra_body": {
+            "provider": {
+              "allow_fallbacks": true,
+              "sort": "price",
+              "data_collection": "deny"
+            }
+          },
+          "samplingParams": {
+            "temperature": 0.2,
+            "top_p": 0.95,
+            "max_tokens": 4096
+          }
+        }
+      },
+      {
+        "id": "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+        "name": "Nemotron 3 Nano Omni (free - rápido)",
+        "baseUrl": "https://openrouter.ai/api/v1",
+        "envKey": "OPENROUTER_API_KEY",
+        "generationConfig": {
+          "contextWindowSize": 128000,
+          "timeout": 60000,
+          "maxRetries": 1,
+          "retryInitialDelayMs": 2000,
+          "retryMaxDelayMs": 10000,
+          "enableCacheControl": false,
+          "customHeaders": {
+            "HTTP-Referer": "https://github.com/vanaware/workerdb",
+            "X-OpenRouter-Title": "WorkerDB"
+          },
+          "extra_body": {
+            "provider": {
+              "allow_fallbacks": true,
+              "sort": "price",
+              "data_collection": "deny"
+            }
+          },
+          "samplingParams": {
+            "temperature": 0.2,
+            "top_p": 0.95,
+            "max_tokens": 4096
+          }
+        }
+      },
+      {
+        "id": "google/gemma-4-31b-it:free",
+        "name": "Gemma 4 31B (free - equilibrado)",
+        "baseUrl": "https://openrouter.ai/api/v1",
+        "envKey": "OPENROUTER_API_KEY",
+        "generationConfig": {
+          "contextWindowSize": 128000,
+          "timeout": 90000,
+          "maxRetries": 1,
+          "retryInitialDelayMs": 2000,
+          "retryMaxDelayMs": 10000,
+          "enableCacheControl": false,
+          "customHeaders": {
+            "HTTP-Referer": "https://github.com/vanaware/workerdb",
+            "X-OpenRouter-Title": "WorkerDB"
+          },
+          "extra_body": {
+            "provider": {
+              "allow_fallbacks": true,
+              "sort": "price",
+              "data_collection": "deny"
+            }
+          },
+          "samplingParams": {
+            "temperature": 0.2,
+            "top_p": 0.95,
+            "max_tokens": 4096
+          }
+        }
+      },
+      {
+        "id": "z-ai/glm-5.2:free",
+        "name": "GLM 5.2 (free - reasoning forte)",
+        "baseUrl": "https://openrouter.ai/api/v1",
+        "envKey": "OPENROUTER_API_KEY",
+        "generationConfig": {
+          "contextWindowSize": 128000,
+          "timeout": 180000,
+          "maxRetries": 1,
+          "retryInitialDelayMs": 5000,
+          "retryMaxDelayMs": 20000,
+          "enableCacheControl": false,
+          "customHeaders": {
+            "HTTP-Referer": "https://github.com/vanaware/workerdb",
+            "X-OpenRouter-Title": "WorkerDB"
+          },
+          "extra_body": {
+            "provider": {
+              "allow_fallbacks": true,
+              "sort": "price",
+              "data_collection": "deny"
+            }
+          },
+          "samplingParams": {
+            "temperature": 0.2,
+            "top_p": 0.95,
+            "max_tokens": 8192
+          }
+        }
+      },
+      {
+        "id": "minimax/minimax-m3:free",
+        "name": "MiniMax M3 (free - contexto longo)",
+        "baseUrl": "https://openrouter.ai/api/v1",
+        "envKey": "OPENROUTER_API_KEY",
+        "generationConfig": {
+          "contextWindowSize": 128000,
+          "timeout": 180000,
+          "maxRetries": 1,
+          "retryInitialDelayMs": 5000,
+          "retryMaxDelayMs": 20000,
+          "enableCacheControl": false,
+          "customHeaders": {
+            "HTTP-Referer": "https://github.com/vanaware/workerdb",
+            "X-OpenRouter-Title": "WorkerDB"
+          },
+          "extra_body": {
+            "provider": {
+              "allow_fallbacks": true,
+              "sort": "price",
+              "data_collection": "deny"
+            }
+          },
+          "samplingParams": {
+            "temperature": 0.2,
+            "top_p": 0.95,
+            "max_tokens": 4096
+          }
+        }
+      },
+      {
+    "id": "qwen3-235b-a22b",
+    "name": "Qwen3 235B A22B (DashScope Free)",
+    "baseUrl": "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
+    "envKey": "DASHSCOPE_API_KEY",
+    "generationConfig": {
+      "timeout": 300000,
+      "maxRetries": 5,
+      "retryInitialDelayMs": 3000,
+      "retryMaxDelayMs": 60000,
+      "contextWindowSize": 128000,
+      "samplingParams": { "temperature": 0.2, "top_p": 0.95, "max_tokens": 8192 }
+    }
+  },
+  {
+    "id": "qwen3.6-flash-2026-04-16",
+    "name": "Qwen3.6 Flash (DashScope Free)",
+    "baseUrl": "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
+    "envKey": "DASHSCOPE_API_KEY",
+    "generationConfig": {
+      "timeout": 180000,
+      "maxRetries": 5,
+      "retryInitialDelayMs": 3000,
+      "retryMaxDelayMs": 60000,
+      "contextWindowSize": 128000,
+      "samplingParams": { "temperature": 0.2, "top_p": 0.95, "max_tokens": 8192 }
+    }
+  },
+  {
+    "id": "qwen3.5-flash-2026-02-23",
+    "name": "Qwen3.5 Flash (DashScope Free)",
+    "baseUrl": "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
+    "envKey": "DASHSCOPE_API_KEY",
+    "generationConfig": {
+      "timeout": 180000,
+      "maxRetries": 5,
+      "retryInitialDelayMs": 3000,
+      "retryMaxDelayMs": 60000,
+      "contextWindowSize": 128000,
+      "samplingParams": { "temperature": 0.2, "top_p": 0.95, "max_tokens": 8192 }
+    }
+  },
+  {
+    "id": "qwen-plus-2025-12-01",
+    "name": "Qwen Plus Latest (DashScope Free)",
+    "baseUrl": "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
+    "envKey": "DASHSCOPE_API_KEY",
+    "generationConfig": {
+      "timeout": 180000,
+      "maxRetries": 5,
+      "retryInitialDelayMs": 3000,
+      "retryMaxDelayMs": 60000,
+      "contextWindowSize": 128000,
+      "samplingParams": { "temperature": 0.2, "top_p": 0.95, "max_tokens": 8192 }
+    }
+  },
+  {
+    "id": "qwen-plus-2025-09-11",
+    "name": "Qwen Plus 0911 (DashScope Free)",
+    "baseUrl": "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
+    "envKey": "DASHSCOPE_API_KEY",
+    "generationConfig": {
+      "timeout": 180000,
+      "maxRetries": 5,
+      "retryInitialDelayMs": 3000,
+      "retryMaxDelayMs": 60000,
+      "contextWindowSize": 128000,
+      "samplingParams": { "temperature": 0.2, "top_p": 0.95, "max_tokens": 8192 }
+    }
+  },
+  {
+    "id": "qwen-plus-2025-07-14",
+    "name": "Qwen Plus 0714 (DashScope Free)",
+    "baseUrl": "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
+    "envKey": "DASHSCOPE_API_KEY",
+    "generationConfig": {
+      "timeout": 180000,
+      "maxRetries": 5,
+      "retryInitialDelayMs": 3000,
+      "retryMaxDelayMs": 60000,
+      "contextWindowSize": 128000,
+      "samplingParams": { "temperature": 0.2, "top_p": 0.95, "max_tokens": 8192 }
+    }
+  },
+  {
+    "id": "qwen3-30b-a3b",
+    "name": "Qwen3 30B A3B (DashScope Free)",
+    "baseUrl": "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
+    "envKey": "DASHSCOPE_API_KEY",
+    "generationConfig": {
+      "timeout": 180000,
+      "maxRetries": 5,
+      "retryInitialDelayMs": 3000,
+      "retryMaxDelayMs": 60000,
+      "contextWindowSize": 128000,
+      "samplingParams": { "temperature": 0.2, "top_p": 0.95, "max_tokens": 8192 }
+    }
+  },
+  {
+    "id": "qwen3-30b-a3b-thinking-2507",
+    "name": "Qwen3 30B A3B Thinking (DashScope Free)",
+    "baseUrl": "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
+    "envKey": "DASHSCOPE_API_KEY",
+    "generationConfig": {
+      "timeout": 300000,
+      "maxRetries": 5,
+      "retryInitialDelayMs": 5000,
+      "retryMaxDelayMs": 60000,
+      "contextWindowSize": 128000,
+      "samplingParams": { "temperature": 0.2, "top_p": 0.95, "max_tokens": 8192 }
+    }
+  },
+  {
+    "id": "qvq-max",
+    "name": "QVQ Max Visual Reasoning (DashScope Free)",
+    "baseUrl": "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
+    "envKey": "DASHSCOPE_API_KEY",
+    "generationConfig": {
+      "modalities": { "image": true },
+      "timeout": 300000,
+      "maxRetries": 5,
+      "retryInitialDelayMs": 5000,
+      "retryMaxDelayMs": 60000,
+      "contextWindowSize": 128000,
+      "samplingParams": { "temperature": 0.2, "top_p": 0.95, "max_tokens": 8192 }
+    }
+  },
+  {
+    "id": "qwen-vl-max",
+    "name": "Qwen VL Max (DashScope Free)",
+    "baseUrl": "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
+    "envKey": "DASHSCOPE_API_KEY",
+    "generationConfig": {
+      "modalities": { "image": true },
+      "timeout": 180000,
+      "maxRetries": 5,
+      "retryInitialDelayMs": 3000,
+      "retryMaxDelayMs": 60000,
+      "contextWindowSize": 65536,
+      "samplingParams": { "temperature": 0.2, "top_p": 0.95, "max_tokens": 8192 }
+    }
+  },
+  {
+    "id": "qwen-vl-plus",
+    "name": "Qwen VL Plus (DashScope Free)",
+    "baseUrl": "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
+    "envKey": "DASHSCOPE_API_KEY",
+    "generationConfig": {
+      "modalities": { "image": true },
+      "timeout": 180000,
+      "maxRetries": 5,
+      "retryInitialDelayMs": 3000,
+      "retryMaxDelayMs": 60000,
+      "contextWindowSize": 65536,
+      "samplingParams": { "temperature": 0.2, "top_p": 0.95, "max_tokens": 8192 }
+    }
+  },
+  {
+    "id": "qwen3-vl-plus",
+    "name": "Qwen3 VL Plus (DashScope Free)",
+    "baseUrl": "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
+    "envKey": "DASHSCOPE_API_KEY",
+    "generationConfig": {
+      "modalities": { "image": true },
+      "timeout": 180000,
+      "maxRetries": 5,
+      "retryInitialDelayMs": 3000,
+      "retryMaxDelayMs": 60000,
+      "contextWindowSize": 128000,
+      "samplingParams": { "temperature": 0.2, "top_p": 0.95, "max_tokens": 8192 }
+    }
+  },
+  {
+    "id": "qwen3-vl-plus-2025-12-19",
+    "name": "Qwen3 VL Plus 1219 (DashScope Free)",
+    "baseUrl": "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
+    "envKey": "DASHSCOPE_API_KEY",
+    "generationConfig": {
+      "modalities": { "image": true },
+      "timeout": 180000,
+      "maxRetries": 5,
+      "retryInitialDelayMs": 3000,
+      "retryMaxDelayMs": 60000,
+      "contextWindowSize": 128000,
+      "samplingParams": { "temperature": 0.2, "top_p": 0.95, "max_tokens": 8192 }
+    }
+  },
+  {
+    "id": "qwen3-vl-plus-2025-09-23",
+    "name": "Qwen3 VL Plus 0923 (DashScope Free)",
+    "baseUrl": "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
+    "envKey": "DASHSCOPE_API_KEY",
+    "generationConfig": {
+      "modalities": { "image": true },
+      "timeout": 180000,
+      "maxRetries": 5,
+      "retryInitialDelayMs": 3000,
+      "retryMaxDelayMs": 60000,
+      "contextWindowSize": 128000,
+      "samplingParams": { "temperature": 0.2, "top_p": 0.95, "max_tokens": 8192 }
+    }
+  },
+  {
+    "id": "qwen3-vl-flash-2025-10-15",
+    "name": "Qwen3 VL Flash 1015 (DashScope Free)",
+    "baseUrl": "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
+    "envKey": "DASHSCOPE_API_KEY",
+    "generationConfig": {
+      "modalities": { "image": true },
+      "timeout": 180000,
+      "maxRetries": 5,
+      "retryInitialDelayMs": 3000,
+      "retryMaxDelayMs": 60000,
+      "contextWindowSize": 128000,
+      "samplingParams": { "temperature": 0.2, "top_p": 0.95, "max_tokens": 8192 }
+    }
+  },
+  {
+    "id": "qwen3-vl-235b-a22b-instruct",
+    "name": "Qwen3 VL 235B Instruct (DashScope Free)",
+    "baseUrl": "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
+    "envKey": "DASHSCOPE_API_KEY",
+    "generationConfig": {
+      "modalities": { "image": true },
+      "timeout": 300000,
+      "maxRetries": 5,
+      "retryInitialDelayMs": 5000,
+      "retryMaxDelayMs": 60000,
+      "contextWindowSize": 128000,
+      "samplingParams": { "temperature": 0.2, "top_p": 0.95, "max_tokens": 8192 }
+    }
+  },
+  {
+    "id": "qwen3-vl-235b-a22b-thinking",
+    "name": "Qwen3 VL 235B Thinking (DashScope Free)",
+    "baseUrl": "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
+    "envKey": "DASHSCOPE_API_KEY",
+    "generationConfig": {
+      "modalities": { "image": true },
+      "timeout": 300000,
+      "maxRetries": 5,
+      "retryInitialDelayMs": 5000,
+      "retryMaxDelayMs": 60000,
+      "contextWindowSize": 128000,
+      "samplingParams": { "temperature": 0.2, "top_p": 0.95, "max_tokens": 8192 }
+    }
+  },
+  {
+    "id": "qwen3-vl-32b-instruct",
+    "name": "Qwen3 VL 32B Instruct (DashScope Free)",
+    "baseUrl": "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
+    "envKey": "DASHSCOPE_API_KEY",
+    "generationConfig": {
+      "modalities": { "image": true },
+      "timeout": 180000,
+      "maxRetries": 5,
+      "retryInitialDelayMs": 3000,
+      "retryMaxDelayMs": 60000,
+      "contextWindowSize": 128000,
+      "samplingParams": { "temperature": 0.2, "top_p": 0.95, "max_tokens": 8192 }
+    }
+  },
+  {
+    "id": "qwen3-vl-32b-thinking",
+    "name": "Qwen3 VL 32B Thinking (DashScope Free)",
+    "baseUrl": "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
+    "envKey": "DASHSCOPE_API_KEY",
+    "generationConfig": {
+      "modalities": { "image": true },
+      "timeout": 300000,
+      "maxRetries": 5,
+      "retryInitialDelayMs": 5000,
+      "retryMaxDelayMs": 60000,
+      "contextWindowSize": 128000,
+      "samplingParams": { "temperature": 0.2, "top_p": 0.95, "max_tokens": 8192 }
+    }
+  },
+  {
+    "id": "qwen3-vl-30b-a3b-instruct",
+    "name": "Qwen3 VL 30B A3B Instruct (DashScope Free)",
+    "baseUrl": "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
+    "envKey": "DASHSCOPE_API_KEY",
+    "generationConfig": {
+      "modalities": { "image": true },
+      "timeout": 180000,
+      "maxRetries": 5,
+      "retryInitialDelayMs": 3000,
+      "retryMaxDelayMs": 60000,
+      "contextWindowSize": 128000,
+      "samplingParams": { "temperature": 0.2, "top_p": 0.95, "max_tokens": 8192 }
+    }
+  },
+  {
+    "id": "qwen3-vl-30b-a3b-thinking",
+    "name": "Qwen3 VL 30B A3B Thinking (DashScope Free)",
+    "baseUrl": "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
+    "envKey": "DASHSCOPE_API_KEY",
+    "generationConfig": {
+      "modalities": { "image": true },
+      "timeout": 300000,
+      "maxRetries": 5,
+      "retryInitialDelayMs": 5000,
+      "retryMaxDelayMs": 60000,
+      "contextWindowSize": 128000,
+      "samplingParams": { "temperature": 0.2, "top_p": 0.95, "max_tokens": 8192 }
+    }
+  },
+  {
+    "id": "qwen3-vl-8b-instruct",
+    "name": "Qwen3 VL 8B Instruct (DashScope Free)",
+    "baseUrl": "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
+    "envKey": "DASHSCOPE_API_KEY",
+    "generationConfig": {
+      "modalities": { "image": true },
+      "timeout": 120000,
+      "maxRetries": 3,
+      "retryInitialDelayMs": 2000,
+      "retryMaxDelayMs": 30000,
+      "contextWindowSize": 65536,
+      "samplingParams": { "temperature": 0.2, "top_p": 0.95, "max_tokens": 4096 }
+    }
+  },
+  {
+    "id": "qwen3-vl-8b-thinking",
+    "name": "Qwen3 VL 8B Thinking (DashScope Free)",
+    "baseUrl": "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
+    "envKey": "DASHSCOPE_API_KEY",
+    "generationConfig": {
+      "modalities": { "image": true },
+      "timeout": 180000,
+      "maxRetries": 3,
+      "retryInitialDelayMs": 2000,
+      "retryMaxDelayMs": 30000,
+      "contextWindowSize": 65536,
+      "samplingParams": { "temperature": 0.2, "top_p": 0.95, "max_tokens": 4096 }
+    }
+  }
+    ]
+  },
+  "permissions": {
+    "allow": [
+      "Agent",
+      "send_message",
+      "Bash(*)"
+    ]
+  },
+  "$version": 4,
+  "model": {
+    "name": "openrouter/free",
+    "baseUrl": "https://openrouter.ai/api/v1",
+    "reasoningEffort": "high",
+    "generationConfig": {
+      "enableCacheControl": true,
+      "timeout": 180000,
+      "maxRetries": 5,
+      "retryInitialDelayMs": 3000,
+      "retryMaxDelayMs": 60000,
+      "contextWindowSize": 128000,
+      "samplingParams": {
+        "temperature": 0.2,
+        "top_p": 0.95,
+        "max_tokens": 8192
+      }
+    }
+  },
+  "modelFallbacks": "qwen3.6-flash-2026-04-16,qwen-plus-latest,cohere/north-mini-code:free",
+  "fastModel": "gemini-flash-lite-latest",
+  "compactionModel": "qwen-flash-2025-07-28",
+  "advisorModel": "gemini-3.8-flash",
+  "imageModel": "gemini-3.1-flash-lite-image",
+  "security": {
+    "auth": {
+      "selectedType": "openai"
+    }
+  },
+  "providerMetadata": {
+    "alibabaStandard": {
+      "version": "eb53d39c7be9f3c3ca90c14d53d77cfb62386a817dc8bb366ae21b755b2d47f7",
+      "baseUrl": "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
+      "ignoredVersion": "a5c548c3dae51a6aacafd3b3a657a8484a0e2c1915ec23bce4b1fae9d123208f"
+    },
+    "openrouter": {
+      "version": "6ac6b64cdf1c6eab3ad7b69d0a718a5cae0d3e4eb8d11f74471f49c929a9a702",
+      "baseUrl": "https://openrouter.ai/api/v1",
+      "ignoredVersion": "b535a56063f3c09af610b3f4341d2c09a87af03d330317c7ba650c290630147f"
+    }
+  },
+  "context": {
+    "fileName": [
+      "CURRENT.md"
+    ],
+    "includeDirectories": [
+      "docs"
+    ],
+    "loadFromIncludeDirectories": true,
+    "autoCompactThreshold": 0.65,
+    "fileFiltering": {
+      "respectGitIgnore": true,
+      "enableRecursiveFileSearch": true
+    }
+  },
+  "general": {
+    "terminalBell": true,
+    "preventSystemSleep": true,
+    "chatRecording": true
+  }
+}

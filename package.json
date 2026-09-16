@@ -1,0 +1,12 @@
+{
+  "name": "@vanaware/workerdb",
+  "version": "0.0.2",
+  "private": false,
+  "type": "module",
+  "scripts": {
+    "dev": "./install-script.sh && deno task build && deno task dev",
+    "build": "deno task build",
+    "lint": "deno task lint",
+    "test": "deno task check-all"
+  }
+}

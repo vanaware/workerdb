@@ -1,0 +1,61 @@
+{
+  "name": "@workerdb/workerdb",
+  // ----------------------------------------------------------------------
+  // 🔧 Compiler Options específicos do pacote
+  // ----------------------------------------------------------------------
+  "compilerOptions": {
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "dom.asynciterable",
+      "esnext",
+      "deno.ns",
+      "deno.worker"
+    ],
+    "strict": true,
+    "noImplicitAny": true,
+    "noUncheckedIndexedAccess": true
+  },
+  "imports": {
+    "idb-keyval": "https://esm.sh/idb-keyval@6.2.1",
+    // 🔥 CORREÇÃO: Removido ?dev e adicionado ?bundle para resolver
+    // circular dependency do fake-indexeddb no Deno 2.x (denonext target).
+    // O ?bundle força o esm.sh a empacotar tudo em um único arquivo,
+    // eliminando o erro "Class extends value undefined".
+    "fake-indexeddb": "https://esm.sh/fake-indexeddb@6.2.5?bundle",
+    "fake-indexeddb/auto": "https://esm.sh/fake-indexeddb@6.2.5/auto?bundle",
+    "fflate": "https://esm.sh/fflate@0.8.2?target=es2022",
+    "@std/assert": "jsr:@std/assert",
+    "@std/fs": "jsr:@std/fs",
+    "@std/http": "jsr:@std/http",
+    "@std/path": "jsr:@std/path"
+  },
+  "tasks": {
+    "build": "deno run -A --unstable-bundle build.ts",
+    // 🔥 CORREÇÃO: Adicionado --allow-write para permitir testes que
+    // criam arquivos temporários (padrão consistente com @workerdb/utils)
+    "test": "deno test --allow-env --allow-net --allow-read --allow-write tests/",
+    "check": "deno check build.ts src/**/*.ts src/**/*.tsx example/**/*.ts tests/**/*.ts",
+    "tests": "deno task check && deno task test",
+    "demo": "deno run --allow-env --allow-read --allow-net ./example/demo.ts",
+    "example": "deno run -A --unstable-bundle ./example/server.ts"
+  },
+  // ----------------------------------------------------------------------
+  // 🎯 Exports via subpaths (Deno não suporta conditional exports)
+  //
+  // Uso no código fonte:
+  //   - Main Thread:  import { db, opfs, ls } from "@workerdb/workerdb";
+  //   - Service Worker: import { dbsw, opfssw } from "@workerdb/workerdb/sw";
+  //   - Web Worker:   import { dbsw, opfssw } from "@workerdb/workerdb/sw";
+  // ----------------------------------------------------------------------
+  "exports": {
+    // Entry point padrão — Main Thread (browser)
+    // Retorna db(), opfs(), ls() com Web Worker interno para otimização
+    ".": "./src/mod-main.ts",
+    // Subpath para Service Worker e Web Worker
+    // Retorna db(), opfs() com acesso direto (sem Web Worker interno)
+    "./sw": "./src/mod-sw.ts",
+    "./fake": "./src/fake-mod.ts",
+    "./swfake": "./src/fake-db.ts"
+  }
+}

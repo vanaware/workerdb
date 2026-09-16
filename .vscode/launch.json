@@ -1,0 +1,13 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "chrome",
+      "request": "launch",
+      "name": "Launch contra o ChromeOS",
+      "url": "http://localhost:8000",
+      "webRoot": "${workspaceFolder}",
+      "runtimeExecutable": "/usr/bin/garcon-url-handler"
+    }
+  ]
+}

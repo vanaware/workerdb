@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>WorkerDB PWA - WorkerDB Demo</title>
+
+    <!-- Favicon gerado nativamente via SVG in-line (zero requisições ao servidor) -->
+    <link rel="icon" type="image/svg+xml"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%239edeb6'/><text x='50' y='68' font-size='50' font-family='system-ui, sans-serif' font-weight='bold' text-anchor='middle' fill='%231a1c19'>L</text></svg>">
+
+    <style>
+    :root {
+      --md-sys-color-background: #1a1c19;
+      --md-sys-color-on-background: #e2e3dd;
+      --md-sys-color-primary: #9edeb6;
+      --md-sys-color-surface: #2d312d;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background-color: var(--md-sys-color-background);
+      color: var(--md-sys-color-on-background);
+      margin: 0;
+      padding: 24px;
+      line-height: 1.6;
+    }
+
+    h1 {
+      color: var(--md-sys-color-primary);
+    }
+
+    #app {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .console-card {
+      background-color: var(--md-sys-color-surface);
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+      overflow-x: auto;
+    }
+
+    pre {
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 14px;
+      color: #b5e8b0;
+      margin: 0;
+      white-space: pre-wrap;
+    }
+    </style>
+  </head>
+  <body class="dark">
+    <div id="app">
+      <h1>WorkerDB PWA - Testes Reais (IndexedDB)</h1>
+      <p>Os testes abaixo comprovam a integração <strong>Offline-First</strong> executada assincronamente através de um Web Worker. Sem bloquear a UI!</p>
+
+      <div class="console-card">
+        <pre id="log-output">Aguardando execução do main.ts...</pre>
+      </div>
+    </div>
+
+    <!-- Arquivo gerado pelo deno bundle no nosso server.ts -->
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>
