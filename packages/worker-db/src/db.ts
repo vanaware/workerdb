@@ -47,6 +47,59 @@ export interface OpfsFileInfo {
   type: string;
   lastModified: number;
 }
+
+export interface IndexRange {
+  eq?: IDBValidKey;
+  gt?: IDBValidKey;
+  gte?: IDBValidKey;
+  lt?: IDBValidKey;
+  lte?: IDBValidKey;
+}
+
+export type IndexQuery = IDBValidKey | IDBKeyRange | IndexRange;
+
+export function buildIDBQuery(query: IndexQuery): IDBValidKey | IDBKeyRange {
+  if (query == null) throw new Error("Query cannot be null");
+  if (
+    typeof query !== "object" || query instanceof Date ||
+    Array.isArray(query) || query instanceof ArrayBuffer
+  ) {
+    return query as IDBValidKey;
+  }
+  if ("lower" in query || "upper" in query) {
+    return query as IDBKeyRange;
+  }
+
+  const q = query as IndexRange;
+  if (q.eq !== undefined) return IDBKeyRange.only(q.eq);
+  if (
+    (q.gt !== undefined || q.gte !== undefined) &&
+    (q.lt !== undefined || q.lte !== undefined)
+  ) {
+    const lower = q.gt !== undefined ? q.gt : q.gte!;
+    const upper = q.lt !== undefined ? q.lt : q.lte!;
+    return IDBKeyRange.bound(
+      lower,
+      upper,
+      q.gt !== undefined,
+      q.lt !== undefined,
+    );
+  }
+  if (q.gt !== undefined || q.gte !== undefined) {
+    return IDBKeyRange.lowerBound(
+      q.gt !== undefined ? q.gt : q.gte!,
+      q.gt !== undefined,
+    );
+  }
+  if (q.lt !== undefined || q.lte !== undefined) {
+    return IDBKeyRange.upperBound(
+      q.lt !== undefined ? q.lt : q.lte!,
+      q.lt !== undefined,
+    );
+  }
+  return query as unknown as IDBValidKey;
+}
+
 // ============================================================================
 
 const storeCache = new Map<string, UseStore>();
@@ -315,9 +368,240 @@ export const globalSwDbAPI = {
     }
   },
 
+  countByIndex: async (
+    indexName: string,
+    query?: IndexQuery,
+    opts?: DbStoreOptions,
+  ): Promise<number> => {
+    const store = getCustomStore(
+      opts?.dbName,
+      opts?.storeName,
+      opts?.indexes,
+      opts?.dbVersion,
+    );
+    if (!store) {
+      throw new Error("dbName or storeName is required to query indexes");
+    }
+    return await store("readonly", (idbStore) => {
+      return new Promise<number>((resolve, reject) => {
+        try {
+          const index = idbStore.index(indexName);
+          const req = query !== undefined ? index.count(buildIDBQuery(query)) : index.count();
+          req.onsuccess = () => resolve(req.result);
+          req.onerror = () => reject(req.error);
+        } catch (err) {
+          reject(err);
+        }
+      });
+    });
+  },
+
+  getOneByIndex: async <T>(
+    indexName: string,
+    query: IndexQuery,
+    opts?: DbStoreOptions,
+  ): Promise<WithId<T> | undefined> => {
+    const store = getCustomStore(
+      opts?.dbName,
+      opts?.storeName,
+      opts?.indexes,
+      opts?.dbVersion,
+    );
+    if (!store) {
+      throw new Error("dbName or storeName is required to query indexes");
+    }
+    return await store("readonly", (idbStore) => {
+      return new Promise<WithId<T> | undefined>((resolve, reject) => {
+        try {
+          const index = idbStore.index(indexName);
+          const idbQuery = buildIDBQuery(query);
+          const req = index.get(idbQuery);
+          const keyReq = index.getKey(idbQuery);
+          
+          let val: unknown | undefined = undefined;
+          let key: IDBValidKey | undefined = undefined;
+          let valDone = false;
+          let keyDone = false;
+
+          const checkDone = () => {
+             if (valDone && keyDone) {
+                if (val !== undefined && key !== undefined) {
+                   resolve(formatDbItem(String(key), val, opts?.prefix) as WithId<T>);
+                } else {
+                   resolve(undefined);
+                }
+             }
+          };
+
+          req.onsuccess = () => {
+            val = req.result;
+            valDone = true;
+            checkDone();
+          };
+          req.onerror = () => reject(req.error);
+
+          keyReq.onsuccess = () => {
+            key = keyReq.result;
+            keyDone = true;
+            checkDone();
+          };
+          keyReq.onerror = () => reject(keyReq.error);
+        } catch (err) {
+          reject(err);
+        }
+      });
+    });
+  },
+
+  keysByIndex: async (
+    indexName: string,
+    query: IndexQuery,
+    opts?: DbStoreOptions,
+  ): Promise<string[]> => {
+    const store = getCustomStore(
+      opts?.dbName,
+      opts?.storeName,
+      opts?.indexes,
+      opts?.dbVersion,
+    );
+    if (!store) {
+      throw new Error("dbName or storeName is required to query indexes");
+    }
+    return await store("readonly", (idbStore) => {
+       return new Promise<string[]>((resolve, reject) => {
+          try {
+             const index = idbStore.index(indexName);
+             const req = index.getAllKeys(buildIDBQuery(query));
+             req.onsuccess = () => {
+                const keys = req.result.map(k => String(k));
+                resolve(keys);
+             };
+             req.onerror = () => reject(req.error);
+          } catch(err) {
+             reject(err);
+          }
+       });
+    });
+  },
+
+  patchByIndex: async <T>(
+    indexName: string,
+    query: IndexQuery,
+    patch: Partial<T>,
+    opts?: DbStoreOptions,
+  ): Promise<void> => {
+     await globalSwDbAPI.setSomeByIndex<T, Partial<T>>(
+        indexName,
+        query,
+        (items) => items, // select all matched
+        (item, patchObj) => Object.assign({}, item, patchObj) as WithId<T>,
+        patch,
+        opts
+     );
+  },
+
+  getByIndexPaginated: async <T>(
+    indexName: string,
+    query: IndexQuery,
+    paginationOpts: { limit?: number; cursor?: string; direction?: "next" | "prev" | "nextunique" | "prevunique" },
+    opts?: DbStoreOptions,
+  ): Promise<{ items: WithId<T>[]; nextCursor?: string }> => {
+    const store = getCustomStore(
+      opts?.dbName,
+      opts?.storeName,
+      opts?.indexes,
+      opts?.dbVersion,
+    );
+    if (!store) {
+      throw new Error("dbName or storeName is required to query indexes");
+    }
+    return await store("readonly", (idbStore) => {
+      return new Promise<{ items: WithId<T>[]; nextCursor?: string }>((resolve, reject) => {
+        try {
+          const index = idbStore.index(indexName);
+          const idbQuery = buildIDBQuery(query);
+          const direction = paginationOpts.direction || "next";
+          const limit = paginationOpts.limit || 50;
+          
+          const items: WithId<T>[] = [];
+          const req = index.openCursor(idbQuery, direction);
+          let advanced = false;
+          let targetIndexKey: unknown;
+          let targetPrimaryKey: unknown;
+
+          if (paginationOpts.cursor) {
+             try {
+                const parsed = JSON.parse(paginationOpts.cursor);
+                targetIndexKey = parsed[0];
+                targetPrimaryKey = parsed[1];
+             } catch (e) {
+                // invalid cursor, ignore
+             }
+          }
+
+          let lastIndexKey: IDBValidKey | undefined;
+          let lastPrimaryKey: IDBValidKey | undefined;
+
+          req.onsuccess = (event) => {
+             const cursor = (event.target as IDBRequest<IDBCursorWithValue>).result;
+             
+             if (!cursor) {
+                resolve({ 
+                  items, 
+                  nextCursor: items.length > 0 && lastIndexKey !== undefined && lastPrimaryKey !== undefined 
+                    ? JSON.stringify([lastIndexKey, lastPrimaryKey]) 
+                    : undefined 
+                });
+                return;
+             }
+
+             if (!advanced && targetIndexKey !== undefined && targetPrimaryKey !== undefined) {
+                advanced = true;
+                if (cursor.continuePrimaryKey) {
+                   cursor.continuePrimaryKey(targetIndexKey as IDBValidKey, targetPrimaryKey as IDBValidKey);
+                   return;
+                }
+             }
+
+             if (advanced && targetPrimaryKey !== undefined && cursor.primaryKey === targetPrimaryKey && cursor.key === targetIndexKey) {
+                 targetPrimaryKey = undefined; 
+                 cursor.continue();
+                 return;
+             }
+             
+             if (!advanced && targetPrimaryKey !== undefined) {
+                if (cursor.primaryKey === targetPrimaryKey && cursor.key === targetIndexKey) {
+                   advanced = true;
+                   targetPrimaryKey = undefined;
+                }
+                cursor.continue();
+                return;
+             }
+
+             items.push(formatDbItem(String(cursor.primaryKey), cursor.value, opts?.prefix) as WithId<T>);
+             lastIndexKey = cursor.key;
+             lastPrimaryKey = cursor.primaryKey;
+
+             if (items.length >= limit) {
+                resolve({ 
+                   items, 
+                   nextCursor: JSON.stringify([lastIndexKey, lastPrimaryKey]) 
+                });
+             } else {
+                cursor.continue();
+             }
+          };
+          req.onerror = () => reject(req.error);
+        } catch (err) {
+          reject(err);
+        }
+      });
+    });
+  },
+
   getByIndex: async <T,>(
     indexName: string,
-    query: IDBValidKey,
+    query: IndexQuery,
     opts?: DbStoreOptions,
   ): Promise<WithId<T>[]> => {
     const store = getCustomStore(
@@ -333,8 +617,9 @@ export const globalSwDbAPI = {
       return new Promise<WithId<T>[]>((resolve, reject,) => {
         try {
           const index = idbStore.index(indexName,);
-          const req = index.getAll(query,);
-          const keysReq = index.getAllKeys(query,);
+          const idbQuery = buildIDBQuery(query,);
+          const req = index.getAll(idbQuery,);
+          const keysReq = index.getAllKeys(idbQuery,);
           let values: unknown[] | null = null;
           let keys: IDBValidKey[] | null = null;
 
@@ -367,7 +652,7 @@ export const globalSwDbAPI = {
 
   getManyByIndex: async <T,>(
     indexName: string,
-    queries: IDBValidKey[],
+    queries: IndexQuery[],
     opts?: DbStoreOptions,
   ): Promise<WithId<T>[]> => {
     const store = getCustomStore(
@@ -389,8 +674,9 @@ export const globalSwDbAPI = {
           }
           let completed = 0;
           for (const q of queries) {
-            const req = index.getAll(q,);
-            const keysReq = index.getAllKeys(q,);
+            const idbQuery = buildIDBQuery(q,);
+            const req = index.getAll(idbQuery,);
+            const keysReq = index.getAllKeys(idbQuery,);
             let vals: unknown[] | null = null;
             let keys: IDBValidKey[] | null = null;
 
@@ -433,7 +719,7 @@ export const globalSwDbAPI = {
 
   getSomeByIndex: async <T, C = unknown,>(
     indexName: string,
-    query: IDBValidKey,
+    query: IndexQuery,
     fn: (items: WithId<T>[], ctx?: C,) => WithId<T>[],
     context?: C,
     opts?: DbStoreOptions,
@@ -450,7 +736,7 @@ export const globalSwDbAPI = {
 
   queryByIndex: async <T, R, C = unknown,>(
     indexName: string,
-    query: IDBValidKey,
+    query: IndexQuery,
     fn: (items: WithId<T>[], ctx?: C,) => R,
     context?: C,
     opts?: DbStoreOptions,
@@ -461,7 +747,7 @@ export const globalSwDbAPI = {
 
   deleteByIndex: async (
     indexName: string,
-    query: IDBValidKey,
+    query: IndexQuery,
     opts?: DbStoreOptions,
   ): Promise<void> => {
     const store = getCustomStore(
@@ -477,7 +763,7 @@ export const globalSwDbAPI = {
       return new Promise<string[]>((resolve, reject,) => {
         try {
           const index = idbStore.index(indexName,);
-          const keysReq = index.getAllKeys(query,);
+          const keysReq = index.getAllKeys(buildIDBQuery(query,),);
           keysReq.onsuccess = () => {
             resolve(keysReq.result.map((k,) => String(k,)),);
           };
@@ -494,7 +780,7 @@ export const globalSwDbAPI = {
 
   deleteManyByIndex: async (
     indexName: string,
-    queries: IDBValidKey[],
+    queries: IndexQuery[],
     opts?: DbStoreOptions,
   ): Promise<void> => {
     if (queries.length === 0) return;
@@ -514,7 +800,7 @@ export const globalSwDbAPI = {
           const keySet = new Set<string>();
           let completed = 0;
           for (const q of queries) {
-            const req = index.getAllKeys(q,);
+            const req = index.getAllKeys(buildIDBQuery(q,),);
             req.onsuccess = () => {
               for (const k of req.result) {
                 keySet.add(String(k,));
@@ -538,7 +824,7 @@ export const globalSwDbAPI = {
 
   delSomeByIndex: async <T, C = unknown,>(
     indexName: string,
-    query: IDBValidKey,
+    query: IndexQuery,
     fn: (items: WithId<T>[], ctx?: C,) => WithId<T>[],
     context?: C,
     opts?: DbStoreOptions,
@@ -573,7 +859,7 @@ export const globalSwDbAPI = {
 
   setSomeByIndex: async <T, C = unknown,>(
     indexName: string,
-    query: IDBValidKey,
+    query: IndexQuery,
     selectFn: (items: WithId<T>[], ctx?: C,) => WithId<T>[],
     updateFn: (item: WithId<T>, ctx?: C,) => WithId<T>,
     context?: C,

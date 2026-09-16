@@ -41,7 +41,7 @@ const CONFIG: GlobalTargetConfig = {
     publicdir: "packages/ui/public",
     indexHtml: true,
     clean: [".",],
-    entryPoints: ["main.ts",],
+    entryPoints: ["main.tsx",],
     platform: "browser",
     format: "esm",
     bundle: true,

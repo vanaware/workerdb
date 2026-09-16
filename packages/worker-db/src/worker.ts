@@ -230,6 +230,43 @@ self.onmessage = async (e: MessageEvent,) => {
           dbOpts,
         );
         break;
+      case "COUNT_BY_INDEX":
+        result = await internalAPI.countByIndex(
+          args.indexName,
+          args.query,
+          dbOpts,
+        );
+        break;
+      case "GET_ONE_BY_INDEX":
+        result = await internalAPI.getOneByIndex(
+          args.indexName,
+          args.query,
+          dbOpts,
+        );
+        break;
+      case "KEYS_BY_INDEX":
+        result = await internalAPI.keysByIndex(
+          args.indexName,
+          args.query,
+          dbOpts,
+        );
+        break;
+      case "PATCH_BY_INDEX":
+        result = await internalAPI.patchByIndex(
+          args.indexName,
+          args.query,
+          args.patch,
+          dbOpts,
+        );
+        break;
+      case "GET_BY_INDEX_PAGINATED":
+        result = await internalAPI.getByIndexPaginated(
+          args.indexName,
+          args.query,
+          args.paginationOpts,
+          dbOpts,
+        );
+        break;
       case "GET_MANY_BY_INDEX":
         result = await internalAPI.getManyByIndex(
           args.indexName,

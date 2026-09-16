@@ -13,6 +13,13 @@ Deno.serve({ port, hostname: "0.0.0.0", }, async (req,) => {
       quiet: true,
     },);
 
+    staticResponse.headers.set(
+      "Cache-Control",
+      "no-store, no-cache, must-revalidate, proxy-revalidate",
+    );
+    staticResponse.headers.set("Pragma", "no-cache",);
+    staticResponse.headers.set("Expires", "0",);
+
     return staticResponse;
   } catch (err) {
     console.warn(

@@ -1,6 +1,11 @@
 // ## Arquivo: monorepo/worker-db/src/rpc.ts
 import { gerarId, gerarIdComPrefixo, type WithId, } from "./utils/id.ts";
-import type { DbStoreOptions, OpfsFileInfo, OpfsStoreOptions, } from "./db.ts";
+import type {
+  DbStoreOptions,
+  IndexQuery,
+  OpfsFileInfo,
+  OpfsStoreOptions,
+} from "./db.ts";
 
 let workerInstance: Worker | null = null;
 let currentWorkerPath: string | URL = "./worker.js";
@@ -167,7 +172,7 @@ const globalDbAPI = {
     exec<void>("CLEAR", { ...serializeDbOpts(opts), },),
   getByIndex: <T,>(
     indexName: string,
-    query: IDBValidKey,
+    query: IndexQuery,
     opts?: DbStoreOptions,
   ) =>
     exec<WithId<T>[]>("GET_BY_INDEX", {
@@ -175,9 +180,63 @@ const globalDbAPI = {
       query,
       ...serializeDbOpts(opts),
     },),
+  countByIndex: (
+    indexName: string,
+    query?: IndexQuery,
+    opts?: DbStoreOptions,
+  ) =>
+    exec<number>("COUNT_BY_INDEX", {
+      indexName,
+      query,
+      ...serializeDbOpts(opts),
+    },),
+  getOneByIndex: <T,>(
+    indexName: string,
+    query: IndexQuery,
+    opts?: DbStoreOptions,
+  ) =>
+    exec<WithId<T> | undefined>("GET_ONE_BY_INDEX", {
+      indexName,
+      query,
+      ...serializeDbOpts(opts),
+    },),
+  keysByIndex: (
+    indexName: string,
+    query: IndexQuery,
+    opts?: DbStoreOptions,
+  ) =>
+    exec<string[]>("KEYS_BY_INDEX", {
+      indexName,
+      query,
+      ...serializeDbOpts(opts),
+    },),
+  patchByIndex: <T,>(
+    indexName: string,
+    query: IndexQuery,
+    patch: Partial<T>,
+    opts?: DbStoreOptions,
+  ) =>
+    exec<void>("PATCH_BY_INDEX", {
+      indexName,
+      query,
+      patch,
+      ...serializeDbOpts(opts),
+    },),
+  getByIndexPaginated: <T,>(
+    indexName: string,
+    query: IndexQuery,
+    paginationOpts: { limit?: number; cursor?: string; direction?: "next" | "prev" | "nextunique" | "prevunique" },
+    opts?: DbStoreOptions,
+  ) =>
+    exec<{ items: WithId<T>[]; nextCursor?: string }>("GET_BY_INDEX_PAGINATED", {
+      indexName,
+      query,
+      paginationOpts,
+      ...serializeDbOpts(opts),
+    },),
   getManyByIndex: <T,>(
     indexName: string,
-    queries: IDBValidKey[],
+    queries: IndexQuery[],
     opts?: DbStoreOptions,
   ) =>
     exec<WithId<T>[]>("GET_MANY_BY_INDEX", {
@@ -187,7 +246,7 @@ const globalDbAPI = {
     },),
   getSomeByIndex: <T, C = unknown,>(
     indexName: string,
-    query: IDBValidKey,
+    query: IndexQuery,
     fn: (items: WithId<T>[], ctx: C,) => WithId<T>[],
     context?: C,
     opts?: DbStoreOptions,
@@ -201,7 +260,7 @@ const globalDbAPI = {
     },),
   queryByIndex: <T, R, C = unknown,>(
     indexName: string,
-    query: IDBValidKey,
+    query: IndexQuery,
     fn: (items: WithId<T>[], ctx: C,) => R,
     context?: C,
     opts?: DbStoreOptions,
@@ -215,7 +274,7 @@ const globalDbAPI = {
     },),
   deleteByIndex: (
     indexName: string,
-    query: IDBValidKey,
+    query: IndexQuery,
     opts?: DbStoreOptions,
   ): Promise<void> =>
     exec<void>("DELETE_BY_INDEX", {
@@ -225,7 +284,7 @@ const globalDbAPI = {
     },),
   deleteManyByIndex: (
     indexName: string,
-    queries: IDBValidKey[],
+    queries: IndexQuery[],
     opts?: DbStoreOptions,
   ): Promise<void> =>
     exec<void>("DELETE_MANY_BY_INDEX", {
@@ -235,7 +294,7 @@ const globalDbAPI = {
     },),
   delSomeByIndex: <T, C = unknown,>(
     indexName: string,
-    query: IDBValidKey,
+    query: IndexQuery,
     fn: (items: WithId<T>[], ctx: C,) => WithId<T>[],
     context?: C,
     opts?: DbStoreOptions,
@@ -249,7 +308,7 @@ const globalDbAPI = {
     },),
   setSomeByIndex: <T, C = unknown,>(
     indexName: string,
-    query: IDBValidKey,
+    query: IndexQuery,
     selectFn: (items: WithId<T>[], ctx: C,) => WithId<T>[],
     updateFn: (item: WithId<T>, ctx: C,) => WithId<T>,
     context?: C,
@@ -378,15 +437,28 @@ function createScopedDb<TDefault = unknown>(
     values: <T = TDefault,>() => globalDbAPI.values<T>(opts,),
     entries: <T = TDefault,>() => globalDbAPI.entries<T>(opts,),
     clear: () => globalDbAPI.clear(opts,),
-    getByIndex: <T = TDefault,>(indexName: string, query: IDBValidKey,) =>
+    getByIndex: <T = TDefault,>(indexName: string, query: IndexQuery,) =>
       globalDbAPI.getByIndex<T>(indexName, query, opts,),
+    countByIndex: (indexName: string, query?: IndexQuery,) =>
+      globalDbAPI.countByIndex(indexName, query, opts,),
+    getOneByIndex: <T = TDefault,>(indexName: string, query: IndexQuery,) =>
+      globalDbAPI.getOneByIndex<T>(indexName, query, opts,),
+    keysByIndex: (indexName: string, query: IndexQuery,) =>
+      globalDbAPI.keysByIndex(indexName, query, opts,),
+    patchByIndex: <T = TDefault,>(indexName: string, query: IndexQuery, patch: Partial<T>) =>
+      globalDbAPI.patchByIndex<T>(indexName, query, patch, opts,),
+    getByIndexPaginated: <T = TDefault,>(
+      indexName: string,
+      query: IndexQuery,
+      paginationOpts: { limit?: number; cursor?: string; direction?: "next" | "prev" | "nextunique" | "prevunique" },
+    ) => globalDbAPI.getByIndexPaginated<T>(indexName, query, paginationOpts, opts,),
     getManyByIndex: <T = TDefault,>(
       indexName: string,
-      queries: IDBValidKey[],
+      queries: IndexQuery[],
     ) => globalDbAPI.getManyByIndex<T>(indexName, queries, opts,),
     getSomeByIndex: <T = TDefault, C = unknown,>(
       indexName: string,
-      query: IDBValidKey,
+      query: IndexQuery,
       fn: (items: WithId<T>[], ctx: C,) => WithId<T>[],
       context?: C,
     ) => globalDbAPI.getSomeByIndex<T, C>(
@@ -398,7 +470,7 @@ function createScopedDb<TDefault = unknown>(
     ),
     queryByIndex: <T = TDefault, R = unknown, C = unknown,>(
       indexName: string,
-      query: IDBValidKey,
+      query: IndexQuery,
       fn: (items: WithId<T>[], ctx: C,) => R,
       context?: C,
     ) => globalDbAPI.queryByIndex<T, R, C>(
@@ -408,13 +480,13 @@ function createScopedDb<TDefault = unknown>(
       context,
       opts,
     ),
-    deleteByIndex: (indexName: string, query: IDBValidKey,) =>
+    deleteByIndex: (indexName: string, query: IndexQuery,) =>
       globalDbAPI.deleteByIndex(indexName, query, opts,),
-    deleteManyByIndex: (indexName: string, queries: IDBValidKey[],) =>
+    deleteManyByIndex: (indexName: string, queries: IndexQuery[],) =>
       globalDbAPI.deleteManyByIndex(indexName, queries, opts,),
     delSomeByIndex: <T = TDefault, C = unknown,>(
       indexName: string,
-      query: IDBValidKey,
+      query: IndexQuery,
       fn: (items: WithId<T>[], ctx: C,) => WithId<T>[],
       context?: C,
     ) => globalDbAPI.delSomeByIndex<T, C>(
@@ -426,7 +498,7 @@ function createScopedDb<TDefault = unknown>(
     ),
     setSomeByIndex: <T = TDefault, C = unknown,>(
       indexName: string,
-      query: IDBValidKey,
+      query: IndexQuery,
       selectFn: (items: WithId<T>[], ctx: C,) => WithId<T>[],
       updateFn: (item: WithId<T>, ctx: C,) => WithId<T>,
       context?: C,
