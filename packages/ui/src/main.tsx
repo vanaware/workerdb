@@ -6,15 +6,19 @@ if ("serviceWorker" in navigator) {
   navigator.serviceWorker.getRegistrations().then(function (registrations,) {
     let unregisteredAny = false;
     const unregisterPromises = registrations.map((registration,) => {
-      console.log("Unregistering old service worker to fix AI Studio cache loop...",);
+      console.log(
+        "Unregistering old service worker to fix AI Studio cache loop...",
+      );
       unregisteredAny = true;
       return registration.unregister();
-    });
+    },);
 
-    Promise.all(unregisterPromises).then(() => {
+    Promise.all(unregisterPromises,).then(() => {
       if (unregisteredAny) {
-        console.log("Service Workers unregistered. Reloading to bust cache...",);
-        window.location.reload();
+        console.log(
+          "Service Workers unregistered. Reloading to bust cache...",
+        );
+        globalThis.location.reload();
       } else {
         // Only register if we didn't just unregister (to avoid infinite reload loops)
         navigator.serviceWorker.register("./sw.js", { type: "module", },)
@@ -28,8 +32,8 @@ if ("serviceWorker" in navigator) {
             )
           );
       }
-    });
-  });
+    },);
+  },);
 }
 
 const OPFSDemo = () => {
@@ -62,16 +66,32 @@ const OPFSDemo = () => {
   };
 
   return (
-    <article>
+    <article class="border">
       <h4>
-        OPFS Demo
+        Origin Private File System (OPFS)
       </h4>
       <p>
-        Origin Private File System interaction without blocking the main thread.
+        OPFS provides a high-performance, private, persistent file system
+        directly in the browser. WorkerDB gives you a clean API to interact with
+        it, avoiding the complexity of native file handles.
       </p>
-      <button type="button" class="primary" onClick={runTest}>
-        Run OPFS Test
-      </button>
+      <pre><code>{`const myOpfs = opfs("MY_DATA", "files", "FS_");
+await myOpfs.addFile("doc-id", fileBlob, "report.pdf");
+const file = await myOpfs.getFile("doc-id", "report.pdf");`}
+      </code></pre>
+      <div class="space">
+      </div>
+      <nav>
+        <button type="button" class="primary" onClick={runTest}>
+          Run OPFS Test
+        </button>
+        <a href="./opfs/" target="_blank" class="button transparent">
+          <i>
+            open_in_new
+          </i>{" "}
+          Open OPFS Explorer
+        </a>
+      </nav>
       <pre><code>{log}</code></pre>
     </article>
   );
@@ -121,13 +141,30 @@ const IndexQueryDemo = () => {
   };
 
   return (
-    <article>
+    <article class="border">
       <h4>
-        Index Queries Demo
+        Indexed Queries
       </h4>
       <p>
-        Native IDB features like countByIndex, ranges, etc.
+        Querying large sets of data in IndexedDB can be slow if done manually.
+        WorkerDB leverages native IDB indexes for blazing fast aggregations,
+        lookups, and range filters.
       </p>
+      <pre><code>{`const store = db({
+  dbName: "INDEX_DEMO", storeName: "store", indexes: ["role", "age"]
+});
+
+// Native Count
+const count = await store.countByIndex("active", 1);
+
+// Range Filters
+const adults = await store.getByIndex("age", { gte: 18, lte: 65 });
+
+// Atomic Patch (Update multiple records instantly)
+await store.patchByIndex("active", 0, { active: 1 });`}
+      </code></pre>
+      <div class="space">
+      </div>
       <button type="button" class="primary" onClick={runTest}>
         Run Index Test
       </button>
@@ -184,18 +221,88 @@ const PaginationDemo = () => {
   };
 
   return (
-    <article>
+    <article class="border">
       <h4>
-        Pagination Demo
+        Cursor-Based Pagination
       </h4>
       <p>
-        Cursor based pagination via{" "}
+        Loading thousands of records at once crashes the browser. WorkerDB
+        supports native cursor-based pagination, allowing you to stream records
+        efficiently using{" "}
         <code>
           getByIndexPaginated
         </code>.
       </p>
+      <pre><code>{`const res = await store.getByIndexPaginated("category", "sys", { limit: 5 });
+console.log(res.items);
+
+// Fetch next page using the cursor
+const nextPage = await store.getByIndexPaginated("category", "sys", {
+  limit: 5,
+  cursor: res.nextCursor
+});`}
+      </code></pre>
+      <div class="space">
+      </div>
       <button type="button" class="primary" onClick={runTest}>
         Run Pagination Test
+      </button>
+      <pre><code>{log}</code></pre>
+    </article>
+  );
+};
+
+const SWDemo = () => {
+  const [log, setLog,] = useState("",);
+  const addLog = (msg: string,) => setLog((prev,) => prev + msg + "\n");
+
+  const runTest = () => {
+    if (!navigator.serviceWorker || !navigator.serviceWorker.controller) {
+      addLog(
+        "Error: Service Worker not active.\n\nNote: If you are in the AI Studio preview environment, strict redirects might prevent the Service Worker from registering correctly during development. This feature works beautifully in production (like GitHub Pages)!",
+      );
+      return;
+    }
+
+    addLog("Sending 'RUN_SW_DEMO' to Service Worker...",);
+    const channel = new MessageChannel();
+    channel.port1.onmessage = (event,) => {
+      addLog(
+        "Response from Service Worker:\n" +
+          JSON.stringify(event.data, null, 2,),
+      );
+    };
+
+    navigator.serviceWorker.controller.postMessage(
+      { type: "RUN_SW_DEMO", },
+      [channel.port2,],
+    );
+  };
+
+  return (
+    <article class="border">
+      <h4>
+        Service Worker Backend
+      </h4>
+      <p>
+        WorkerDB doesn't just run on the main thread or Web Workers—it runs
+        seamlessly inside your{" "}
+        <strong>
+          Service Worker
+        </strong>!
+      </p>
+      <p>
+        This allows you to handle background syncs, push notifications, and
+        offline routing while having full access to your IndexedDB and OPFS
+        databases.
+      </p>
+      <pre><code>{`// Inside sw.ts:
+const msgStore = db("SYNTAXMESH_DATA", "messages", "MSG_");
+await msgStore.set("auto", { senderId: "system_sw", ... });`}</code></pre>
+      <div class="space">
+      </div>
+      <button type="button" class="primary" onClick={runTest}>
+        Run SW Test
       </button>
       <pre><code>{log}</code></pre>
     </article>
@@ -238,6 +345,15 @@ const App = () => {
           </i>
           Pagination
         </button>
+        <button
+          type="button"
+          class={`chip ${tab === "sw" ? "active" : "transparent"}`}
+          onClick={() => setTab("sw",)}>
+          <i>
+            memory
+          </i>
+          Service Worker
+        </button>
       </nav>
 
       <div class="space">
@@ -246,6 +362,7 @@ const App = () => {
       {tab === "opfs" && <OPFSDemo />}
       {tab === "index" && <IndexQueryDemo />}
       {tab === "pagination" && <PaginationDemo />}
+      {tab === "sw" && <SWDemo />}
     </main>
   );
 };

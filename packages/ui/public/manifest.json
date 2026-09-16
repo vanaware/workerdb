@@ -1,0 +1,16 @@
+{
+  "name": "WorkerDB PWA",
+  "short_name": "WorkerDB",
+  "description": "WorkerDB Offline PWA Demo",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#1a1c19",
+  "theme_color": "#9edeb6",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%239edeb6'/><text x='50' y='68' font-size='50' font-family='system-ui, sans-serif' font-weight='bold' text-anchor='middle' fill='%231a1c19'>L</text></svg>",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 {
   "name": "@vanaware/workerdb",
-  "version": "0.0.36-mu3x8qtt",
+  "version": "0.0.42-mu3xn55i",
   "exports": {
     ".": "./packages/worker-db/src/mod-main.ts",
     "./sw": "./packages/worker-db/src/mod-sw.ts",
