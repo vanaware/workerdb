@@ -31,6 +31,9 @@ export interface DbStoreOptions {
   dbName?: string;
   storeName?: string;
   prefix?: string;
+  indexes?: string[];
+  dbVersion?: number;
+  validatorStr?: string;
 }
 
 export interface OpfsStoreOptions extends DbStoreOptions {
@@ -47,16 +50,50 @@ export interface OpfsFileInfo {
 
 const storeCache = new Map<string, UseStore>();
 
+function createStoreWithIndexes(dbName: string, storeName: string, indexes?: string[], dbVersion?: number): UseStore {
+  const request = indexedDB.open(dbName, dbVersion);
+  request.onupgradeneeded = () => {
+    const db = request.result;
+    if (!db.objectStoreNames.contains(storeName)) {
+      const store = db.createObjectStore(storeName);
+      if (indexes) {
+        for (const index of indexes) {
+          store.createIndex(index, index);
+        }
+      }
+    } else if (indexes) {
+      // If store exists but we requested indexes, try to add them
+      const store = request.transaction!.objectStore(storeName);
+      for (const index of indexes) {
+        if (!store.indexNames.contains(index)) {
+          store.createIndex(index, index);
+        }
+      }
+    }
+  };
+  const dbp = new Promise<IDBDatabase>((resolve, reject) => {
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+  return (txMode, callback) =>
+    dbp.then((db) =>
+      callback(db.transaction(storeName, txMode).objectStore(storeName))
+    );
+}
+
 function getCustomStore(
   dbName?: string,
   storeName = "keyval",
+  indexes?: string[],
+  dbVersion?: number
 ): UseStore | undefined {
   if (!dbName) return undefined;
-  const cacheKey = `${dbName}:${storeName}`;
-  if (!storeCache.has(cacheKey,)) {
-    storeCache.set(cacheKey, createStore(dbName, storeName,),);
+  // Incorporate version into cache key if provided so it recreates if version changes
+  const cacheKey = `${dbName}:${storeName}:${dbVersion || 1}`;
+  if (!storeCache.has(cacheKey)) {
+    storeCache.set(cacheKey, createStoreWithIndexes(dbName, storeName, indexes, dbVersion));
   }
-  return storeCache.get(cacheKey,);
+  return storeCache.get(cacheKey);
 }
 
 function formatDbEntries(
@@ -85,12 +122,20 @@ async function getRecordDir(
   return curr;
 }
 
+function validateDbItem(val: unknown, validatorStr?: string) {
+  if (!validatorStr || val === undefined) return;
+  const validatorFn = new Function("val", `return (${validatorStr})(val);`);
+  if (!validatorFn(val)) {
+    throw new Error(`Validation failed for item: ${JSON.stringify(val)}`);
+  }
+}
+
 export const globalSwDbAPI = {
   get: async <T,>(
     key: string,
     opts?: DbStoreOptions,
   ): Promise<WithId<T> | undefined> => {
-    const store = getCustomStore(opts?.dbName, opts?.storeName,);
+    const store = getCustomStore(opts?.dbName, opts?.storeName, opts?.indexes, opts?.dbVersion);
     const rawKey = opts?.prefix && !key.startsWith(opts.prefix,)
       ? `${opts.prefix}${key}`
       : key;
@@ -116,12 +161,13 @@ export const globalSwDbAPI = {
       keyToSave = keyOrVal;
       valToSave = val;
     }
-    const store = getCustomStore(options.dbName, options.storeName,);
+    const store = getCustomStore(options.dbName, options.storeName, options.indexes, options.dbVersion);
     const { key, cleanVal, } = prepareForSave(
       keyToSave,
       valToSave,
       options.prefix,
     );
+    validateDbItem(cleanVal, options.validatorStr);
     await set(key, cleanVal, store,);
     return key;
   },
@@ -142,7 +188,7 @@ export const globalSwDbAPI = {
     context?: C,
     opts?: DbStoreOptions,
   ): Promise<WithId<T>> => {
-    const store = getCustomStore(opts?.dbName, opts?.storeName,);
+    const store = getCustomStore(opts?.dbName, opts?.storeName, opts?.indexes, opts?.dbVersion);
     const rawKey = opts?.prefix && !key.startsWith(opts.prefix,)
       ? `${opts.prefix}${key}`
       : key;
@@ -162,12 +208,13 @@ export const globalSwDbAPI = {
       updated,
       opts?.prefix,
     );
+    validateDbItem(cleanVal, opts?.validatorStr);
     await set(finalKey, cleanVal, store,);
     return formatDbItem(finalKey, cleanVal, opts?.prefix,) as WithId<T>;
   },
 
   delete: async (key: string, opts?: DbStoreOptions,): Promise<void> => {
-    const store = getCustomStore(opts?.dbName, opts?.storeName,);
+    const store = getCustomStore(opts?.dbName, opts?.storeName, opts?.indexes, opts?.dbVersion);
     const rawKey = opts?.prefix && !key.startsWith(opts.prefix,)
       ? `${opts.prefix}${key}`
       : key;
@@ -178,7 +225,7 @@ export const globalSwDbAPI = {
     keysList: string[],
     opts?: DbStoreOptions,
   ): Promise<(WithId<T> | undefined)[]> => {
-    const store = getCustomStore(opts?.dbName, opts?.storeName,);
+    const store = getCustomStore(opts?.dbName, opts?.storeName, opts?.indexes, opts?.dbVersion);
     const fullKeys = keysList.map((k,) =>
       opts?.prefix && !k.startsWith(opts.prefix,) ? `${opts.prefix}${k}` : k
     );
@@ -194,9 +241,10 @@ export const globalSwDbAPI = {
     entriesList: [string, unknown,][],
     opts?: DbStoreOptions,
   ): Promise<void> => {
-    const store = getCustomStore(opts?.dbName, opts?.storeName,);
+    const store = getCustomStore(opts?.dbName, opts?.storeName, opts?.indexes, opts?.dbVersion);
     const entriesToSet: [string, unknown,][] = entriesList.map(([k, v,],) => {
       const { key, cleanVal, } = prepareForSave(k, v, opts?.prefix,);
+      validateDbItem(cleanVal, opts?.validatorStr);
       return [key, cleanVal,];
     },);
     await setMany(entriesToSet, store,);
@@ -206,7 +254,7 @@ export const globalSwDbAPI = {
     keysList: string[],
     opts?: DbStoreOptions,
   ): Promise<void> => {
-    const store = getCustomStore(opts?.dbName, opts?.storeName,);
+    const store = getCustomStore(opts?.dbName, opts?.storeName, opts?.indexes, opts?.dbVersion);
     const fullKeys = keysList.map((k,) =>
       opts?.prefix && !k.startsWith(opts.prefix,) ? `${opts.prefix}${k}` : k
     );
@@ -214,7 +262,7 @@ export const globalSwDbAPI = {
   },
 
   keys: async (opts?: DbStoreOptions,): Promise<string[]> => {
-    const store = getCustomStore(opts?.dbName, opts?.storeName,);
+    const store = getCustomStore(opts?.dbName, opts?.storeName, opts?.indexes, opts?.dbVersion);
     const allKeys = await keys(store,);
     return opts?.prefix
       ? allKeys.filter((k,) =>
@@ -224,13 +272,13 @@ export const globalSwDbAPI = {
   },
 
   values: async <T,>(opts?: DbStoreOptions,): Promise<T[]> => {
-    const store = getCustomStore(opts?.dbName, opts?.storeName,);
+    const store = getCustomStore(opts?.dbName, opts?.storeName, opts?.indexes, opts?.dbVersion);
     const allEntries = await entries(store,);
     return formatDbEntries(allEntries, opts?.prefix,) as unknown as T[];
   },
 
   entries: async <T,>(opts?: DbStoreOptions,): Promise<[string, T,][]> => {
-    const store = getCustomStore(opts?.dbName, opts?.storeName,);
+    const store = getCustomStore(opts?.dbName, opts?.storeName, opts?.indexes, opts?.dbVersion);
     const allEntries = await entries(store,);
     return opts?.prefix
       ? allEntries.filter(([k,],) =>
@@ -243,7 +291,7 @@ export const globalSwDbAPI = {
   },
 
   clear: async (opts?: DbStoreOptions,): Promise<void> => {
-    const store = getCustomStore(opts?.dbName, opts?.storeName,);
+    const store = getCustomStore(opts?.dbName, opts?.storeName, opts?.indexes, opts?.dbVersion);
     if (opts?.prefix) {
       const allKeys = await keys(store,);
       const keysToDelete = allKeys.filter((k,) =>
@@ -260,7 +308,7 @@ export const globalSwDbAPI = {
     context?: C,
     opts?: DbStoreOptions,
   ): Promise<R> => {
-    const store = getCustomStore(opts?.dbName, opts?.storeName,);
+    const store = getCustomStore(opts?.dbName, opts?.storeName, opts?.indexes, opts?.dbVersion);
     const rawEntries = await entries(store,);
     const formattedItems = formatDbEntries(rawEntries, opts?.prefix,);
     return fn(formattedItems as WithId<T>[], context,);
@@ -271,7 +319,7 @@ export const globalSwDbAPI = {
     context?: C,
     opts?: DbStoreOptions,
   ): Promise<WithId<T>[]> => {
-    const store = getCustomStore(opts?.dbName, opts?.storeName,);
+    const store = getCustomStore(opts?.dbName, opts?.storeName, opts?.indexes, opts?.dbVersion);
     const rawEntries = await entries(store,);
     const formattedItems = formatDbEntries(rawEntries, opts?.prefix,);
     const selectedItems = fn(formattedItems as WithId<T>[], context,);
@@ -286,7 +334,7 @@ export const globalSwDbAPI = {
     context?: C,
     opts?: DbStoreOptions,
   ): Promise<void> => {
-    const store = getCustomStore(opts?.dbName, opts?.storeName,);
+    const store = getCustomStore(opts?.dbName, opts?.storeName, opts?.indexes, opts?.dbVersion);
     const rawEntries = await entries(store,);
     const formattedItems = formatDbEntries(rawEntries, opts?.prefix,);
     const selectedItems = fn(formattedItems as WithId<T>[], context,);
@@ -314,7 +362,7 @@ export const globalSwDbAPI = {
     context?: C,
     opts?: DbStoreOptions,
   ): Promise<void> => {
-    const store = getCustomStore(opts?.dbName, opts?.storeName,);
+    const store = getCustomStore(opts?.dbName, opts?.storeName, opts?.indexes, opts?.dbVersion);
     const rawEntries = await entries(store,);
     const formattedItems = formatDbEntries(rawEntries, opts?.prefix,);
 
@@ -338,6 +386,7 @@ export const globalSwDbAPI = {
           updatedItem,
           opts?.prefix,
         );
+        validateDbItem(cleanVal, opts?.validatorStr);
         return [key, cleanVal,];
       },
     );
@@ -347,7 +396,7 @@ export const globalSwDbAPI = {
   exportDB: async (
     opts?: DbStoreOptions,
   ): Promise<Record<string, unknown>> => {
-    const store = getCustomStore(opts?.dbName, opts?.storeName,);
+    const store = getCustomStore(opts?.dbName, opts?.storeName, opts?.indexes, opts?.dbVersion);
     const allEntries = await entries(store,);
     const filtered = opts?.prefix
       ? allEntries.filter(([k,],) =>
@@ -362,7 +411,7 @@ export const globalSwDbAPI = {
     clearFirst = false,
     opts?: DbStoreOptions,
   ): Promise<void> => {
-    const store = getCustomStore(opts?.dbName, opts?.storeName,);
+    const store = getCustomStore(opts?.dbName, opts?.storeName, opts?.indexes, opts?.dbVersion);
     if (clearFirst) await globalSwDbAPI.clear(opts,);
 
     const entriesToImport: [string, unknown,][] = Object.entries(data,).map(
@@ -379,7 +428,7 @@ export const globalSwDbAPI = {
     fileName?: string,
     opts?: DbStoreOptions,
   ): Promise<string> => {
-    const store = getCustomStore(opts?.dbName, opts?.storeName,);
+    const store = getCustomStore(opts?.dbName, opts?.storeName, opts?.indexes, opts?.dbVersion);
     const allEntries = await entries(store,);
     const filtered = opts?.prefix
       ? allEntries.filter(([k,],) =>
@@ -423,7 +472,7 @@ export const globalSwDbAPI = {
     const file = await fileHandle.getFile();
     const data = JSON.parse(await file.text(),);
 
-    const store = getCustomStore(opts?.dbName, opts?.storeName,);
+    const store = getCustomStore(opts?.dbName, opts?.storeName, opts?.indexes, opts?.dbVersion);
     if (clearFirst) await globalSwDbAPI.clear(opts,);
 
     const entriesToImport: [string, unknown,][] = Object.entries(data,).map(
