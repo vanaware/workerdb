@@ -417,6 +417,7 @@ export const globalSwDbAPI = {
     const entriesToImport: [string, unknown,][] = Object.entries(data,).map(
       ([k, v,],) => {
         const { key, cleanVal, } = prepareForSave(k, v, opts?.prefix,);
+        validateDbItem(cleanVal, opts?.validatorStr);
         return [key, cleanVal,];
       },
     );
