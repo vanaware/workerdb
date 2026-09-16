@@ -19,20 +19,22 @@ npm install webtorrent
 const client = new WebTorrent();
 
 const torrentId =
-  'magnet:?xt=urn:btih:08ada5a7a6183aae1e09d831df6748d566095a10&dn=Sintel&tr=udp%3A%2F%2Fexplodie.org%3A6969&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969&tr=udp%3A%2F%2Ftracker.empire-js.us%3A1337&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337&tr=wss%3A%2F%2Ftracker.btorrent.xyz&tr=wss%3A%2F%2Ftracker.fastcast.nz&tr=wss%3A%2F%2Ftracker.openwebtorrent.com&ws=https%3A%2F%2Fwebtorrent.io%2Ftorrents%2F&xs=https%3A%2F%2Fwebtorrent.io%2Ftorrents%2Fsintel.torrent';
+  "magnet:?xt=urn:btih:08ada5a7a6183aae1e09d831df6748d566095a10&dn=Sintel&tr=udp%3A%2F%2Fexplodie.org%3A6969&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969&tr=udp%3A%2F%2Ftracker.empire-js.us%3A1337&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337&tr=wss%3A%2F%2Ftracker.btorrent.xyz&tr=wss%3A%2F%2Ftracker.fastcast.nz&tr=wss%3A%2F%2Ftracker.openwebtorrent.com&ws=https%3A%2F%2Fwebtorrent.io%2Ftorrents%2F&xs=https%3A%2F%2Fwebtorrent.io%2Ftorrents%2Fsintel.torrent";
 
-const controller = await navigator.serviceWorker.register('./sw.min.js', { scope: './', },);
+const controller = await navigator.serviceWorker.register("./sw.min.js", {
+  scope: "./",
+},);
 await navigator.serviceWorker.ready;
 client.createServer({ controller, },);
 
 client.add(torrentId, (torrent,) => {
   // Torrents can contain many files. Let's use the .mp4 file
   const file = torrent.files.find((file,) => {
-    return file.name.endsWith('.mp4',);
+    return file.name.endsWith(".mp4",);
   },);
 
   // Display the file by adding it to the DOM. Supports video, audio, image, etc. files
-  file.streamTo(document.querySelector('video',),);
+  file.streamTo(document.querySelector("video",),);
 },);
 ```
 
@@ -205,8 +207,8 @@ the name is included in the object. For Uint8Array or Readable stream types, a `
 can be set on the object, like this:
 
 ```js
-const buf = new Uint8Array('Some file content',);
-buf.name = 'Some file name';
+const buf = new Uint8Array("Some file content",);
+buf.name = "Some file name";
 client.seed(buf, cb,);
 ```
 
@@ -300,7 +302,7 @@ If `opts` is specified, it can have the following properties:
 If `force` is specified, it can force WebTorrent to use a specific implementation for enviorments which run both Node and Browser like NW.js or Electron. Allowed values:
 
 ```js
-'browser' || 'node';
+"browser" || "node";
 ```
 
 Visiting the root of the server `/` won't show anything. Visiting `/webtorrent/` will list all torrents. Access individual torrents at `/webtorrent/<infohash>` where `infohash` is the hash of the torrent. To acceess individual files, go to `/webtorrent/<infoHash>/<filepath>` where filepath is the file's path in the torrent.
@@ -309,7 +311,7 @@ Here is a usage example for Node.js:
 
 ```js
 const client = new WebTorrent();
-const magnetURI = 'magnet: ...';
+const magnetURI = "magnet: ...";
 
 const instance = client.createServer();
 instance.server.listen(0,); // start the server listening to a port
@@ -335,10 +337,12 @@ Here is a user example for browser:
 
 ```js
 const client = new WebTorrent();
-const magnetURI = 'magnet: ...';
-const player = document.querySelector('video',);
+const magnetURI = "magnet: ...";
+const player = document.querySelector("video",);
 
-const controller = await navigator.serviceWorker.register('./sw.min.js', { scope: './', },);
+const controller = await navigator.serviceWorker.register("./sw.min.js", {
+  scope: "./",
+},);
 await navigator.serviceWorker.ready;
 client.createServer({ controller, },);
 
@@ -599,8 +603,8 @@ Emitted when all the torrent files have been downloaded.
 Here is a usage example:
 
 ```js
-torrent.on('done', () => {
-  console.log('torrent finished downloading',);
+torrent.on("done", () => {
+  console.log("torrent finished downloading",);
   for (const file of torrent.files) {
     // do something with file
   }
@@ -613,11 +617,11 @@ Emitted whenever data is downloaded. Useful for reporting the current torrent st
 instance:
 
 ```js
-torrent.on('download', (bytes,) => {
-  console.log('just downloaded: ' + bytes,);
-  console.log('total downloaded: ' + torrent.downloaded,);
-  console.log('download speed: ' + torrent.downloadSpeed,);
-  console.log('progress: ' + torrent.progress,);
+torrent.on("download", (bytes,) => {
+  console.log("just downloaded: " + bytes,);
+  console.log("total downloaded: " + torrent.downloaded,);
+  console.log("download speed: " + torrent.downloadSpeed,);
+  console.log("progress: " + torrent.progress,);
 },);
 ```
 
@@ -635,10 +639,10 @@ node.js-style duplex stream to the remote peer. This event can be used to specif
 Here is a usage example:
 
 ```js
-import MyExtension from './my-extension';
+import MyExtension from "./my-extension";
 
-torrent1.on('wire', (wire, addr,) => {
-  console.log('connected to peer with address ' + addr,);
+torrent1.on("wire", (wire, addr,) => {
+  console.log("connected to peer with address " + addr,);
   wire.use(MyExtension,);
 },);
 ```
@@ -848,15 +852,15 @@ const url = file.streamURL;
 
 // create download link
 if (err) throw err;
-const a = document.createElement('a',);
-a.target = '_blank';
+const a = document.createElement("a",);
+a.target = "_blank";
 a.href = url;
-a.textContent = 'Download ' + file.name;
+a.textContent = "Download " + file.name;
 document.body.append(a,);
 
 // render an image on a canvas
-const canvas = document.getElementById('canvas',);
-const ctx = canvas.getContext('2d',);
+const canvas = document.getElementById("canvas",);
+const ctx = canvas.getContext("2d",);
 const img = new Image();
 const loaded = new Promise((resolve,) => img.onload = resolve);
 img.src = url;
@@ -864,7 +868,7 @@ await loaded;
 ctx.drawImage(img,);
 
 // send the file URL to another device on the network which can then display the file remotely [nodejs only]
-import networkAddress from 'network-address';
+import networkAddress from "network-address";
 
 const networkURL = `http://${networkAddress()}:${client._server.port}${url}`;
 sendRemote(networkURL,);
@@ -887,8 +891,8 @@ Yields an object with 3 values and a function:
 Example usage:
 
 ```js
-file.on('stream', ({ stream, file, req, }, cb,) => {
-  if (req.destination === 'audio' && file.name.endsWith('.dts',)) {
+file.on("stream", ({ stream, file, req, }, cb,) => {
+  if (req.destination === "audio" && file.name.endsWith(".dts",)) {
     const transcoder = new SomeAudioTranscoder();
     cb(transcoder,);
     // do other things
@@ -913,9 +917,9 @@ Yields an object with 3 values and a function:
 Example usage:
 
 ```js
-import par from 'it-parallel';
+import par from "it-parallel";
 
-file.on('iterator', ({ iterator, file, req, }, cb,) => {
+file.on("iterator", ({ iterator, file, req, }, cb,) => {
   const transform = par(iterator, { concurrency: 5, ordered: true, },);
   cb(transform,);
 },);

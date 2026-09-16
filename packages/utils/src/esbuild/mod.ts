@@ -1,6 +1,6 @@
 /// <reference lib="deno.ns" />
-import { copy, emptyDir, ensureDir, walk, } from '@std/fs';
-import { isAbsolute, join, } from '@std/path';
+import { copy, emptyDir, ensureDir, walk, } from "@std/fs";
+import { isAbsolute, join, } from "@std/path";
 
 // ============================================================================
 // 📦 TIPOS
@@ -12,7 +12,7 @@ import type {
   ParsedArgs,
   ParsedVersion,
   TargetConfig,
-} from '../interfaces/mod.ts';
+} from "../interfaces/mod.ts";
 
 // ============================================================================
 // 🔢 FUNÇÕES DE VERSÃO (puras, testáveis)
@@ -22,18 +22,22 @@ export function parseVersion(version: string,): ParsedVersion {
   if (trimmed !== version) {
     throw new Error(`❌ Versão não pode ter espaços: ${version}`,);
   }
-  const versionWithoutHash = version.split('-',)[0] ?? '';
-  if (version.includes('-',) && version.endsWith('-',)) {
-    throw new Error(`❌ Formato de versão inválido (hífen sem hash): ${version}`,);
+  const versionWithoutHash = version.split("-",)[0] ?? "";
+  if (version.includes("-",) && version.endsWith("-",)) {
+    throw new Error(
+      `❌ Formato de versão inválido (hífen sem hash): ${version}`,
+    );
   }
-  const parts = versionWithoutHash.split('.',);
+  const parts = versionWithoutHash.split(".",);
   if (parts.length !== 3) {
     throw new Error(`❌ Formato de versão inválido: ${version}`,);
   }
   const majorStr = parts[0];
   const minorStr = parts[1];
   const patchStr = parts[2];
-  if (majorStr === undefined || minorStr === undefined || patchStr === undefined) {
+  if (
+    majorStr === undefined || minorStr === undefined || patchStr === undefined
+  ) {
     throw new Error(`❌ Formato de versão inválido: ${version}`,);
   }
   const major = parseInt(majorStr, 10,);
@@ -60,7 +64,10 @@ export function extractVersionFromContent(content: string,): string | null {
   return match && match[1] ? match[1] : null;
 }
 
-export function replaceVersionInContent(content: string, newVersion: string,): string {
+export function replaceVersionInContent(
+  content: string,
+  newVersion: string,
+): string {
   return content.replace(
     /"version"\s*:\s*"[^"]+"/,
     `"version": "${newVersion}"`,
@@ -71,7 +78,7 @@ export function replaceVersionInContent(content: string, newVersion: string,): s
 // 🛡️ VALIDAÇÃO DE PATHS (pura, testável)
 // ============================================================================
 export function isSafePath(cleanPath: string,): boolean {
-  if (cleanPath.includes('..',)) return false;
+  if (cleanPath.includes("..",)) return false;
   if (isAbsolute(cleanPath,)) return false;
   return true;
 }
@@ -100,22 +107,32 @@ export function validateTargetConfig(
     );
   }
   if (config.indexHtml === true && !config.distdir) {
-    reasons.push("'indexHtml' é true (necessário 'distdir' para copiar o HTML)",);
+    reasons.push(
+      "'indexHtml' é true (necessário 'distdir' para copiar o HTML)",
+    );
   }
   if (!config.outfile && !config.distdir) {
-    reasons.push("'outfile' não está configurado (necessário 'distdir' para usar como 'outdir')",);
+    reasons.push(
+      "'outfile' não está configurado (necessário 'distdir' para usar como 'outdir')",
+    );
   }
 
   // Validação de srcdir
   if (config.indexHtml === true && !config.srcdir) {
-    reasons.push("'indexHtml' é true (necessário 'srcdir' para copiar o HTML)",);
+    reasons.push(
+      "'indexHtml' é true (necessário 'srcdir' para copiar o HTML)",
+    );
   }
 
   // Verifica se algum entrypoint é relativo e srcdir não existe
   if (!config.srcdir && config.entryPoints && config.entryPoints.length > 0) {
-    const hasRelativeEntry = config.entryPoints.some((entry,) => !isAbsolute(entry,));
+    const hasRelativeEntry = config.entryPoints.some((entry,) =>
+      !isAbsolute(entry,)
+    );
     if (hasRelativeEntry) {
-      reasons.push("'entryPoints' contém caminhos relativos (necessário 'srcdir' para resolver)",);
+      reasons.push(
+        "'entryPoints' contém caminhos relativos (necessário 'srcdir' para resolver)",
+      );
     }
   }
 
@@ -130,9 +147,9 @@ export function validateTargetConfig(
 
     throw new Error(
       `❌ [${targetName}] Configuração incompleta.\n` +
-        `   Campos obrigatórios faltando: ${missingFields.join(', ',)}\n` +
+        `   Campos obrigatórios faltando: ${missingFields.join(", ",)}\n` +
         `   Motivos:\n` +
-        reasons.map((r,) => `   - ${r}`).join('\n',) +
+        reasons.map((r,) => `   - ${r}`).join("\n",) +
         `\n   Por favor, configure os campos necessários no alvo '${targetName}'.`,
     );
   }
@@ -219,23 +236,27 @@ export function parseArgs(
   config: GlobalTargetConfig | DenoBundleGlobalConfig,
 ): ParsedArgs {
   const lowerArgs = args.map((a,) => a.toLowerCase());
-  const globalNoVersion = lowerArgs.includes('noversion',);
-  const isWatchFlag = lowerArgs.includes('watch',);
+  const globalNoVersion = lowerArgs.includes("noversion",);
+  const isWatchFlag = lowerArgs.includes("watch",);
   const configKeys = Object.keys(config,);
   const defaultTargets = configKeys.filter((t,) => {
     const cfg = config[t]!;
-    return cfg.mode !== 'watch' && cfg.default !== false;
+    return cfg.mode !== "watch" && cfg.default !== false;
   },);
   const requestedTargets = lowerArgs.filter(
-    (arg,) => !['noversion', 'watch',].includes(arg,) && configKeys.includes(arg,),
+    (arg,) =>
+      !["noversion", "watch",].includes(arg,) && configKeys.includes(arg,),
   );
   let watchTarget: string | null = null;
   if (isWatchFlag) {
-    watchTarget = configKeys.find((t,) => config[t]!.mode === 'watch') ?? null;
+    watchTarget = configKeys.find((t,) => config[t]!.mode === "watch") ?? null;
   } else if (requestedTargets.length > 0) {
-    const requestedWatches = requestedTargets.filter((t,) => config[t]!.mode === 'watch');
+    const requestedWatches = requestedTargets.filter((t,) =>
+      config[t]!.mode === "watch"
+    );
     if (requestedWatches.length > 0) {
-      watchTarget = configKeys.find((t,) => requestedWatches.includes(t,)) ?? null;
+      watchTarget = configKeys.find((t,) => requestedWatches.includes(t,)) ??
+        null;
     }
   }
   let finalTargets: string[];
@@ -252,15 +273,20 @@ export function parseArgs(
 // ============================================================================
 // 📂 FUNÇÕES DE FILESYSTEM
 // ============================================================================
-export async function cleanTarget(distDir: string, cleanPaths: string[],): Promise<void> {
+export async function cleanTarget(
+  distDir: string,
+  cleanPaths: string[],
+): Promise<void> {
   if (!cleanPaths || cleanPaths.length === 0) return;
   console.log(`🧹 Limpando em ${distDir}...`,);
   for (const cleanPath of cleanPaths) {
     if (!isSafePath(cleanPath,)) {
-      console.warn(`   ⚠️ Path perigoso ignorado (traversal/absoluto): "${cleanPath}"`,);
+      console.warn(
+        `   ⚠️ Path perigoso ignorado (traversal/absoluto): "${cleanPath}"`,
+      );
       continue;
     }
-    if (cleanPath === '.') {
+    if (cleanPath === ".") {
       try {
         await emptyDir(distDir,);
         console.log(`   ✅ Diretório esvaziado: ${distDir}`,);
@@ -284,7 +310,7 @@ export async function currentVersion(denoJsoncPath: string,): Promise<string> {
   const content = await Deno.readTextFile(denoJsoncPath,);
   const version = extractVersionFromContent(content,);
   if (!version) {
-    throw new Error('❌ Versão não encontrada no deno.jsonc',);
+    throw new Error("❌ Versão não encontrada no deno.jsonc",);
   }
   console.log(`📌 Versão Atual: v${version}`,);
   return version;
@@ -311,20 +337,26 @@ export async function listAssetsForCache(
 ): Promise<string[]> {
   // 🔥 CORREÇÃO: Verifica se distDir foi fornecido antes de tentar caminhar
   if (!distDir) {
-    console.warn(`⚠️ 'listAssetsForCache' chamado sem 'distDir'. Retornando array vazio.`,);
+    console.warn(
+      `⚠️ 'listAssetsForCache' chamado sem 'distDir'. Retornando array vazio.`,
+    );
     return [];
   }
 
   const assets: string[] = [];
-  const exclude = new Set([...excludeFiles, 'service-worker.js', 'service-worker.tmp.js',],);
+  const exclude = new Set([
+    ...excludeFiles,
+    "service-worker.js",
+    "service-worker.tmp.js",
+  ],);
   for await (const entry of walk(distDir, { includeDirs: false, },)) {
     if (
-      !entry.name.endsWith('.map',) &&
-      !entry.name.endsWith('metafile.json',) &&
+      !entry.name.endsWith(".map",) &&
+      !entry.name.endsWith("metafile.json",) &&
       !exclude.has(entry.name,)
     ) {
-      let webPath = entry.path.replace(distDir, '',).replace(/\\/g, '/',);
-      webPath = webPath.startsWith('/',) ? '.' + webPath : './' + webPath;
+      let webPath = entry.path.replace(distDir, "",).replace(/\\/g, "/",);
+      webPath = webPath.startsWith("/",) ? "." + webPath : "./" + webPath;
       assets.push(webPath,);
     }
   }
@@ -343,13 +375,17 @@ export async function copyStaticFiles(
       );
     }
     if (config.indexHtml) {
-      console.warn(`⚠️ 'indexHtml' é true mas 'distdir' ausente. Pulando cópia do HTML.`,);
+      console.warn(
+        `⚠️ 'indexHtml' é true mas 'distdir' ausente. Pulando cópia do HTML.`,
+      );
     }
     return;
   }
 
   if (config.indexHtml && !config.srcdir) {
-    console.warn(`⚠️ 'indexHtml' é true mas 'srcdir' ausente. Pulando cópia do HTML.`,);
+    console.warn(
+      `⚠️ 'indexHtml' é true mas 'srcdir' ausente. Pulando cópia do HTML.`,
+    );
     return;
   }
 
@@ -359,26 +395,33 @@ export async function copyStaticFiles(
   if (config.publicdir) {
     try {
       await copy(config.publicdir, distDir, { overwrite: true, },);
-      console.log(`📁 Arquivos de ${config.publicdir} copiados para ${distDir}`,);
-      const manifestPath = join(distDir, 'manifest.json',);
+      console.log(
+        `📁 Arquivos de ${config.publicdir} copiados para ${distDir}`,
+      );
+      const manifestPath = join(distDir, "manifest.json",);
       try {
         const manifestText = await Deno.readTextFile(manifestPath,);
         const manifestObj = JSON.parse(manifestText,);
         manifestObj.version = appVersion;
-        await Deno.writeTextFile(manifestPath, JSON.stringify(manifestObj, null, 2,),);
+        await Deno.writeTextFile(
+          manifestPath,
+          JSON.stringify(manifestObj, null, 2,),
+        );
         console.log(`📱 Versão v${appVersion} injetada em manifest.json`,);
       } catch {
         // manifest.json não existe
       }
     } catch {
-      console.log(`⚠️ Pasta ${config.publicdir} não encontrada, pulando cópia.`,);
+      console.log(
+        `⚠️ Pasta ${config.publicdir} não encontrada, pulando cópia.`,
+      );
     }
   }
 
   if (config.indexHtml && config.srcdir) {
     const srcDir = config.srcdir;
-    const srcHtml = join(srcDir, 'index.html',);
-    const destHtml = join(distDir, 'index.html',);
+    const srcHtml = join(srcDir, "index.html",);
+    const destHtml = join(distDir, "index.html",);
     try {
       await copy(srcHtml, destHtml, { overwrite: true, },);
       console.log(`📄 index.html copiado de ${srcDir} para ${distDir}`,);
@@ -404,14 +447,17 @@ export async function buildEsbuildOptions(
   };
 
   // 🔥 CORREÇÃO: Só lista assets se distdir existe
-  if (targetName === 'sw' && listAssetsFn && config.distdir) {
+  if (targetName === "sw" && listAssetsFn && config.distdir) {
     const assets = await listAssetsFn(config.distdir,);
-    finalDefine['__GENERATED_ASSETS__'] = JSON.stringify(assets,);
+    finalDefine["__GENERATED_ASSETS__"] = JSON.stringify(assets,);
     console.log(`📋 ${assets.length} assets listados para cache do SW`,);
   }
 
   // 🔥 RESOLUÇÃO DE ENTRYPOINTS (srcdir opcional)
-  const resolvedEntryPoints = resolveEntryPoints(config.srcdir, config.entryPoints,);
+  const resolvedEntryPoints = resolveEntryPoints(
+    config.srcdir,
+    config.entryPoints,
+  );
 
   // 🔥 RESOLUÇÃO DE OUTPUT PATHS (outfile relativo ao distdir)
   const { outfile, outdir, } = resolveOutputPaths(config,);
@@ -429,36 +475,36 @@ export async function buildEsbuildOptions(
   }
 
   const optionalProps = [
-    'platform',
-    'format',
-    'bundle',
-    'minify',
-    'sourcemap',
-    'jsx',
-    'jsxImportSource',
-    'conditions',
-    'external',
-    'drop',
-    'metafile',
-    'write',
-    'treeShaking',
-    'legalComments',
-    'keepNames',
-    'splitting',
-    'loader',
-    'alias',
-    'inject',
-    'target',
-    'charset',
-    'logLevel',
-    'logLimit',
-    'logOverride',
-    'entryNames',
-    'chunkNames',
-    'assetNames',
-    'publicPath',
-    'pure',
-    'plugins',
+    "platform",
+    "format",
+    "bundle",
+    "minify",
+    "sourcemap",
+    "jsx",
+    "jsxImportSource",
+    "conditions",
+    "external",
+    "drop",
+    "metafile",
+    "write",
+    "treeShaking",
+    "legalComments",
+    "keepNames",
+    "splitting",
+    "loader",
+    "alias",
+    "inject",
+    "target",
+    "charset",
+    "logLevel",
+    "logLimit",
+    "logOverride",
+    "entryNames",
+    "chunkNames",
+    "assetNames",
+    "publicPath",
+    "pure",
+    "plugins",
   ];
   for (const prop of optionalProps) {
     // deno-lint-ignore no-explicit-any
@@ -511,16 +557,18 @@ export async function processTarget(
   // 🔥 VALIDAÇÃO FAIL-FAST: Verifica configuração ANTES de qualquer operação
   validateTargetConfig(targetName, config,);
 
-  console.log(`\n${'='.repeat(60,)}`,);
+  console.log(`\n${"=".repeat(60,)}`,);
   console.log(`🎯 PROCESSANDO ALVO: ${targetName.toUpperCase()}`,);
-  console.log(`${'='.repeat(60,)}`,);
+  console.log(`${"=".repeat(60,)}`,);
 
   if (config.clean && config.clean.length > 0) {
     // 🔥 CORREÇÃO: Só limpa se distdir existe
     if (config.distdir) {
       await cleanTarget(config.distdir, config.clean,);
     } else {
-      console.warn(`⚠️ 'clean' configurado mas 'distdir' ausente. Pulando limpeza.`,);
+      console.warn(
+        `⚠️ 'clean' configurado mas 'distdir' ausente. Pulando limpeza.`,
+      );
     }
   }
 
@@ -544,7 +592,10 @@ export async function processTarget(
     // 🔥 CORREÇÃO: Só salva metafile se distdir existe
     if (config.metafile && result.metafile && config.distdir) {
       const metafilePath = join(config.distdir, `${targetName}-metafile.json`,);
-      await Deno.writeTextFile(metafilePath, JSON.stringify(result.metafile, null, 2,),);
+      await Deno.writeTextFile(
+        metafilePath,
+        JSON.stringify(result.metafile, null, 2,),
+      );
       console.log(`📊 Metafile gerado: ${metafilePath}`,);
     }
   } catch (error) {
@@ -556,4 +607,4 @@ export async function processTarget(
 // ============================================================================
 // 📦 RE-EXPORT DO MÓDULO BUNDLE (Deno.bundle API)
 // ============================================================================
-export * from './bundle.ts';
+export * from "./bundle.ts";

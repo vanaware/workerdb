@@ -6,13 +6,14 @@
  * @returns {string} ID gerado
  */
 export function gerarId(): string {
-  if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+  if (typeof crypto !== "undefined" && crypto.getRandomValues) {
     const array = new Uint8Array(12,);
     crypto.getRandomValues(array,);
-    return Array.from(array, (byte,) => byte.toString(16,).padStart(2, '0',),).join('',).substring(
-      0,
-      12,
-    );
+    return Array.from(array, (byte,) => byte.toString(16,).padStart(2, "0",),)
+      .join("",).substring(
+        0,
+        12,
+      );
   }
   return gerarIdFallback();
 }
@@ -23,7 +24,8 @@ export function gerarId(): string {
  * @returns {string} ID temporário
  */
 export function gerarIdFallback(): string {
-  return Date.now().toString(36,) + Math.random().toString(36,).substring(2, 8,);
+  return Date.now().toString(36,) +
+    Math.random().toString(36,).substring(2, 8,);
 }
 
 /**
@@ -32,5 +34,5 @@ export function gerarIdFallback(): string {
  * @returns {boolean}
  */
 export function validarId(id: string,): boolean {
-  return typeof id === 'string' && id.length > 0 && id.length <= 24;
+  return typeof id === "string" && id.length > 0 && id.length <= 24;
 }

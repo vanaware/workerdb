@@ -4,7 +4,7 @@ import { serveDir, } from "@std/http/file-server";
 
 const port = Number(Deno.env.get("PORT",) ?? 3000,);
 
-Deno.serve({ port, }, async (req,) => {
+Deno.serve({ port, hostname: "0.0.0.0", }, async (req,) => {
   try {
     const staticResponse = await serveDir(req, {
       fsRoot: "./build/dist",

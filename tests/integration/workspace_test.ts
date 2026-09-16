@@ -16,18 +16,11 @@ const ROOT = resolve(Deno.cwd(),);
 const PACKAGES_DIR = join(ROOT, "packages",);
 
 const EXPECTED_PACKAGES = [
-  "core",
-  "parser",
-  "report",
-  "storage",
   "worker-db",
   "server",
   "ui",
   "utils",
   "service-worker",
-  "language",
-  "richtext",
-  "markdown",
 ];
 
 /**
@@ -138,19 +131,5 @@ describe("workspace", () => {
     }
   });
 
-  it("pacotes language, richtext e markdown devem ter exports apontando para mod.ts", () => {
-    for (const pkg of ["language", "richtext", "markdown",]) {
-      const configPath = join(PACKAGES_DIR, pkg, "deno.jsonc",);
-      const config = parseJSONC(Deno.readTextFileSync(configPath,),) as {
-        name: string;
-        exports: Record<string, unknown>;
-        tasks: Record<string, unknown>;
-      };
-      assertEquals(
-        config.exports["."],
-        "./mod.ts",
-        `Pacote ${pkg} deve exportar "./mod.ts"`,
-      );
-    }
-  });
+  // Removido teste de language, richtext e markdown pois eles não existem neste repo
 });

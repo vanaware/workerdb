@@ -2,7 +2,7 @@
 /// <reference lib="webworker" />
 
 import { dbsw as db, } from "@workerdb/workerdb";
-import { listOpfsFiles, } from "../src/utils/opfs.ts";
+import { listOpfsFiles, } from "../../worker-db/src/utils/opfs.ts";
 
 const sw = self as unknown as ServiceWorkerGlobalScope;
 

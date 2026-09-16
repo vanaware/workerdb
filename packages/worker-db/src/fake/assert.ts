@@ -1,18 +1,26 @@
-export function assert(condition: boolean, message?: string): void {
+export function assert(condition: boolean, message?: string,): void {
   if (!condition) {
-    throw new Error(message || 'Assertion failed');
+    throw new Error(message || "Assertion failed",);
   }
 }
 
-export function assertEquals<T>(actual: unknown, expected: unknown, message?: string): void {
+export function assertEquals<T,>(
+  actual: unknown,
+  expected: unknown,
+  message?: string,
+): void {
   if (actual !== expected) {
-    throw new Error(message || `Expected ${expected} but got ${actual}`);
+    throw new Error(message || `Expected ${expected} but got ${actual}`,);
   }
 }
 
-export function assertNotEquals<T>(actual: unknown, expected: unknown, message?: string): void {
+export function assertNotEquals<T,>(
+  actual: unknown,
+  expected: unknown,
+  message?: string,
+): void {
   if (actual === expected) {
-    throw new Error(message || `Expected ${expected} but got ${actual}`);
+    throw new Error(message || `Expected ${expected} but got ${actual}`,);
   }
 }
 
@@ -29,12 +37,12 @@ export async function assertRejects(
     if (e instanceof Error) {
       result = e;
     } else {
-      throw new Error('Caught value was not an Error', );
+      throw new Error("Caught value was not an Error",);
     }
   }
 
   if (result === undefined) {
-    throw new Error('Function did not throw, expected it to reject', );
+    throw new Error("Function did not throw, expected it to reject",);
   }
 
   // Check message if provided

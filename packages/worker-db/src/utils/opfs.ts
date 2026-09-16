@@ -6,30 +6,30 @@ export interface OpfsResolveOptions {
 }
 
 export function resolveOpfsFileName(
-  type: 'db' | 'ls',
+  type: "db" | "ls",
   fileName: string,
   opts?: OpfsResolveOptions,
 ): string {
   const parts: string[] = [type,];
-  if (type === 'db') {
+  if (type === "db") {
     if (opts?.dbName) parts.push(opts.dbName,);
     if (opts?.storeName) parts.push(opts.storeName,);
   }
   if (opts?.prefix) parts.push(opts.prefix,);
 
   parts.push(fileName,);
-  return parts.join('_',);
+  return parts.join("_",);
 }
 
 async function getBackupDir() {
   const root = await navigator.storage.getDirectory();
-  return await root.getDirectoryHandle('backup', { create: true, },);
+  return await root.getDirectoryHandle("backup", { create: true, },);
 }
 
 // Navega e cria (se necessário) o caminho completo baseado em strings com '/'
 async function resolvePath(filePath: string, create = false,) {
   const backupDir = await getBackupDir();
-  const parts = filePath.split('/',);
+  const parts = filePath.split("/",);
   const fileName = parts.pop()!;
   let curr = backupDir;
   for (const p of parts) {
@@ -38,7 +38,10 @@ async function resolvePath(filePath: string, create = false,) {
   return { dir: curr, fileName, };
 }
 
-export async function writeJsonToOpfs(filePath: string, data: unknown,): Promise<string> {
+export async function writeJsonToOpfs(
+  filePath: string,
+  data: unknown,
+): Promise<string> {
   const { dir, fileName, } = await resolvePath(filePath, true,);
   const fileHandle = await dir.getFileHandle(fileName, { create: true, },);
   const writable = await fileHandle.createWritable();
@@ -69,16 +72,19 @@ export async function getFileFromOpfs(filePath: string,): Promise<File> {
 // Lista recursivamente arquivos mantendo o path relativo (ex: "MINHA_KEY/backup.json")
 export async function listOpfsFiles(
   dirHandle?: FileSystemDirectoryHandle,
-  path = '',
+  path = "",
 ): Promise<string[]> {
   const dir = dirHandle || await getBackupDir();
   let files: string[] = [];
   // @ts-ignore: async iterator support
   for await (const [name, handle,] of dir.entries()) {
-    if (handle.kind === 'file') {
+    if (handle.kind === "file") {
       files.push(path ? `${path}/${name}` : name,);
-    } else if (handle.kind === 'directory') {
-      const subFiles = await listOpfsFiles(handle, path ? `${path}/${name}` : name,);
+    } else if (handle.kind === "directory") {
+      const subFiles = await listOpfsFiles(
+        handle,
+        path ? `${path}/${name}` : name,
+      );
       files = files.concat(subFiles,);
     }
   }
@@ -86,16 +92,16 @@ export async function listOpfsFiles(
 }
 
 export async function downloadOpfsFile(fileName: string,): Promise<void> {
-  if (typeof document === 'undefined') {
+  if (typeof document === "undefined") {
     throw new Error(
       "downloadOpfsFile só pode ser executado na Main Thread (onde 'document' existe).",
     );
   }
   const file = await getFileFromOpfs(fileName,);
   const url = URL.createObjectURL(file,);
-  const a = document.createElement('a',);
+  const a = document.createElement("a",);
   a.href = url;
-  a.download = fileName.split('/',).pop()!; // Download sempre usa apenas o nome do arquivo final
+  a.download = fileName.split("/",).pop()!; // Download sempre usa apenas o nome do arquivo final
   document.body.appendChild(a,);
   a.click();
   document.body.removeChild(a,);

@@ -38,7 +38,7 @@ describe("processTarget (integração)", () => {
         // Simula escrita do arquivo de saída
         const outFile = (options.outfile as string) ||
           join(options.outdir as string, "output.js",);
-        Deno.writeTextFile(outFile, "// bundled code",);
+        Deno.writeTextFileSync(outFile, "// bundled code",);
         return Promise.resolve({ metafile: null, errors: [], warnings: [], },);
       };
       await processTarget("ui", config, "2.0.0", mockBuild,);
@@ -171,7 +171,7 @@ describe("processTarget (integração)", () => {
       let capturedOptions: Record<string, unknown> = {};
       const mockBuild = (options: Record<string, unknown>,) => {
         capturedOptions = options;
-        Deno.writeTextFile(options.outfile as string, "// code",);
+        Deno.writeTextFileSync(options.outfile as string, "// code",);
         return Promise.resolve({ metafile: null, errors: [], warnings: [], },);
       };
       await processTarget("ui", config, "1.0.0", mockBuild,);

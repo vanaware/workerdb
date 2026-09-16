@@ -14,10 +14,10 @@
 // ============================================================================
 
 // 1. Injeta o IndexedDB Fake no escopo global do Service Worker (self)
-import 'fake-indexeddb/auto';
-import { FakeOPFSDirectory, } from './fake-opfs.ts';
+import "fake-indexeddb/auto";
+import { FakeOPFSDirectory, } from "./fake-opfs.ts";
 
-const _self = self as Record<string, unknown>;
+const _self = self as unknown as Record<string, unknown>;
 
 // 2. Injeta OPFS Fake no escopo do Service Worker
 // navigator.storage.getDirectory() existe em Service Workers modernos,
@@ -27,7 +27,7 @@ const navigator = _self.navigator as Record<string, unknown>;
 if (!navigator.storage) navigator.storage = {};
 const storage = navigator.storage as Record<string, unknown>;
 if (!storage.getDirectory) {
-  storage.getDirectory = () => Promise.resolve(new FakeOPFSDirectory());
+  storage.getDirectory = () => Promise.resolve(new FakeOPFSDirectory(),);
 }
 
 // 3. Agora que o ambiente do Service Worker está perfeitamente simulado,
@@ -36,4 +36,4 @@ if (!storage.getDirectory) {
 //
 // ⚠️ IMPORTANTE: Importamos do db.ts (não do rpc.ts) porque o Service
 // Worker NÃO precisa de um Web Worker interno - ele JÁ É um worker.
-export { db, opfs, } from '../db.ts';
+export { db, opfs, } from "../db.ts";
