@@ -1,6 +1,6 @@
 {
    "name": "@vanaware/workerdb",
-   "version": "0.0.8-mu3chh10",
+   "version": "0.0.18-mu3ctfa1",
    "exports": "./esbuild.ts",
    "description": "Indexeddb wrapper on Web Worker, with a simple API and a powerful query engine.",
    "author": "Vanaware",

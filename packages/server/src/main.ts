@@ -6,6 +6,7 @@ const port = Number(Deno.env.get("PORT",) ?? 3000,);
 
 Deno.serve({ port, hostname: "0.0.0.0", }, async (req,) => {
   try {
+    console.log(`[REQ] ${req.method} ${req.url}`,);
     const staticResponse = await serveDir(req, {
       fsRoot: "./build/dist",
       showDirListing: false,
