@@ -55,7 +55,7 @@
     // Subpath para Service Worker e Web Worker
     // Retorna db(), opfs() com acesso direto (sem Web Worker interno)
     "./sw": "./src/mod-sw.ts",
-    "./fake": "./src/fake-mod.ts",
-    "./swfake": "./src/fake-db.ts"
+    "./fake": "./src/fake/fake-mod.ts",
+    "./swfake": "./src/fake/fake-db.ts"
   }
 }
