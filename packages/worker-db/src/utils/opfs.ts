@@ -50,6 +50,29 @@ export async function writeJsonToOpfs(
   return filePath;
 }
 
+export async function writeStreamToOpfs(
+  filePath: string,
+  stream: ReadableStream<Uint8Array>,
+): Promise<string> {
+  const { dir, fileName, } = await resolvePath(filePath, true,);
+  const fileHandle = await dir.getFileHandle(fileName, { create: true, },);
+  const writable = await fileHandle.createWritable();
+  const reader = stream.getReader();
+  try {
+    while (true) {
+      const { done, value, } = await reader.read();
+      if (done) break;
+      if (value) {
+        await writable.write(value as unknown as BufferSource,);
+      }
+    }
+  } finally {
+    reader.releaseLock();
+  }
+  await writable.close();
+  return filePath;
+}
+
 export async function readJsonFromOpfs(filePath: string,): Promise<unknown> {
   const { dir, fileName, } = await resolvePath(filePath, false,);
   const fileHandle = await dir.getFileHandle(fileName,);
@@ -67,6 +90,15 @@ export async function getFileFromOpfs(filePath: string,): Promise<File> {
   const { dir, fileName, } = await resolvePath(filePath, false,);
   const fileHandle = await dir.getFileHandle(fileName,);
   return await fileHandle.getFile();
+}
+
+export async function getFileStreamFromOpfs(
+  filePath: string,
+): Promise<ReadableStream<Uint8Array>> {
+  const { dir, fileName, } = await resolvePath(filePath, false,);
+  const fileHandle = await dir.getFileHandle(fileName,);
+  const file = await fileHandle.getFile();
+  return file.stream();
 }
 
 // Lista recursivamente arquivos mantendo o path relativo (ex: "MINHA_KEY/backup.json")

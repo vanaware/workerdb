@@ -31,14 +31,48 @@ Safely shuts down and cleans up the active Web Worker instance.
 
 The `db` object provides a complete set of asynchronous database operations for IndexedDB (via `idb-keyval`). 
 
-### Scoping
-You can create isolated namespaces for different tables or stores by invoking `db` as a function.
+### Scoping & Options
+You can create isolated namespaces for different tables or stores by invoking `db` as a function with options or positional arguments. Supports TypeScript generics to type documents:
 
 ```typescript
-// Creates an isolated instance
-const myStore = db("MyDatabase", "MyStore", "user_123_");
-// Now myStore.set("config", {...}) saves to key: "user_123_config"
+interface UserProfile {
+  username: string;
+  age: number;
+}
+
+// Option A: With configuration object
+const myStore = db<UserProfile>({
+  dbName: "MyDatabase",
+  storeName: "users",
+  prefix: "usr_",
+  indexes: ["age"], // IndexedDB index
+  validator: (item) => typeof item === "object" && item !== null && (item as any).age >= 18,
+});
+
+// Option B: With positional parameters
+const simpleStore = db<UserProfile>("MyDatabase", "users", "usr_");
 ```
+
+### Schema Validation & Indexed Operations
+
+- **`validator: (item: unknown) => boolean`**
+  Validate items before writing to the database on `set`, `setMany`, and `patch`.
+- **`getByIndex<T>(indexName: string, query: IDBValidKey): Promise<WithId<T>[]>`**
+  Queries records directly using IndexedDB secondary indexes (O(log N) indexed lookup).
+- **`getManyByIndex<T>(indexName: string, queries: IDBValidKey[]): Promise<WithId<T>[]>`**
+  Queries records matching any of the specified index keys in batch, deduplicating matching results.
+- **`getSomeByIndex<T, C = unknown>(indexName: string, query: IDBValidKey, fn: (items: WithId<T>[], ctx?: C) => WithId<T>[], context?: C): Promise<WithId<T>[]>`**
+  Uses the index to retrieve ONLY the subset matching `query` and then executes a filtering function on that small subset, avoiding loading the full database into memory.
+- **`queryByIndex<T, R, C = unknown>(indexName: string, query: IDBValidKey, fn: (items: WithId<T>[], ctx?: C) => R, context?: C): Promise<R>`**
+  Executes an aggregation or transformation function over the index-matched records directly in the worker.
+- **`deleteByIndex(indexName: string, query: IDBValidKey): Promise<void>`**
+  Deletes all records matching an index key in O(log N) without retrieving or loading document contents into memory.
+- **`deleteManyByIndex(indexName: string, queries: IDBValidKey[]): Promise<void>`**
+  Deletes all records matching any of the specified index keys in batch.
+- **`delSomeByIndex<T, C = unknown>(indexName: string, query: IDBValidKey, fn: (items: WithId<T>[], ctx?: C) => WithId<T>[], context?: C): Promise<void>`**
+  Uses the index to retrieve only the matching subset, selects items to remove using `fn`, and deletes them by key.
+- **`setSomeByIndex<T, C = unknown>(indexName: string, query: IDBValidKey, selectFn: (items: WithId<T>[], ctx?: C) => WithId<T>[], updateFn: (item: WithId<T>, ctx?: C) => WithId<T>, context?: C): Promise<void>`**
+  Uses the index to retrieve only the matching subset, selects targets with `selectFn`, computes updates with `updateFn`, validates schema, and writes updates back.
 
 ### Basic CRUD Operations
 
@@ -162,8 +196,12 @@ const userFiles = opfs("MyDb", "MyStore", "user_prefix_", "base/folder/path");
   Lists all files associated with a specific logical key (folder representation).
 - **`getFile(key: string, fileName: string): Promise<File>`**
   Retrieves a file as a binary `File` object.
+- **`getFileStream(key: string, fileName: string): Promise<ReadableStream<Uint8Array>>`**
+  Retrieves a file as a chunked `ReadableStream<Uint8Array>` (memory-efficient for large files).
 - **`addFile(key: string, file: File | Blob, fileName: string): Promise<void>`**
   Saves a file to OPFS.
+- **`addFileStream(key: string, fileName: string, stream: ReadableStream<Uint8Array>): Promise<void>`**
+  Pipes a `ReadableStream<Uint8Array>` directly into an OPFS file.
 - **`delFile(key: string, fileName: string): Promise<void>`**
   Deletes a specific file.
 - **`renFile(key: string, oldName: string, newName: string): Promise<void>`**

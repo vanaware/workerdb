@@ -34,6 +34,7 @@ export interface DbStoreOptions {
   indexes?: string[];
   dbVersion?: number;
   validatorStr?: string;
+  validator?: (val: unknown,) => boolean;
 }
 
 export interface OpfsStoreOptions extends DbStoreOptions {
@@ -122,11 +123,22 @@ async function getRecordDir(
   return curr;
 }
 
-function validateDbItem(val: unknown, validatorStr?: string) {
-  if (!validatorStr || val === undefined) return;
-  const validatorFn = new Function("val", `return (${validatorStr})(val);`);
-  if (!validatorFn(val)) {
-    throw new Error(`Validation failed for item: ${JSON.stringify(val)}`);
+function validateDbItem(
+  val: unknown,
+  validatorStr?: string,
+  validator?: (val: unknown,) => boolean,
+) {
+  if (val === undefined) return;
+  if (validator) {
+    if (!validator(val,)) {
+      throw new Error(`Validation failed for item: ${JSON.stringify(val,)}`,);
+    }
+    return;
+  }
+  if (!validatorStr) return;
+  const validatorFn = new Function("val", `return (${validatorStr})(val);`,);
+  if (!validatorFn(val,)) {
+    throw new Error(`Validation failed for item: ${JSON.stringify(val,)}`,);
   }
 }
 
@@ -167,7 +179,7 @@ export const globalSwDbAPI = {
       valToSave,
       options.prefix,
     );
-    validateDbItem(cleanVal, options.validatorStr);
+    validateDbItem(cleanVal, options.validatorStr, options.validator,);
     await set(key, cleanVal, store,);
     return key;
   },
@@ -208,7 +220,7 @@ export const globalSwDbAPI = {
       updated,
       opts?.prefix,
     );
-    validateDbItem(cleanVal, opts?.validatorStr);
+    validateDbItem(cleanVal, opts?.validatorStr, opts?.validator,);
     await set(finalKey, cleanVal, store,);
     return formatDbItem(finalKey, cleanVal, opts?.prefix,) as WithId<T>;
   },
@@ -244,7 +256,7 @@ export const globalSwDbAPI = {
     const store = getCustomStore(opts?.dbName, opts?.storeName, opts?.indexes, opts?.dbVersion);
     const entriesToSet: [string, unknown,][] = entriesList.map(([k, v,],) => {
       const { key, cleanVal, } = prepareForSave(k, v, opts?.prefix,);
-      validateDbItem(cleanVal, opts?.validatorStr);
+      validateDbItem(cleanVal, opts?.validatorStr, opts?.validator,);
       return [key, cleanVal,];
     },);
     await setMany(entriesToSet, store,);
@@ -300,6 +312,305 @@ export const globalSwDbAPI = {
       await delMany(keysToDelete, store,);
     } else {
       await clear(store,);
+    }
+  },
+
+  getByIndex: async <T,>(
+    indexName: string,
+    query: IDBValidKey,
+    opts?: DbStoreOptions,
+  ): Promise<WithId<T>[]> => {
+    const store = getCustomStore(
+      opts?.dbName,
+      opts?.storeName,
+      opts?.indexes,
+      opts?.dbVersion,
+    );
+    if (!store) {
+      throw new Error("dbName or storeName is required to query indexes",);
+    }
+    return await store("readonly", (idbStore,) => {
+      return new Promise<WithId<T>[]>((resolve, reject,) => {
+        try {
+          const index = idbStore.index(indexName,);
+          const req = index.getAll(query,);
+          const keysReq = index.getAllKeys(query,);
+          let values: unknown[] | null = null;
+          let keys: IDBValidKey[] | null = null;
+
+          const checkDone = () => {
+            if (values !== null && keys !== null) {
+              const formatted = values.map((val, i,) =>
+                formatDbItem(String(keys![i],), val, opts?.prefix,) as WithId<T>
+              );
+              resolve(formatted,);
+            }
+          };
+
+          req.onsuccess = () => {
+            values = req.result;
+            checkDone();
+          };
+          req.onerror = () => reject(req.error,);
+
+          keysReq.onsuccess = () => {
+            keys = keysReq.result;
+            checkDone();
+          };
+          keysReq.onerror = () => reject(keysReq.error,);
+        } catch (err) {
+          reject(err,);
+        }
+      },);
+    },);
+  },
+
+  getManyByIndex: async <T,>(
+    indexName: string,
+    queries: IDBValidKey[],
+    opts?: DbStoreOptions,
+  ): Promise<WithId<T>[]> => {
+    const store = getCustomStore(
+      opts?.dbName,
+      opts?.storeName,
+      opts?.indexes,
+      opts?.dbVersion,
+    );
+    if (!store) {
+      throw new Error("dbName or storeName is required to query indexes",);
+    }
+    return await store("readonly", (idbStore,) => {
+      return new Promise<WithId<T>[]>((resolve, reject,) => {
+        try {
+          const index = idbStore.index(indexName,);
+          const resultsMap = new Map<string, WithId<T>>();
+          if (queries.length === 0) {
+            return resolve([],);
+          }
+          let completed = 0;
+          for (const q of queries) {
+            const req = index.getAll(q,);
+            const keysReq = index.getAllKeys(q,);
+            let vals: unknown[] | null = null;
+            let keys: IDBValidKey[] | null = null;
+
+            const check = () => {
+              if (vals !== null && keys !== null) {
+                vals.forEach((val, i,) => {
+                  const keyStr = String(keys![i],);
+                  if (!resultsMap.has(keyStr,)) {
+                    resultsMap.set(
+                      keyStr,
+                      formatDbItem(keyStr, val, opts?.prefix,) as WithId<T>,
+                    );
+                  }
+                },);
+                completed++;
+                if (completed === queries.length) {
+                  resolve(Array.from(resultsMap.values(),),);
+                }
+              }
+            };
+
+            req.onsuccess = () => {
+              vals = req.result;
+              check();
+            };
+            req.onerror = () => reject(req.error,);
+
+            keysReq.onsuccess = () => {
+              keys = keysReq.result;
+              check();
+            };
+            keysReq.onerror = () => reject(keysReq.error,);
+          }
+        } catch (err) {
+          reject(err,);
+        }
+      },);
+    },);
+  },
+
+  getSomeByIndex: async <T, C = unknown,>(
+    indexName: string,
+    query: IDBValidKey,
+    fn: (items: WithId<T>[], ctx?: C,) => WithId<T>[],
+    context?: C,
+    opts?: DbStoreOptions,
+  ): Promise<WithId<T>[]> => {
+    const matched = await globalSwDbAPI.getByIndex<T>(indexName, query, opts,);
+    const selectedItems = fn(matched, context,);
+    if (!Array.isArray(selectedItems,)) {
+      throw new Error(
+        "A função injetada em GET_SOME_BY_INDEX deve retornar um Array.",
+      );
+    }
+    return selectedItems;
+  },
+
+  queryByIndex: async <T, R, C = unknown,>(
+    indexName: string,
+    query: IDBValidKey,
+    fn: (items: WithId<T>[], ctx?: C,) => R,
+    context?: C,
+    opts?: DbStoreOptions,
+  ): Promise<R> => {
+    const matched = await globalSwDbAPI.getByIndex<T>(indexName, query, opts,);
+    return fn(matched, context,);
+  },
+
+  deleteByIndex: async (
+    indexName: string,
+    query: IDBValidKey,
+    opts?: DbStoreOptions,
+  ): Promise<void> => {
+    const store = getCustomStore(
+      opts?.dbName,
+      opts?.storeName,
+      opts?.indexes,
+      opts?.dbVersion,
+    );
+    if (!store) {
+      throw new Error("dbName or storeName is required to query indexes",);
+    }
+    const keysToDelete = await store("readonly", (idbStore,) => {
+      return new Promise<string[]>((resolve, reject,) => {
+        try {
+          const index = idbStore.index(indexName,);
+          const keysReq = index.getAllKeys(query,);
+          keysReq.onsuccess = () => {
+            resolve(keysReq.result.map((k,) => String(k,)),);
+          };
+          keysReq.onerror = () => reject(keysReq.error,);
+        } catch (err) {
+          reject(err,);
+        }
+      },);
+    },);
+    if (keysToDelete.length > 0) {
+      await delMany(keysToDelete, store,);
+    }
+  },
+
+  deleteManyByIndex: async (
+    indexName: string,
+    queries: IDBValidKey[],
+    opts?: DbStoreOptions,
+  ): Promise<void> => {
+    if (queries.length === 0) return;
+    const store = getCustomStore(
+      opts?.dbName,
+      opts?.storeName,
+      opts?.indexes,
+      opts?.dbVersion,
+    );
+    if (!store) {
+      throw new Error("dbName or storeName is required to query indexes",);
+    }
+    const allKeysToDelete = await store("readonly", (idbStore,) => {
+      return new Promise<string[]>((resolve, reject,) => {
+        try {
+          const index = idbStore.index(indexName,);
+          const keySet = new Set<string>();
+          let completed = 0;
+          for (const q of queries) {
+            const req = index.getAllKeys(q,);
+            req.onsuccess = () => {
+              for (const k of req.result) {
+                keySet.add(String(k,));
+              }
+              completed++;
+              if (completed === queries.length) {
+                resolve(Array.from(keySet,),);
+              }
+            };
+            req.onerror = () => reject(req.error,);
+          }
+        } catch (err) {
+          reject(err,);
+        }
+      },);
+    },);
+    if (allKeysToDelete.length > 0) {
+      await delMany(allKeysToDelete, store,);
+    }
+  },
+
+  delSomeByIndex: async <T, C = unknown,>(
+    indexName: string,
+    query: IDBValidKey,
+    fn: (items: WithId<T>[], ctx?: C,) => WithId<T>[],
+    context?: C,
+    opts?: DbStoreOptions,
+  ): Promise<void> => {
+    const store = getCustomStore(
+      opts?.dbName,
+      opts?.storeName,
+      opts?.indexes,
+      opts?.dbVersion,
+    );
+    const matched = await globalSwDbAPI.getByIndex<T>(indexName, query, opts,);
+    const selectedItems = fn(matched, context,);
+    if (!Array.isArray(selectedItems,)) {
+      throw new Error(
+        "A função injetada em DEL_SOME_BY_INDEX deve retornar um Array.",
+      );
+    }
+    const keysToDelete: string[] = selectedItems.map((item: WithId<T>,) => {
+      if (!item || item._id === undefined) {
+        throw new Error(
+          "Os itens retornados em DEL_SOME_BY_INDEX precisam conter a propriedade '_id'.",
+        );
+      }
+      return opts?.prefix && !item._id.startsWith(opts.prefix,)
+        ? `${opts.prefix}${item._id}`
+        : item._id;
+    },);
+    if (keysToDelete.length > 0) {
+      await delMany(keysToDelete, store,);
+    }
+  },
+
+  setSomeByIndex: async <T, C = unknown,>(
+    indexName: string,
+    query: IDBValidKey,
+    selectFn: (items: WithId<T>[], ctx?: C,) => WithId<T>[],
+    updateFn: (item: WithId<T>, ctx?: C,) => WithId<T>,
+    context?: C,
+    opts?: DbStoreOptions,
+  ): Promise<void> => {
+    const store = getCustomStore(
+      opts?.dbName,
+      opts?.storeName,
+      opts?.indexes,
+      opts?.dbVersion,
+    );
+    const matched = await globalSwDbAPI.getByIndex<T>(indexName, query, opts,);
+    const selectedItems = selectFn(matched, context,);
+    if (!Array.isArray(selectedItems,)) {
+      throw new Error(
+        "A função de seleção em SET_SOME_BY_INDEX deve retornar um Array.",
+      );
+    }
+    const entriesToSet: [string, unknown,][] = selectedItems.map(
+      (item: WithId<T>,) => {
+        if (!item || item._id === undefined) {
+          throw new Error(
+            "Os itens selecionados no SET_SOME_BY_INDEX precisam conter a propriedade '_id'.",
+          );
+        }
+        const updatedItem = updateFn(item, context,);
+        const { key, cleanVal, } = prepareForSave(
+          undefined,
+          updatedItem,
+          opts?.prefix,
+        );
+        validateDbItem(cleanVal, opts?.validatorStr, opts?.validator,);
+        return [key, cleanVal,];
+      },
+    );
+    if (entriesToSet.length > 0) {
+      await setMany(entriesToSet, store,);
     }
   },
 
@@ -386,7 +697,7 @@ export const globalSwDbAPI = {
           updatedItem,
           opts?.prefix,
         );
-        validateDbItem(cleanVal, opts?.validatorStr);
+        validateDbItem(cleanVal, opts?.validatorStr, opts?.validator,);
         return [key, cleanVal,];
       },
     );
@@ -417,7 +728,7 @@ export const globalSwDbAPI = {
     const entriesToImport: [string, unknown,][] = Object.entries(data,).map(
       ([k, v,],) => {
         const { key, cleanVal, } = prepareForSave(k, v, opts?.prefix,);
-        validateDbItem(cleanVal, opts?.validatorStr);
+        validateDbItem(cleanVal, opts?.validatorStr, opts?.validator,);
         return [key, cleanVal,];
       },
     );
@@ -526,6 +837,20 @@ export const globalSwOpfsAPI = {
     return await fileHandle.getFile();
   },
 
+  getFileStream: async (
+    key: string,
+    fileName: string,
+    opts?: OpfsStoreOptions,
+  ): Promise<ReadableStream<Uint8Array>> => {
+    const rawKey = opts?.prefix && !key.startsWith(opts.prefix,)
+      ? `${opts.prefix}${key}`
+      : key;
+    const dir = await getRecordDir(opts?.basePath, rawKey, false,);
+    const fileHandle = await dir.getFileHandle(fileName,);
+    const file = await fileHandle.getFile();
+    return file.stream();
+  },
+
   addFile: async (
     key: string,
     file: File | Blob,
@@ -539,6 +864,42 @@ export const globalSwOpfsAPI = {
     const fh = await dir.getFileHandle(fileName, { create: true, },);
     const w = await fh.createWritable();
     await w.write(new Blob([await file.arrayBuffer(),],),);
+    await w.close();
+  },
+
+  addFileStream: async (
+    key: string,
+    streamOrFileName: ReadableStream<Uint8Array> | string,
+    fileNameOrStream: string | ReadableStream<Uint8Array>,
+    opts?: OpfsStoreOptions,
+  ): Promise<void> => {
+    let stream: ReadableStream<Uint8Array>;
+    let fileName: string;
+    if (typeof streamOrFileName === "string") {
+      fileName = streamOrFileName;
+      stream = fileNameOrStream as ReadableStream<Uint8Array>;
+    } else {
+      stream = streamOrFileName;
+      fileName = fileNameOrStream as string;
+    }
+    const rawKey = opts?.prefix && !key.startsWith(opts.prefix,)
+      ? `${opts.prefix}${key}`
+      : key;
+    const dir = await getRecordDir(opts?.basePath, rawKey, true,);
+    const fh = await dir.getFileHandle(fileName, { create: true, },);
+    const w = await fh.createWritable();
+    const reader = stream.getReader();
+    try {
+      while (true) {
+        const { done, value, } = await reader.read();
+        if (done) break;
+        if (value) {
+          await w.write(value as unknown as BufferSource,);
+        }
+      }
+    } finally {
+      reader.releaseLock();
+    }
     await w.close();
   },
 
@@ -715,45 +1076,114 @@ export const globalSwOpfsAPI = {
 // 💎 EXPORTA A API INTERNA PARA SER CONSUMIDA PELO PROXY (db.ts)
 export const internalAPI = globalSwOpfsAPI;
 
-export function createScopedDb(
-  dbName?: string,
+export function createScopedDb<TDefault = unknown>(
+  dbName?: string | DbStoreOptions,
   storeName = "keyval",
   prefix = "",
+  extraOpts?: Partial<DbStoreOptions>,
 ) {
-  const opts: DbStoreOptions = { dbName, storeName, prefix, };
+  let opts: DbStoreOptions;
+  if (typeof dbName === "object" && dbName !== null) {
+    opts = { ...dbName, };
+  } else {
+    opts = { dbName, storeName, prefix, ...extraOpts, };
+  }
   return {
-    get: <T,>(key: string,) => globalSwDbAPI.get<T>(key, opts,),
-    set: <T,>(keyOrVal: string | T, val?: T,) =>
+    get: <T = TDefault,>(key: string,) => globalSwDbAPI.get<T>(key, opts,),
+    set: <T = TDefault,>(keyOrVal: string | T, val?: T,) =>
       globalSwDbAPI.set<T>(keyOrVal, val, opts,),
-    update: <T,>(key: string, updater: (val: WithId<T> | undefined,) => T,) =>
-      globalSwDbAPI.update<T>(key, updater, opts,),
-    patch: <T extends Record<string, unknown>, C = unknown,>(
+    update: <T = TDefault,>(
+      key: string,
+      updater: (val: WithId<T> | undefined,) => T,
+    ) => globalSwDbAPI.update<T>(key, updater, opts,),
+    patch: <T extends Record<string, unknown> = TDefault extends Record<string, unknown> ? TDefault : Record<string, unknown>, C = unknown,>(
       key: string,
       patchOrFn: Partial<T> | ((prev: WithId<T>, ctx?: C,) => T | Partial<T>),
       context?: C,
     ) => globalSwDbAPI.patch<T, C>(key, patchOrFn, context, opts,),
     delete: (key: string,) => globalSwDbAPI.delete(key, opts,),
-    getMany: <T,>(keys: string[],) => globalSwDbAPI.getMany<T>(keys, opts,),
+    getMany: <T = TDefault,>(keys: string[],) =>
+      globalSwDbAPI.getMany<T>(keys, opts,),
     setMany: (entries: [string, unknown,][],) =>
       globalSwDbAPI.setMany(entries, opts,),
     deleteMany: (keys: string[],) => globalSwDbAPI.deleteMany(keys, opts,),
     keys: () => globalSwDbAPI.keys(opts,),
-    values: <T,>() => globalSwDbAPI.values<T>(opts,),
-    entries: <T,>() => globalSwDbAPI.entries<T>(opts,),
+    values: <T = TDefault,>() => globalSwDbAPI.values<T>(opts,),
+    entries: <T = TDefault,>() => globalSwDbAPI.entries<T>(opts,),
     clear: () => globalSwDbAPI.clear(opts,),
-    query: <T, R, C = unknown,>(
+    getByIndex: <T = TDefault,>(indexName: string, query: IDBValidKey,) =>
+      globalSwDbAPI.getByIndex<T>(indexName, query, opts,),
+    getManyByIndex: <T = TDefault,>(
+      indexName: string,
+      queries: IDBValidKey[],
+    ) => globalSwDbAPI.getManyByIndex<T>(indexName, queries, opts,),
+    getSomeByIndex: <T = TDefault, C = unknown,>(
+      indexName: string,
+      query: IDBValidKey,
+      fn: (items: WithId<T>[], ctx?: C,) => WithId<T>[],
+      context?: C,
+    ) => globalSwDbAPI.getSomeByIndex<T, C>(
+      indexName,
+      query,
+      fn,
+      context,
+      opts,
+    ),
+    queryByIndex: <T = TDefault, R = unknown, C = unknown,>(
+      indexName: string,
+      query: IDBValidKey,
+      fn: (items: WithId<T>[], ctx?: C,) => R,
+      context?: C,
+    ) => globalSwDbAPI.queryByIndex<T, R, C>(
+      indexName,
+      query,
+      fn,
+      context,
+      opts,
+    ),
+    deleteByIndex: (indexName: string, query: IDBValidKey,) =>
+      globalSwDbAPI.deleteByIndex(indexName, query, opts,),
+    deleteManyByIndex: (indexName: string, queries: IDBValidKey[],) =>
+      globalSwDbAPI.deleteManyByIndex(indexName, queries, opts,),
+    delSomeByIndex: <T = TDefault, C = unknown,>(
+      indexName: string,
+      query: IDBValidKey,
+      fn: (items: WithId<T>[], ctx?: C,) => WithId<T>[],
+      context?: C,
+    ) => globalSwDbAPI.delSomeByIndex<T, C>(
+      indexName,
+      query,
+      fn,
+      context,
+      opts,
+    ),
+    setSomeByIndex: <T = TDefault, C = unknown,>(
+      indexName: string,
+      query: IDBValidKey,
+      selectFn: (items: WithId<T>[], ctx?: C,) => WithId<T>[],
+      updateFn: (item: WithId<T>, ctx?: C,) => WithId<T>,
+      context?: C,
+    ) => globalSwDbAPI.setSomeByIndex<T, C>(
+      indexName,
+      query,
+      selectFn,
+      updateFn,
+      context,
+      opts,
+    ),
+    query: <T = TDefault, R = unknown, C = unknown,>(
       fn: (items: WithId<T>[], ctx?: C,) => R,
       context?: C,
     ) => globalSwDbAPI.query<T, R, C>(fn, context, opts,),
-    getSome: <T, C = unknown,>(
+    getSome: <T = TDefault, C = unknown,>(
       fn: (items: WithId<T>[], ctx?: C,) => WithId<T>[],
       context?: C,
     ) => globalSwDbAPI.getSome<T, C>(fn, context, opts,),
-    delSome: <T, C = unknown,>(
+    delSome: <T = TDefault, C = unknown,>(
       fn: (items: WithId<T>[], ctx?: C,) => WithId<T>[],
       context?: C,
     ) => globalSwDbAPI.delSome<T, C>(fn, context, opts,),
-    setSome: <T, C = unknown,>(
+    setSome: <T = TDefault, C = unknown,>(
       selectFn: (items: WithId<T>[], ctx?: C,) => WithId<T>[],
       updateFn: (item: WithId<T>, ctx?: C,) => WithId<T>,
       context?: C,
@@ -766,24 +1196,44 @@ export function createScopedDb(
     restoreFromOpfs: (key: string, fileName: string, clearFirst = false,) =>
       globalSwDbAPI.restoreFromOpfs(key, fileName, clearFirst, opts,),
     gerarId,
-    gerarIdComPrefixo: () => prefix ? gerarIdComPrefixo(prefix,) : gerarId(),
+    gerarIdComPrefixo: () =>
+      opts.prefix ? gerarIdComPrefixo(opts.prefix,) : gerarId(),
   };
 }
 
-export function createScopedOpfs(
-  dbName?: string,
+export function createScopedOpfs<TDefault = unknown>(
+  dbName?: string | OpfsStoreOptions,
   storeName = "keyval",
   prefix = "",
   basePath = "",
+  extraOpts?: Partial<OpfsStoreOptions>,
 ) {
-  const opts: OpfsStoreOptions = { dbName, storeName, prefix, basePath, };
+  let opts: OpfsStoreOptions;
+  if (typeof dbName === "object" && dbName !== null) {
+    opts = { ...dbName, };
+  } else {
+    opts = { dbName, storeName, prefix, basePath, ...extraOpts, };
+  }
   return {
-    ...createScopedDb(dbName, storeName, prefix,),
+    ...createScopedDb<TDefault>(opts,),
     listFiles: (key: string,) => globalSwOpfsAPI.listFiles(key, opts,),
     getFile: (key: string, fileName: string,) =>
       globalSwOpfsAPI.getFile(key, fileName, opts,),
+    getFileStream: (key: string, fileName: string,) =>
+      globalSwOpfsAPI.getFileStream(key, fileName, opts,),
     addFile: (key: string, file: File | Blob, fileName: string,) =>
       globalSwOpfsAPI.addFile(key, file, fileName, opts,),
+    addFileStream: (
+      key: string,
+      streamOrFileName: ReadableStream<Uint8Array> | string,
+      fileNameOrStream: string | ReadableStream<Uint8Array>,
+    ) =>
+      globalSwOpfsAPI.addFileStream(
+        key,
+        streamOrFileName as unknown as string,
+        fileNameOrStream as unknown as ReadableStream<Uint8Array>,
+        opts,
+      ),
     delFile: (key: string, fileName: string,) =>
       globalSwOpfsAPI.delFile(key, fileName, opts,),
     renFile: (key: string, oldName: string, newName: string,) =>
@@ -810,12 +1260,21 @@ export function createScopedOpfs(
 }
 
 export const db = Object.assign(
-  (dbName?: string, storeName?: string, prefix?: string,) =>
-    createScopedDb(dbName, storeName, prefix,),
+  <TDefault = unknown,>(
+    dbName?: string | DbStoreOptions,
+    storeName?: string,
+    prefix?: string,
+    extraOpts?: Partial<DbStoreOptions>,
+  ) => createScopedDb<TDefault>(dbName, storeName, prefix, extraOpts,),
   globalSwDbAPI,
 );
 export const opfs = Object.assign(
-  (dbName?: string, storeName?: string, prefix?: string, basePath = "",) =>
-    createScopedOpfs(dbName, storeName, prefix, basePath,),
+  <TDefault = unknown,>(
+    dbName?: string | OpfsStoreOptions,
+    storeName?: string,
+    prefix?: string,
+    basePath = "",
+    extraOpts?: Partial<OpfsStoreOptions>,
+  ) => createScopedOpfs<TDefault>(dbName, storeName, prefix, basePath, extraOpts,),
   globalSwOpfsAPI,
 );
