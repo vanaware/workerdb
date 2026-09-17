@@ -47,4 +47,4 @@ Welcome to the WorkerDB project! This file (`AGENTS.md`) is automatically inject
 
 By following these guidelines, we maintain a fast, dependency-free, and cohesive Deno/Preact environment without the overhead of Node.js toolchains or complex CSS bundlers.
 
-We are developing an PWA app following a planned directive and tasks. Follow instruction for actual status and next task at CURRENT.md file.
+We are developing a PWA app following a planned directive and tasks. Follow instruction for actual status and next task at CURRENT.md file.

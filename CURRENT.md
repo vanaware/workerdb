@@ -22,6 +22,16 @@ Todas as capacidades da **Fase 1: Performance & Advanced Data Capabilities** for
 3. **In-Worker Schema Validation**:
    - Validador síncrono no Web Worker (`validator: (item) => boolean`) protegendo `set`, `setMany` e `patch`.
 
-4. **Documentação & Testes**:
+4. **Service Worker Integration & OPFS Explorer**:
+   - `RUN_SW_DEMO` IPC channel via `MessageChannel` for Service Worker communication.
+   - Built-in OPFS file system HTML explorer served directly by Service Worker (`/opfs/`).
+   - Interactive UI Tab in Preact app with real-time Service Worker test console and direct link to OPFS explorer.
+
+5. **PWA & CI/CD Deployment**:
+   - `manifest.json` configured with relative paths (`./index.html`) for PWA installability.
+   - GitHub Actions workflow (`.github/workflows/gh-pages.yml`) for automated building and subfolder deployment on GitHub Pages.
+   - Cache-busting headers (`Cache-Control: no-store`) in `packages/server/src/main.ts` and automated SW unregistration recovery in `packages/ui/src/main.tsx`.
+
+6. **Documentação & Testes**:
    - BDD unit tests em `packages/worker-db/tests/db_phase1_features_test.ts` (100% aprovados).
-   - Documentação atualizada em `README.md` e `docs/api.md`.
+   - Documentação atualizada em `README.md`, `AGENTS.md` e `docs/api.md`.
