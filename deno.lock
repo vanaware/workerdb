@@ -1070,7 +1070,7 @@
       }
     },
     "links": {
-      "jsr:@vanaware/workerdb@0.1.0": {
+      "jsr:@vanaware/workerdb@1.0.3-h3": {
         "dependencies": [
           "jsr:@std/assert@*",
           "jsr:@std/fs@*",

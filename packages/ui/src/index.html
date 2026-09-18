@@ -40,6 +40,27 @@
     </style>
   </head>
   <body class="dark">
+    <a id="iframe-warning" class="row yellow-container"
+      target="_blank"
+      rel="noopener"
+      style="display: none; align-items: center; justify-content: center; gap: 0.25rem; padding: 6px 12px; font-size: 0.8rem; border-bottom: 1px solid var(--border); min-height: auto; text-decoration: none; cursor: pointer;">
+      <i>info</i>
+      <span
+        style="white-space: nowrap; font-weight: 500;">Clique para sair do modo iframe</span>
+    </a>
+
+    <script>
+    if (window.self !== window.top) {
+      document.addEventListener("DOMContentLoaded", () => {
+        const banner = document.getElementById("iframe-warning",);
+        if (banner) {
+          banner.href = window.location.href;
+          banner.style.display = "flex";
+        }
+      },);
+    }
+    </script>
+
     <div id="app">
       <main class="responsive">
         <h3>Carregando aplicação...</h3>
