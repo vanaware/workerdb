@@ -231,7 +231,7 @@ export type DenoBundlePackageHandling = "bundle" | "external";
  */
 export interface DenoBundleTargetConfig {
   // ==========================================================================
-  // 🔄 PIPELINE SYNTAXMESH (Pré/Pós Build)
+  // 🔄 PIPELINE WORKERDB (Pré/Pós Build)
   // ==========================================================================
 
   /** Diretório fonte (onde estão os arquivos de entrada) */
@@ -320,7 +320,7 @@ export interface DenoBundleTargetConfig {
   external?: string[];
 
   // ==========================================================================
-  // 🔧 EXTENSÕES SYNTAXMESH (pré-processamento customizado)
+  // 🔧 EXTENSÕES WORKERDB (pré-processamento customizado)
   // ==========================================================================
 
   /**

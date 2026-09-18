@@ -2,7 +2,7 @@
 import { internalAPI, } from "./db.ts";
 import type { DbStoreOptions, OpfsStoreOptions, } from "./db.ts";
 
-import { APP_VERSION, } from "@workerdb/utils/config";
+import { APP_VERSION, } from "./utils/version.ts";
 
 console.log(`[DB] 🌌 Worker-db carregado (v${APP_VERSION}).`,);
 

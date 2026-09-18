@@ -39,7 +39,7 @@ export type ModoExportacao =
   | "sw";
 
 // ============================================================================
-// 📋 CONFIGURAÇÕES ESPECÍFICAS DO SYNTAXMESH
+// 📋 CONFIGURAÇÕES ESPECÍFICAS DO WORKERDB
 // ============================================================================
 
 /**

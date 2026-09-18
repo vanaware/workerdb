@@ -21,7 +21,7 @@ async function runWorkerDBDbDemo() {
   ls().clear();
 
   console.log("📦 1. LocalStorage - Criando itens com _id 'auto'...",);
-  const prefStore = ls("SYNTAXMESH_PREF_",);
+  const prefStore = ls("WORKERDB_PREF_",);
 
   const autoKey1 = prefStore.set<UserPreferences>({
     _id: "auto",
@@ -44,13 +44,13 @@ async function runWorkerDBDbDemo() {
   console.log(`   --> Recuperando Item 2:`, prefStore.get(autoKey2,),);
 
   console.log("\n🔒 2. LocalStorage - Testando Isolamento de Prefixos...",);
-  const authStore = ls("SYNTAXMESH_AUTH_",);
+  const authStore = ls("WORKERDB_AUTH_",);
   authStore.set("session_token", { token: "abc-123", active: true, },);
   console.log(
-    `   --> Total de itens em SYNTAXMESH_PREF_ (Preferências): ${prefStore.keys().length}`,
+    `   --> Total de itens em WORKERDB_PREF_ (Preferências): ${prefStore.keys().length}`,
   );
   console.log(
-    `   --> Total de itens em SYNTAXMESH_AUTH_ (Autenticação): ${authStore.keys().length}`,
+    `   --> Total de itens em WORKERDB_AUTH_ (Autenticação): ${authStore.keys().length}`,
   );
 
   console.log("\n🌍 3. LocalStorage - Visão Global (Sem prefixo)...",);
@@ -61,11 +61,11 @@ async function runWorkerDBDbDemo() {
   );
   console.log(
     `   --> Realizando leitura global do token:`,
-    globalStore.get("SYNTAXMESH_AUTH_session_token",),
+    globalStore.get("WORKERDB_AUTH_session_token",),
   );
 
   console.log("\n💬 4. IndexedDB Worker - Enfileirando Mensagens Offline...",);
-  const msgStore = db("SYNTAXMESH_DATA", "messages", "MSG_",);
+  const msgStore = db("WORKERDB_DATA", "messages", "MSG_",);
   await msgStore.clear();
 
   const msgId1 = await msgStore.set<WorkerDBMessage>({

@@ -6,6 +6,7 @@ Welcome to the WorkerDB project! This file (`AGENTS.md`) is automatically inject
 - **Deno Only**: This project runs entirely on Deno. 
 - **NO Node.js or Local NPM**: Do NOT use `npm install`, do NOT create a `node_modules` directory locally, and do NOT rely on Node.js specific APIs.
 - **Dependency Management**: All dependencies are managed exclusively via `deno.json` using `npm:` and `jsr:` specifiers (e.g., `npm:preact`, `jsr:@std/testing`).
+- **JSR Publication**: The core library resides in `packages/worker-db/` and is published to JSR as `@vanaware/workerdb`.
 - **Bundling**: We use Deno's native (and unstable) bundler via the `esbuild.ts` script or esbuild (`deno task esbuild`). This script parses typescript and generates the final output exclusively in the `packages/server/build/dist/` directory.
 
 ## 2. Framework & State Management
@@ -32,7 +33,7 @@ Welcome to the WorkerDB project! This file (`AGENTS.md`) is automatically inject
 - **Manifest**: Configuration for the installable app lives in `packages/ui/public/manifest.json`.
 - Assets in `public/` are automatically copied to the distribution folder during the build process.
 - **Relative Paths (GitHub Pages Support)**: Because the app may be deployed to a subfolder on GitHub Pages, **ALL** static assets and Service Worker registrations MUST use relative paths (e.g., `./manifest.json` and `navigator.serviceWorker.register("./service-worker.js")`) instead of absolute root paths (`/`).
-- **CI/CD**: The project will contains a GitHub Actions workflow (`.github/workflows/gh-pages.yml`) that automatically builds and deploys the contents of the `packages/server/build/dist/` directory to GitHub Pages.
+- **CI/CD**: The project contains a GitHub Actions workflow (`.github/workflows/gh-pages.yml`) that automatically builds and deploys the contents of the `packages/server/build/dist/` directory to GitHub Pages.
 
 ## 6. AI Studio Environment Constraints & Bootstrapping
 - **Port 3000**: The development server (Deno's native `file-server` in `packages/server/src/main.ts`) MUST run on port 3000, as enforced by the AI Studio environment (config .env file with PORT=3000).

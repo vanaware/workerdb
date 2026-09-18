@@ -4,15 +4,29 @@ WorkerDB is designed to be highly modular and environment-agnostic (running pure
 
 Because the library relies on Web Workers, setting it up requires **two steps**: configuring the background worker and importing the main thread client.
 
-This guide explains how to import and use the library directly from the GitHub repository (`https://github.com/vanaware/workerdb`).
+This guide explains how to import and use the library via **JSR** or directly from the **GitHub** repository.
 
 ---
 
-## 📦 1. Importing Directly from GitHub (Deno / Browser)
+## 📦 1. Installation & Importing
 
+WorkerDB is available via **JSR** (recommended for Deno) and as a raw **GitHub** import.
+
+### Option A: JSR (Best for Deno & modern toolchains)
+JSR provides automatic type definitions and optimized loading.
+
+```typescript
+// Main Thread (UI/App)
+import { db, opfs, ls } from "jsr:@vanaware/workerdb";
+
+// Service Worker / Web Worker (Direct Access)
+import { dbsw, opfssw } from "jsr:@vanaware/workerdb/sw";
+```
+
+### Option B: Importing Directly from GitHub (No registry)
 You can import WorkerDB directly via URL. Depending on your environment, you can use raw GitHub URLs (best for Deno) or a CDN like `esm.sh` or `jsdelivr` (best for browsers).
 
-### Standard Import URLs
+#### Standard GitHub URLs
 - **Main Thread (UI/App):** 
   `https://raw.githubusercontent.com/vanaware/workerdb/main/packages/worker-db/src/mod-main.ts`
 - **Web Worker Engine:** 
@@ -35,8 +49,11 @@ To solve this, you need to create a small, local worker file in your project tha
 ```typescript
 // File: my-local-worker.ts (Served at /my-local-worker.js)
 
-// Import the background worker engine directly from GitHub
-import "https://raw.githubusercontent.com/vanaware/workerdb/main/packages/worker-db/src/worker.ts";
+// Import the background worker engine from JSR
+import "jsr:@vanaware/workerdb/sw"; 
+
+// OR from GitHub
+// import "https://raw.githubusercontent.com/vanaware/workerdb/main/packages/worker-db/src/worker.ts";
 
 // The imported script automatically sets up the `onmessage` listeners!
 ```
@@ -50,7 +67,7 @@ Now, in your main application logic (React, Preact, Vanilla JS, etc.), import th
 ```typescript
 // File: main.ts (Your UI / Application logic)
 
-import { db, opfs, ls } from "https://raw.githubusercontent.com/vanaware/workerdb/main/packages/worker-db/src/mod-main.ts";
+import { db, opfs, ls } from "jsr:@vanaware/workerdb";
 
 // 1. Initialize the Database Engine by pointing to your local worker file
 db.init("./my-local-worker.js"); // Ensure this path correctly resolves in your browser!
@@ -81,7 +98,7 @@ If you want to use WorkerDB inside your Service Worker (for caching, offline syn
 // File: sw.ts (Your Service Worker script)
 
 // Import the direct-access SW module
-import { db, opfs } from "https://raw.githubusercontent.com/vanaware/workerdb/main/packages/worker-db/src/mod-sw.ts";
+import { db, opfs } from "jsr:@vanaware/workerdb/sw";
 
 self.addEventListener("sync", async (event) => {
   if (event.tag === "sync-data") {

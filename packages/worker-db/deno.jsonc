@@ -1,5 +1,6 @@
 {
-  "name": "@workerdb/workerdb",
+  "name": "@vanaware/workerdb",
+  "version": "1.0.3-h3",
   // ----------------------------------------------------------------------
   // 🔧 Compiler Options específicos do pacote
   // ----------------------------------------------------------------------
@@ -40,9 +41,9 @@
   // 🎯 Exports via subpaths (Deno não suporta conditional exports)
   //
   // Uso no código fonte:
-  //   - Main Thread:  import { db, opfs, ls } from "@workerdb/workerdb";
-  //   - Service Worker: import { dbsw, opfssw } from "@workerdb/workerdb/sw";
-  //   - Web Worker:   import { dbsw, opfssw } from "@workerdb/workerdb/sw";
+  //   - Main Thread:  import { db, opfs, ls } from "@vanaware/workerdb";
+  //   - Service Worker: import { db, opfs } from "@vanaware/workerdb/sw";
+  //   - Web Worker:   import { db, opfs } from "@vanaware/workerdb/sw";
   // ----------------------------------------------------------------------
   "exports": {
     // Entry point padrão — Main Thread (browser)

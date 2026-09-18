@@ -67,7 +67,7 @@ export function addDebugLog(
     const channel = getDebugChannel();
     if (channel) {
       channel.postMessage({
-        type: "SYNTAXMESH_DEBUG_LOG",
+        type: "WORKERDB_DEBUG_LOG",
         entry,
       },);
     }

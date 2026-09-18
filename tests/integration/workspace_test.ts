@@ -115,7 +115,8 @@ describe("workspace", () => {
       };
       assert(
         typeof config.name === "string" &&
-          config.name.startsWith("@workerdb/",),
+          (config.name.startsWith("@workerdb/",) ||
+            config.name.startsWith("@vanaware/",)),
         `Pacote ${pkg} deve ter name válido, recebeu: ${config.name}`,
       );
       assert(

@@ -24,7 +24,18 @@ This project is organized as a Deno monorepo with the following packages:
 - `packages/service-worker/`: The PWA Service Worker script, handling offline caching and the `/opfs/` network interceptor.
 - `packages/utils/`: Shared utilities, including the custom Deno `esbuild` build orchestration script.
 
-## 🚀 Getting Started
+## 📚 Library Usage
+
+If you are a developer looking to use **WorkerDB** in your own project, see:
+- [Getting Started Guide](./docs/getting-started.md)
+- [API Reference](./docs/api.md)
+
+### Quick Import (JSR)
+```ts
+import { db, opfs, ls } from "jsr:@vanaware/workerdb";
+```
+
+## 🚀 Getting Started (Development)
 
 ### Prerequisites
 

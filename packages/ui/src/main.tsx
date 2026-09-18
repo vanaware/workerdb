@@ -1,6 +1,6 @@
 import { render, } from "preact";
 import { useEffect, useState, } from "preact/hooks";
-import { db, opfs, } from "@workerdb/workerdb";
+import { db, opfs, } from "@vanaware/workerdb";
 
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.getRegistrations().then(function (registrations,) {
@@ -42,7 +42,7 @@ const OPFSDemo = () => {
 
   const runTest = async () => {
     try {
-      const myOpfs = opfs("SYNTAXMESH_DATA", "files", "FS_", "demo",);
+      const myOpfs = opfs("WORKERDB_DATA", "files", "FS_", "demo",);
       addLog("OPFS started.",);
 
       const fileData = new TextEncoder().encode("Hello from OPFS!",);
@@ -297,7 +297,7 @@ const SWDemo = () => {
         databases.
       </p>
       <pre><code>{`// Inside sw.ts:
-const msgStore = db("SYNTAXMESH_DATA", "messages", "MSG_");
+const msgStore = db("WORKERDB_DATA", "messages", "MSG_");
 await msgStore.set("auto", { senderId: "system_sw", ... });`}</code></pre>
       <div class="space">
       </div>

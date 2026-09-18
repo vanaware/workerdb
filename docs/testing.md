@@ -10,24 +10,24 @@ To solve this, **WorkerDB** ships with fully simulated (Fake) implementations of
 
 WorkerDB exposes two dedicated subpaths for testing, depending on the environment you want to simulate:
 
-### 1. Main Thread Testing (`@workerdb/workerdb/fake`)
+### 1. Main Thread Testing (`jsr:@vanaware/workerdb/fake`)
 Use this export when testing your React/Preact components or main application logic. 
 It injects the global fakes (`localStorage`, `indexedDB`, OPFS `navigator.storage`) and automatically initializes a Web Worker interceptor that executes the worker logic synchronously in the test thread.
 
 ```typescript
 // Import the fake initialization AT THE TOP of your test file
-import { db, opfs, ls } from "@workerdb/workerdb/fake";
+import { db, opfs, ls } from "jsr:@vanaware/workerdb/fake";
 
 // Now you can use db, opfs, and ls exactly as they behave in the browser!
 ```
 
-### 2. Service Worker Testing (`@workerdb/workerdb/swfake`)
+### 2. Service Worker Testing (`jsr:@vanaware/workerdb/swfake`)
 Use this export when you are writing unit tests for your Service Worker logic (e.g. testing interceptors or background syncs). 
 It injects fakes into the `self` context, bypasses the Web Worker RPC (since Service Workers can execute IndexedDB natively), and exports direct instances.
 
 ```typescript
 // Import the SW fake initialization AT THE TOP of your SW test file
-import { db, opfs } from "@workerdb/workerdb/swfake";
+import { db, opfs } from "jsr:@vanaware/workerdb/swfake";
 
 // Proceed to test your Service Worker caching or DB routines
 ```
@@ -42,7 +42,7 @@ Here is a complete example of how you can write unit tests for your database sch
 import { assertEquals, assert } from "jsr:@std/assert";
 
 // 1. Import from the /fake endpoint FIRST to bootstrap the environment
-import { db, opfs, ls } from "@workerdb/workerdb/fake";
+import { db, opfs, ls } from "jsr:@vanaware/workerdb/fake";
 
 Deno.test("Should correctly execute heavy array methods natively", async () => {
   // Create a scoped database collection
