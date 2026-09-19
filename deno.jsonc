@@ -1,6 +1,6 @@
 {
   "name": "WorkerDB",
-  "version": "0.0.34-mu8lt9lh",
+  "version": "0.1.0-mu8lt9lh",
   "description": "Asynchronous database layer for Web Workers, IndexedDB, and OPFS.",
   "workspace": [
     "./packages/worker-db",
@@ -54,7 +54,8 @@
     "start": "deno task --cwd packages/server start",
     "export": "deno run --allow-read --allow-write ./export.ts",
     "build": "deno run -A ./esbuild.ts",
-    "build:deno": "deno run --unstable-bundle -A ./build.ts"
+    "build:deno": "deno run --unstable-bundle -A ./build.ts",
+    "bump": "./bump.sh"
   },
   "nodeModulesDir": "auto",
   "vendor": true,
