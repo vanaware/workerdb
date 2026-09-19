@@ -26,7 +26,7 @@ jobs:
       - name: Sanitize Version
         run: |
           chmod +x ./sanitize-version.sh
-          ./sanitize-version.sh ./deno.jsonc
+          ./sanitize-version.sh ./packages/worker-db/deno.jsonc
 
       - name: Publish to JSR
-        run: deno publish --allow-slow-types
+        run: deno publish --allow-slow-types packages/worker-db

@@ -3,8 +3,8 @@ import {
   assertEquals,
   assertNotEquals,
   assertRejects,
-  db,
-} from "../src/fake/fake-mod.ts";
+} from "@std/assert";
+import { db, } from "../src/fake/fake-mod.ts";
 import { type WithId, } from "../src/utils/id.ts";
 
 interface Fatura {

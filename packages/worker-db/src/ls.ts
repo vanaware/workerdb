@@ -8,7 +8,9 @@ import {
 } from "./utils/id.ts";
 import { opfs, } from "./mod-main.ts"; // 💎 Proxy Worker-DB: Ponto de acesso unificado e assíncrono
 
+/** Opções de configuração para o LocalStorage Store. */
 export interface LsStoreOptions {
+  /** Prefixo opcional para as chaves no LocalStorage. */
   prefix?: string;
 }
 
@@ -17,8 +19,11 @@ export interface LsStoreOptions {
  * @template TDefault Tipo padrão para os registros.
  */
 export interface WorkerLsAPI<TDefault = unknown> {
+  /** Obtém um registro síncronamente. */
   get: <T = TDefault>(key: string) => WithId<T> | undefined;
+  /** Define um registro síncronamente. */
   set: <T = TDefault>(keyOrVal: string | T, val?: T) => string;
+  /** Aplica patch parcial síncronamente. */
   patch: <
     T extends Record<string, unknown> = TDefault extends Record<string, unknown> ? TDefault : Record<string, unknown>,
     C = unknown
@@ -27,23 +32,41 @@ export interface WorkerLsAPI<TDefault = unknown> {
     patchOrFn: Partial<T> | ((prev: WithId<T>, ctx?: C) => T | Partial<T>),
     context?: C
   ) => WithId<T>;
+  /** Remove um registro síncronamente. */
   delete: (key: string) => void;
+  /** Obtém múltiplos registros síncronamente. */
   getMany: <T = TDefault>(keys: string[]) => (WithId<T> | undefined)[];
+  /** Define múltiplos registros síncronamente. */
   setMany: (entries: [string, unknown][]) => void;
+  /** Remove múltiplos registros síncronamente. */
   deleteMany: (keys: string[]) => void;
+  /** Obtém todas as chaves filtradas pelo prefixo. */
   keys: () => string[];
+  /** Obtém todos os valores filtrados pelo prefixo. */
   values: <T = TDefault>() => T[];
+  /** Obtém todos os pares [chave, valor] filtrados pelo prefixo. */
   entries: <T = TDefault>() => [string, T][];
+  /** Limpa todos os registros do prefixo. */
   clear: () => void;
+  /** Executa consulta funcional nos registros síncronos. */
   query: <T = TDefault, R = unknown, C = unknown>(fn: (items: WithId<T>[], ctx?: C) => R, context?: C) => R;
+  /** Filtra registros síncronamente. */
   getSome: <T = TDefault, C = unknown>(fn: (items: WithId<T>[], ctx?: C) => WithId<T>[], context?: C) => WithId<T>[];
+  /** Remove registros filtrados síncronamente. */
   delSome: <T = TDefault, C = unknown>(fn: (items: WithId<T>[], ctx?: C) => WithId<T>[], context?: C) => void;
+  /** Atualiza registros filtrados síncronamente. */
   setSome: <T = TDefault, C = unknown>(selectFn: (items: WithId<T>[], ctx?: C) => WithId<T>[], updateFn: (item: WithId<T>, ctx?: C) => WithId<T>, context?: C) => void;
+  /** Exporta o LocalStorage para JSON. */
   exportLS: () => Record<string, unknown>;
+  /** Importa JSON para o LocalStorage. */
   importLS: (data: Record<string, unknown>, clearFirst?: boolean) => void;
+  /** Backup assíncrono do LS para OPFS. */
   backupToOpfs: (recordKey: string, fileName?: string) => Promise<string>;
+  /** Restauração assíncrona do OPFS para LS. */
   restoreFromOpfs: (recordKey: string, fileName: string, clearFirst?: boolean) => Promise<void>;
+  /** Gera ID aleatório. */
   gerarId: () => string;
+  /** Gera ID com prefixo. */
   gerarIdComPrefixo: () => string;
 }
 

@@ -85,6 +85,7 @@ export interface IndexRange {
   lte?: IDBValidKey;
 }
 
+/** Tipo para consultas em índices (IDBValidKey, IDBKeyRange ou IndexRange). */
 export type IndexQuery = IDBValidKey | IDBKeyRange | IndexRange;
 
 /**
@@ -92,53 +93,91 @@ export type IndexQuery = IDBValidKey | IDBKeyRange | IndexRange;
  * @template TDefault Tipo padrão para os registros.
  */
 export interface WorkerDbAPI<TDefault = unknown> {
+  /** Obtém um registro pela chave. */
   get: <T = TDefault>(key: string, opts?: DbStoreOptions) => Promise<WithId<T> | undefined>;
+  /** Define um registro (chave/valor ou apenas valor com ID auto-gerado). */
   set: <T = TDefault>(keyOrVal: string | T, val?: T | DbStoreOptions, opts?: DbStoreOptions) => Promise<string>;
+  /** Atualiza um registro via função de callback. */
   update: <T = TDefault>(key: string, updater: (val: WithId<T> | undefined) => T, opts?: DbStoreOptions) => Promise<void>;
+  /** Aplica um patch parcial em um registro. */
   patch: <T extends Record<string, unknown> = TDefault extends Record<string, unknown> ? TDefault : Record<string, unknown>, C = unknown>(
     key: string,
     patchOrFn: Partial<T> | ((prev: WithId<T>, ctx?: C) => T | Partial<T>),
     context?: C,
     opts?: DbStoreOptions
   ) => Promise<WithId<T>>;
+  /** Remove um registro pela chave. */
   delete: (key: string, opts?: DbStoreOptions) => Promise<void>;
+  /** Obtém múltiplos registros. */
   getMany: <T = TDefault>(keysList: string[], opts?: DbStoreOptions) => Promise<(WithId<T> | undefined)[]>;
+  /** Define múltiplos registros em lote. */
   setMany: (entriesList: [string, unknown][], opts?: DbStoreOptions) => Promise<void>;
+  /** Remove múltiplos registros em lote. */
   deleteMany: (keysList: string[], opts?: DbStoreOptions) => Promise<void>;
+  /** Obtém todas as chaves da store. */
   keys: (opts?: DbStoreOptions) => Promise<string[]>;
+  /** Obtém todos os valores da store. */
   values: <T = TDefault>(opts?: DbStoreOptions) => Promise<T[]>;
+  /** Obtém todos os pares [chave, valor] da store. */
   entries: <T = TDefault>(opts?: DbStoreOptions) => Promise<[string, T][]>;
+  /** Limpa todos os dados da store. */
   clear: (opts?: DbStoreOptions) => Promise<void>;
+  /** Conta registros no índice. */
   countByIndex: (indexName: string, query?: IndexQuery, opts?: DbStoreOptions) => Promise<number>;
+  /** Obtém um único registro do índice. */
   getOneByIndex: <T = TDefault>(indexName: string, query: IndexQuery, opts?: DbStoreOptions) => Promise<WithId<T> | undefined>;
+  /** Obtém todas as chaves do índice. */
   keysByIndex: (indexName: string, query: IndexQuery, opts?: DbStoreOptions) => Promise<string[]>;
+  /** Aplica patch em registros do índice. */
   patchByIndex: <T = TDefault>(indexName: string, query: IndexQuery, patch: Partial<T>, opts?: DbStoreOptions) => Promise<void>;
+  /** Busca registros indexados com paginação. */
   getByIndexPaginated: <T = TDefault>(
     indexName: string,
     query: IndexQuery,
     paginationOpts: { limit?: number; cursor?: string; direction?: "next" | "prev" | "nextunique" | "prevunique" },
     opts?: DbStoreOptions
   ) => Promise<{ items: WithId<T>[]; nextCursor?: string }>;
+  /** Busca registros por índice. */
   getByIndex: <T = TDefault>(indexName: string, query: IndexQuery, opts?: DbStoreOptions) => Promise<WithId<T>[]>;
+  /** Busca múltiplos valores de índice. */
   getManyByIndex: <T = TDefault>(indexName: string, queries: IndexQuery[], opts?: DbStoreOptions) => Promise<WithId<T>[]>;
+  /** Filtra subconjunto do índice no Worker. */
   getSomeByIndex: <T = TDefault, C = unknown>(indexName: string, query: IndexQuery, fn: (items: WithId<T>[], ctx?: C) => WithId<T>[], context?: C, opts?: DbStoreOptions) => Promise<WithId<T>[]>;
+  /** Executa agregação no índice no Worker. */
   queryByIndex: <T = TDefault, R = unknown, C = unknown>(indexName: string, query: IndexQuery, fn: (items: WithId<T>[], ctx?: C) => R, context?: C, opts?: DbStoreOptions) => Promise<R>;
+  /** Remove por índice. */
   deleteByIndex: (indexName: string, query: IndexQuery, opts?: DbStoreOptions) => Promise<void>;
+  /** Remove múltiplos valores de índice. */
   deleteManyByIndex: (indexName: string, queries: IndexQuery[], opts?: DbStoreOptions) => Promise<void>;
+  /** Remove subconjunto do índice no Worker. */
   delSomeByIndex: <T = TDefault, C = unknown>(indexName: string, query: IndexQuery, fn: (items: WithId<T>[], ctx?: C) => WithId<T>[], context?: C, opts?: DbStoreOptions) => Promise<void>;
+  /** Atualiza subconjunto do índice no Worker. */
   setSomeByIndex: <T = TDefault, C = unknown>(indexName: string, query: IndexQuery, selectFn: (items: WithId<T>[], ctx?: C) => WithId<T>[], updateFn: (item: WithId<T>, ctx?: C) => WithId<T>, context?: C, opts?: DbStoreOptions) => Promise<void>;
+  /** Executa consulta genérica no Worker. */
   query: <T = TDefault, R = unknown, C = unknown>(fn: (items: WithId<T>[], ctx?: C) => R, context?: C, opts?: DbStoreOptions) => Promise<R>;
+  /** Filtra registros no Worker. */
   getSome: <T = TDefault, C = unknown>(fn: (items: WithId<T>[], ctx?: C) => WithId<T>[], context?: C, opts?: DbStoreOptions) => Promise<WithId<T>[]>;
+  /** Remove registros filtrados no Worker. */
   delSome: <T = TDefault, C = unknown>(fn: (items: WithId<T>[], ctx?: C) => WithId<T>[], context?: C, opts?: DbStoreOptions) => Promise<void>;
+  /** Atualiza registros filtrados no Worker. */
   setSome: <T = TDefault, C = unknown>(selectFn: (items: WithId<T>[], ctx?: C) => WithId<T>[], updateFn: (item: WithId<T>, ctx?: C) => WithId<T>, context?: C, opts?: DbStoreOptions) => Promise<void>;
+  /** Exporta banco de dados. */
   exportDB: (opts?: DbStoreOptions) => Promise<Record<string, unknown>>;
+  /** Importa banco de dados. */
   importDB: (data: Record<string, unknown>, clearFirst?: boolean, opts?: DbStoreOptions) => Promise<void>;
+  /** Backup para OPFS. */
   backupToOpfs: (key: string, fileName?: string, opts?: DbStoreOptions) => Promise<string>;
+  /** Restaura o banco de dados a partir de um arquivo no OPFS. */
   restoreFromOpfs: (key: string, fileName: string, clearFirst?: boolean, opts?: DbStoreOptions) => Promise<void>;
+  /** Inicializa o Worker. */
   init: (workerPath?: string | URL) => void;
+  /** Reinicia o Worker. */
   restart: () => void;
+  /** Finaliza o Worker. */
   terminate: () => void;
+  /** Gera um ID aleatório. */
   gerarId: () => string;
+  /** Gera um ID com prefixo. */
   gerarIdComPrefixo: (prefix?: string) => string;
 }
 
@@ -147,17 +186,29 @@ export interface WorkerDbAPI<TDefault = unknown> {
  * @template TDefault Tipo padrão para os registros.
  */
 export interface WorkerOpfsAPI<TDefault = unknown> extends WorkerDbAPI<TDefault> {
+  /** Lista arquivos. */
   listFiles: (key: string, opts?: OpfsStoreOptions) => Promise<OpfsFileInfo[]>;
+  /** Obtém arquivo. */
   getFile: (key: string, fileName: string, opts?: OpfsStoreOptions) => Promise<File>;
+  /** Obtém stream de arquivo. */
   getFileStream: (key: string, fileName: string, opts?: OpfsStoreOptions) => Promise<ReadableStream<Uint8Array>>;
+  /** Adiciona arquivo. */
   addFile: (key: string, file: File | Blob, fileName: string, opts?: OpfsStoreOptions) => Promise<void>;
+  /** Adiciona arquivo via stream. */
   addFileStream: (key: string, streamOrFileName: ReadableStream<Uint8Array> | string, fileNameOrStream: string | ReadableStream<Uint8Array>, opts?: OpfsStoreOptions) => Promise<void>;
+  /** Remove arquivo. */
   delFile: (key: string, fileName: string, opts?: OpfsStoreOptions) => Promise<void>;
+  /** Renomeia arquivo. */
   renFile: (key: string, oldName: string, newName: string, opts?: OpfsStoreOptions) => Promise<void>;
+  /** Move arquivo. */
   mvFile: (key: string, fileName: string, newKey: string, opts?: OpfsStoreOptions) => Promise<void>;
+  /** Compacta arquivos. */
   zip: (key: string, zipName: string, filesToZip?: string[], deleteOriginals?: boolean, opts?: OpfsStoreOptions) => Promise<void>;
+  /** Descompacta arquivos. */
   unzip: (key: string, zipName: string, deleteZip?: boolean, opts?: OpfsStoreOptions) => Promise<void>;
+  /** Adiciona ao ZIP. */
   addZip: (key: string, zipName: string, file: File | Blob, fileName: string, opts?: OpfsStoreOptions) => Promise<void>;
+  /** Remove do ZIP. */
   delZip: (key: string, zipName: string, fileName: string, opts?: OpfsStoreOptions) => Promise<void>;
 }
 

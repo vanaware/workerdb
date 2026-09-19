@@ -1,6 +1,9 @@
 {
   "name": "@vanaware/workerdb",
-  "version": "1.0.3-h3",
+  "version": "0.0.26-mu8g26st",
+  "description": "Indexeddb wrapper on Web Worker, with a simple API and a powerful query engine.",
+  "author": "Vanaware",
+  "license": "MIT",
   // ----------------------------------------------------------------------
   // 🔧 Compiler Options específicos do pacote
   // ----------------------------------------------------------------------
@@ -58,6 +61,7 @@
     "include": [
       "src/**/*.ts",
       "README.md",
+      "LICENSE",
       "docs/**/*.md"
     ],
     "exclude": [

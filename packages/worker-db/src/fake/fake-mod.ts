@@ -40,11 +40,3 @@ export * from "../mod-main.ts";
 import { db, } from "../mod-main.ts";
 const fakeWorkerUrl = new URL("./fake-worker.ts", import.meta.url,);
 db.init(fakeWorkerUrl,);
-
-// 6. Exportamos as funções de assertivas customizadas
-export {
-  assert,
-  assertEquals,
-  assertNotEquals,
-  assertRejects,
-} from "./assert.ts";
