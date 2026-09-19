@@ -17,37 +17,37 @@ To ensure the UI never freezes, even during heavy E2EE cryptography or massive f
 
 ---
 
-## 🚀 1. Instalação e Importação
+## 🚀 1. Installation and Import
 
-O **WorkerDB** está pronto para ser utilizado em projetos Deno ou navegadores modernos. Você pode importar via JSR (recomendado) ou diretamente via GitHub.
+**WorkerDB** is ready for use in Deno projects or modern browsers. You can import via JSR (recommended) or directly from your package manager.
 
-### Via JSR (Recomendado para Deno)
+### Via JSR (Recommended for Deno)
 ```ts
-// Main Thread (UI/App via RPC Proxy não-bloqueante)
+// Main Thread (UI/App via non-blocking RPC Proxy)
 import { db, opfs, ls } from "jsr:@vanaware/workerdb";
 
-// Web Worker Standalone ou Composto
+// Standalone or Composed Web Worker
 import "jsr:@vanaware/workerdb/worker";
 import { handleWorkerMessage } from "jsr:@vanaware/workerdb/worker";
 
-// Service Worker / Web Worker (Acesso Direto sem RPC)
+// Service Worker / Web Worker (Direct access without RPC)
 import { dbsw, opfssw } from "jsr:@vanaware/workerdb/sw";
 ```
 
 ---
 
-## ⚙️ 2. Configurando o Web Worker na UI
+## ⚙️ 2. Configuring the Web Worker in the UI
 
-Para garantir que a UI nunca trave durante operações intensivas de banco ou processamento de arquivos OPFS/ZIP, o `db()` e o `opfs()` na Main Thread operam como um **Proxy RPC transparente** que delega o trabalho para um Web Worker em background.
+To ensure the UI never hangs during heavy database operations or OPFS/ZIP file processing, `db()` and `opfs()` on the Main Thread operate as a **transparent RPC Proxy** that delegates work to a background Web Worker.
 
-Por isso, **o seu app web precisa disponibilizar o arquivo `.js` compilado do Worker** para ser carregado pelo navegador.
+For this reason, **your web application must serve the compiled Worker `.js` file** so the browser can load it.
 
-### 📦 2.1 Como fazer o Bundle do Worker
+### 📦 2.1 Bundling the Worker
 
-Você pode empacotar o worker fornecido pelo subpath `jsr:@vanaware/workerdb/worker` de forma direta:
+You can bundle the worker provided by the `jsr:@vanaware/workerdb/worker` subpath directly:
 
-#### Opção A: Script com esbuild + Deno 2 (Recomendado)
-Crie um script de build (ex: `build-worker.ts`):
+#### Option A: Script with esbuild + Deno 2 (Recommended)
+Create a build script (e.g. `build-worker.ts`):
 
 ```ts
 import * as esbuild from "npm:esbuild@0.28.2";
@@ -63,107 +63,107 @@ await esbuild.build({
 });
 
 esbuild.stop();
-console.log("✅ Worker compilado em ./public/worker.js");
+console.log("✅ Worker compiled to ./public/worker.js");
 ```
 
-Execute com:
+Run with:
 ```bash
 deno run -A build-worker.ts
 ```
 
-#### Opção B: Usando Deno 2 Bundle API (`--unstable-bundle`)
-Crie um arquivo local `src/worker.ts`:
+#### Option B: Using Deno 2 Bundle API (`--unstable-bundle`)
+Create a local file `src/worker.ts`:
 ```ts
 // src/worker.ts
 import "jsr:@vanaware/workerdb/worker";
 ```
 
-E compile para a sua pasta pública:
+And compile it to your public directory:
 ```bash
 deno run --unstable-bundle -A ./src/worker.ts --output ./public/worker.js
 ```
 
 ---
 
-### 📂 2.2 Onde Salvar o Arquivo Gerado?
+### 📂 2.2 Where to Save the Output File
 
-Salve o arquivo bundle gerado na pasta de arquivos estáticos públicos do seu projeto (por exemplo, `./public/worker.js`, `./static/worker.js` ou `./dist/worker.js`). Ele deve ser servido como um asset estático acessível via HTTP pelo navegador.
+Save the generated bundle in your project's public static assets directory (for example, `./public/worker.js`, `./static/worker.js`, or `./dist/worker.js`). It must be served as an HTTP-accessible static asset by the browser.
 
 ---
 
-### 🚀 2.3 Como Inicializar na UI
+### 🚀 2.3 Initializing in the UI
 
-Por padrão, `db()` e `opfs()` procuram o worker no caminho relativo `./worker.js`:
+By default, `db()` and `opfs()` look for the worker at the relative path `./worker.js`:
 
 ```ts
 import { db, opfs } from "jsr:@vanaware/workerdb";
 
-// Inicialização com o caminho padrão ("./worker.js"):
+// Initialization with the default path ("./worker.js"):
 db.init(); 
 ```
 
-#### Usando outro nome ou caminho personalizado (Ex: `workerdb.min.js`):
-Se você salvou o arquivo com outro nome (como `workerdb.min.js`) ou em um subdiretório (como `/assets/worker.js`), passe o caminho ou `URL` para `init()`:
+#### Using a custom name or path (e.g. `workerdb.min.js`):
+If you saved the bundle under another name (such as `workerdb.min.js`) or in a subdirectory (such as `/assets/worker.js`), pass the path or `URL` to `init()`:
 
 ```ts
 import { db, opfs } from "jsr:@vanaware/workerdb";
 
-// Caminho relativo personalizado:
+// Custom relative path:
 db.init("./workerdb.min.js");
 
-// Ou caminho absoluto / URL resolvida:
+// Or absolute path / resolved URL:
 db.init(new URL("./assets/worker.js", import.meta.url));
 
-// O mesmo caminho se aplica a qualquer chamada opfs:
-opfs.init("./workerdb.js");
+// The same worker path is shared by opfs:
+opfs.init("./workerdb.min.js");
 ```
 
 ---
 
-### 🧩 2.4 Composição em um Web Worker Existente
+### 🧩 2.4 Composing inside an Existing Web Worker
 
-Se a sua aplicação já possui um Web Worker próprio para outras tarefas de background e você deseja unificar tudo no mesmo worker sem criar múltiplos threads, utilize a função exportada `handleWorkerMessage`:
+If your application already has its own Web Worker for other background tasks and you want to unify everything into a single worker without spawning multiple threads, use the exported `handleWorkerMessage` function:
 
 ```ts
-// src/meu-app-worker.ts
+// src/my-app-worker.ts
 import { handleWorkerMessage } from "jsr:@vanaware/workerdb/worker";
 
 self.addEventListener("message", async (event: MessageEvent) => {
-  // Comandos do WorkerDB contêm `command` e `requestId`
+  // WorkerDB commands contain `command` and `requestId`
   if (event.data?.command && event.data?.requestId) {
     await handleWorkerMessage(event);
     return;
   }
 
-  // Suas outras mensagens personalizadas do app:
-  if (event.data?.type === "PROCESSAR_AUDIO") {
-    // seu código aqui...
+  // Your application's custom messages:
+  if (event.data?.type === "PROCESS_AUDIO") {
+    // your custom background logic...
   }
 });
 ```
 
 ---
 
-## 📦 3. Módulo: `db()` (IndexedDB)
+## 📦 3. Module: `db()` (IndexedDB)
 
-O `db()` é a fábrica principal para salvar objetos e metadados persistentes de forma assíncrona. Ideal para Fila de Mensagens, Contatos, e Logs E2EE.
+`db()` is the primary factory for persisting objects and structured metadata asynchronously. Ideal for message queues, contact lists, and E2EE session logs.
 
 ```ts
 import { db } from "jsr:@vanaware/workerdb";
 
-// Inicializa o Worker Global (apenas na Main Thread)
+// Initialize the Global Worker (Main Thread only)
 db.init();
 
-// Cria uma instância focada (Database, Store, Prefixo)
+// Create a scoped instance (Database, Store, Prefix)
 const msgStore = db("WORKERDB_DATA", "messages", "MSG_");
 
-// CRUD Básico
-const id = await msgStore.set("auto", { text: "Olá", status: "pending" }); // Retorna MSG_xxx
+// Basic CRUD
+const id = await msgStore.set("auto", { text: "Hello", status: "pending" }); // Returns MSG_xxx
 const msg = await msgStore.get(id);
 await msgStore.patch(id, { status: "sent" });
 await msgStore.delete(id);
 
-// Operações em Lote e Consultas Remotas no Worker
+// Batch operations and remote queries executed in the Worker
 await msgStore.setSome(
   (items) => items.filter((i) => i.status === "pending"),
   (item) => ({ ...item, status: "sent" })
@@ -176,109 +176,109 @@ const pendingCount = await msgStore.query((items) =>
 
 ---
 
-## 📦 4. Módulo: `ls()` (LocalStorage)
+## 📦 4. Module: `ls()` (LocalStorage)
 
-O `ls()` segue exatamente os mesmos padrões e assinaturas do `db()`, mas de forma **síncrona** interagindo com o `localStorage`. Ideal para preferências de tema, estado de autenticação ou configurações rápidas de boot.
+`ls()` follows the exact same patterns and signatures as `db()`, but operates **synchronously** directly against `localStorage`. Ideal for theme preferences, authentication state, or rapid boot configurations.
 
 ```ts
 import { ls } from "jsr:@vanaware/workerdb";
 
 const prefStore = ls("WORKERDB_PREF_");
 
-// Uso imediato (Síncrono)
+// Immediate synchronous usage
 prefStore.set("config", { theme: "dark" });
 const prefs = prefStore.get("config");
 
-// Backups delegados ao Worker-DB (OPFS)
+// Asynchronous backups delegated to Worker-DB (OPFS)
 await prefStore.backupToOpfs("backups_prefs", "ui_config.json");
 ```
 
 ---
 
-## 📦 5. Módulo: `opfs()` (Sistema de Arquivos Nativo)
+## 📦 5. Module: `opfs()` (Origin Private File System)
 
-A joia da coroa. O `opfs()` **herda tudo do `db()`**, mas estende a API para manipular arquivos físicos no disco. Ele adota o padrão de **Record-Key Isolation**: cada registro do banco de dados ganha a sua própria pasta isolada no FileSystem.
+The crown jewel. `opfs()` **inherits all capabilities from `db()`**, but extends the API to manage physical files on disk. It adopts the **Record-Key Isolation** pattern: each database record key is paired with its own isolated directory in the FileSystem.
 
-### Inicialização
+### Initialization
 
 ```ts
 import { opfs } from "jsr:@vanaware/workerdb";
 
-// Parâmetros: DB, Store, Prefixo de ID, Sub-pasta OPFS base
+// Parameters: DB, Store, ID Prefix, Base OPFS subfolder
 const drive = opfs("WORKERDB_FILES", "attachments", "ATT_", "chats");
 ```
 
-### Upload e Listagem Leve
+### Upload and Lightweight Listing
 
-Para não sobrecarregar a RAM (caso uma pasta tenha dezenas de arquivos gigantes), o `listFiles` retorna apenas **metadados leves**.
+To avoid overloading RAM (e.g. if a directory contains dozens of large files), `listFiles` returns only **lightweight metadata**.
 
 ```ts
-const pastaMsgId = "msg_12345";
+const msgRecordId = "msg_12345";
 
-// Salvando o arquivo no Worker
-await drive.addFile(pastaMsgId, fileInput.files[0], "foto.png");
+// Saving file in the background Worker
+await drive.addFile(msgRecordId, fileInput.files[0], "photo.png");
 
-// Listagem super rápida (apenas name, size, type, lastModified)
-const files = await drive.listFiles(pastaMsgId);
+// Ultra-fast listing (only name, size, type, lastModified)
+const files = await drive.listFiles(msgRecordId);
 files.forEach((f) => console.log(`${f.name} - ${f.size} bytes`));
 ```
 
-### Download / Leitura Sob Demanda
+### On-Demand Download / Read
 
-O arquivo em si (o `Blob`/`File`) só cruza a ponte do Worker para a Main Thread no momento exato em que for ser exibido ou baixado pelo usuário.
+The raw file content (`Blob` / `File`) only crosses the bridge from the Worker to the Main Thread when explicitly requested for display or download.
 
 ```ts
-const rawFile = await drive.getFile(pastaMsgId, "foto.png");
+const rawFile = await drive.getFile(msgRecordId, "photo.png");
 const objectUrl = URL.createObjectURL(rawFile);
 ```
 
-### Gestão e Manipulação
+### File Management and Manipulation
 
 ```ts
-await drive.renFile(pastaMsgId, "foto.png", "avatar.png");
-await drive.delFile(pastaMsgId, "avatar.png");
-await drive.mvFile(pastaMsgId, "arquivo.txt", "outra_pasta_destino");
+await drive.renFile(msgRecordId, "photo.png", "avatar.png");
+await drive.delFile(msgRecordId, "avatar.png");
+await drive.mvFile(msgRecordId, "file.txt", "other_destination_folder");
 ```
 
 ---
 
-## 🗜️ 6. API de Compressão ZIP Integrada
+## 🗜️ 6. Integrated ZIP Compression API
 
-Ferramentas nativas do `opfs()` para compactação pesada rodando fora da UI, essencial para rotinas de exportação massiva ou agrupamento de mídias criptografadas E2EE.
+Built-in native tools in `opfs()` for heavy compression running completely outside the UI thread—essential for bulk exports or archiving encrypted E2EE media.
 
 ```ts
-// 1. Zipar todos (ou alguns) arquivos de um registro (apagando os originais)
-await drive.zip(pastaMsgId, "album.zip", ["foto1.png", "foto2.png"], true);
+// 1. Zip all (or selected) files in a record folder (optionally deleting originals)
+await drive.zip(msgRecordId, "album.zip", ["photo1.png", "photo2.png"], true);
 
-// 2. Extrair um ZIP já existente na pasta do registro
-await drive.unzip(pastaMsgId, "album.zip");
+// 2. Unzip an existing archive in the record folder
+await drive.unzip(msgRecordId, "album.zip");
 
-// 3. Adicionar ou Excluir arquivos de dentro de um ZIP (Mutações sem extração total visível)
-await drive.addZip(pastaMsgId, "album.zip", novoBlob, "foto3.png");
-await drive.delZip(pastaMsgId, "album.zip", "foto1.png");
+// 3. Add or delete files within an existing ZIP archive
+await drive.addZip(msgRecordId, "album.zip", newBlob, "photo3.png");
+await drive.delZip(msgRecordId, "album.zip", "photo1.png");
 ```
 
 ---
 
-## 🔄 7. Backups Automáticos e Recuperação
+## 🔄 7. Automated Backups and Recovery
 
-O sistema possui uma engine unificada para fazer _dump_ de stores inteiros (tanto do IndexedDB quanto do LocalStorage) e arquivá-los em segurança no OPFS, em uma pasta global chamada `/backup`.
+The system provides a unified engine to create snapshots of entire stores (both IndexedDB and LocalStorage) and archive them securely in OPFS under a global `/backup` directory.
 
 ```ts
-// Gera um snapshot e joga no disco nativo (OPFS) na subpasta /backup/minha_conta
-await msgStore.backupToOpfs("minha_conta", "bkp_v1.json");
+// Generate a snapshot and save to disk (OPFS) under /backup/my_account
+await msgStore.backupToOpfs("my_account", "bkp_v1.json");
 
-// Lê do disco nativo, trunca o banco atual, e insere os dados restaurados
-await msgStore.restoreFromOpfs("minha_conta", "bkp_v1.json", true);
+// Read from disk, truncate the current store, and restore snapshot data
+await msgStore.restoreFromOpfs("my_account", "bkp_v1.json", true);
 ```
 
 ---
 
-## 🚧 8. Roadmap da Camada de Banco
+## 🚧 8. Roadmap
 
-- [x] Abstração de IDB em Web Worker
-- [x] Sincronia de IDs (Prefixo dinâmico, interceptação "auto")
-- [x] Query, SetSome, DelSome (Cálculos de Array isolados no Worker)
-- [x] OPFS Integration (Manipulação de Blobs direto para o FileSystem Nativo)
-- [x] OPFS Zip Compression (Integração com `fflate`)
-- [x] Otimização de Performance OPFS (`listFiles` Metadata-only vs `getFile` sob demanda)
+- [x] IndexedDB abstraction in Web Worker
+- [x] ID synchronization (Dynamic prefix, "auto" interception)
+- [x] Query, SetSome, DelSome (Isolated array calculations in Worker)
+- [x] OPFS Integration (Blob operations directly in native FileSystem)
+- [x] OPFS ZIP Compression (Powered by `fflate`)
+- [x] OPFS Performance Optimization (`listFiles` metadata-only vs on-demand `getFile`)

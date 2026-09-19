@@ -1,22 +1,20 @@
-// monorepo/worker-db/src/fake/fake-db.ts
+// src/fake/fake-worker.ts
 
-// 1. Injeta o IndexedDB Fake no escopo global (self) do Worker
+// 1. Inject Fake IndexedDB into the global scope (self) of the Worker
 import "fake-indexeddb/auto";
 
-import { FakeOPFSDirectory, } from "./fake-opfs.ts";
+import { FakeOPFSDirectory } from "./fake-opfs.ts";
 
 const _self = globalThis as unknown as Record<string, unknown>;
 
-// 2. Injeta OPFS Fake no escopo do Worker
+// 2. Inject Fake OPFS into the Worker scope
 if (!_self.navigator) _self.navigator = {};
 const navigator = _self.navigator as Record<string, unknown>;
 if (!navigator.storage) navigator.storage = {};
 const storage = navigator.storage as Record<string, unknown>;
 if (!storage.getDirectory) {
-  storage.getDirectory = () => Promise.resolve(new FakeOPFSDirectory(),);
+  storage.getDirectory = () => Promise.resolve(new FakeOPFSDirectory());
 }
 
-// 3. Agora que o ambiente do Worker está perfeitamente simulado,
-// importamos a lógica real do banco de dados. O db.ts vai rodar
-// achando que está em um browser de verdade!
+// 3. Import real worker logic with simulated environment
 import "../worker.ts";

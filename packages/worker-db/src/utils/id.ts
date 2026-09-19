@@ -1,16 +1,16 @@
 // src/utils/id-utils.ts
 
 /**
- * Tipo que estende um objeto com a propriedade `_id`.
- * @template T O tipo base do objeto.
+ * Type extending an object with an `_id` property.
+ * @template T The base object type.
  */
 export type WithId<T> = T & { _id: string };
 
 /**
- * Gera um identificador único curto seguro.
- * Utiliza Web Crypto API se disponível, senão utiliza um fallback matemático.
+ * Generates a short, secure unique identifier.
+ * Uses Web Crypto API if available, otherwise falls back to a mathematical generator.
  *
- * @returns {string} ID gerado de 12 caracteres (hexadecimal ou base36).
+ * @returns {string} Generated 12-character ID (hexadecimal or base36).
  *
  * @example
  * ```ts
@@ -32,10 +32,10 @@ export function gerarId(): string {
 }
 
 /**
- * Fallback para geração de ID caso crypto.getRandomValues não esteja disponível.
- * Combina o timestamp em base36 com uma string aleatória.
+ * Fallback for ID generation if crypto.getRandomValues is unavailable.
+ * Combines a base36 timestamp with a random string.
  *
- * @returns {string} ID temporário.
+ * @returns {string} Temporary ID.
  */
 export function gerarIdFallback(): string {
   return Date.now().toString(36) +
@@ -43,33 +43,33 @@ export function gerarIdFallback(): string {
 }
 
 /**
- * Valida se uma string tem o formato aceitável de ID do WorkerDB.
+ * Validates whether a string has an acceptable WorkerDB ID format.
  *
- * @param {string} id O ID a ser validado.
- * @returns {boolean} True se o ID for válido (string não vazia até 24 caracteres).
+ * @param {string} id The ID to validate.
+ * @returns {boolean} True if the ID is valid (non-empty string up to 24 characters).
  */
 export function validarId(id: string): boolean {
   return typeof id === "string" && id.length > 0 && id.length <= 24;
 }
 
 /**
- * Gera um ID único prefixado.
+ * Generates a prefixed unique ID.
  *
- * @param {string} prefix O prefixo a ser adicionado ao ID.
- * @returns {string} O ID prefixado.
+ * @param {string} prefix The prefix to prepend to the ID.
+ * @returns {string} The prefixed ID.
  */
 export function gerarIdComPrefixo(prefix: string): string {
   return `${prefix}${gerarId()}`;
 }
 
 /**
- * Injeta dinamicamente o campo `_id` em um objeto ao ler do banco de dados,
- * removendo o prefixo se presente.
+ * Dynamically injects the `_id` field into an object when reading from storage,
+ * stripping the prefix if present.
  *
- * @param {IDBValidKey} key A chave bruta do IndexedDB/LocalStorage.
- * @param {unknown} val O valor bruto armazenado.
- * @param {string} [prefix=""] O prefixo a ser removido da chave.
- * @returns {unknown} O objeto com o campo `_id` injetado.
+ * @param {IDBValidKey} key The raw IndexedDB/LocalStorage key.
+ * @param {unknown} val The raw stored value.
+ * @param {string} [prefix=""] The prefix to remove from the key.
+ * @returns {unknown} The object with the injected `_id` field.
  * @internal
  */
 export function formatDbItem(
@@ -86,13 +86,13 @@ export function formatDbItem(
 }
 
 /**
- * Prepara um registro para gravação, gerando chaves automáticas e removendo o `_id` interno.
+ * Prepares a record for storage, generating automatic keys and stripping the internal `_id`.
  *
- * @param {string | undefined | null} key Chave sugerida ou "auto".
- * @param {unknown} val Objeto a ser salvo.
- * @param {string} [prefix=""] Prefixo a ser aplicado à chave final.
- * @returns {{ key: string; cleanVal: unknown }} Objeto contendo a chave final e o valor limpo.
- * @throws {Error} Se nenhuma chave puder ser determinada.
+ * @param {string | undefined | null} key Suggested key or "auto".
+ * @param {unknown} val Object to be saved.
+ * @param {string} [prefix=""] Prefix to apply to the final key.
+ * @returns {{ key: string; cleanVal: unknown }} Object containing the final key and sanitized value.
+ * @throws {Error} If no key can be determined.
  * @internal
  */
 export function prepareForSave(
@@ -100,7 +100,7 @@ export function prepareForSave(
   val: unknown,
   prefix = "",
 ): { key: string; cleanVal: unknown } {
-  let rawId = val && typeof val === "object" && !Array.isArray(val,)
+  let rawId = val && typeof val === "object" && !Array.isArray(val)
     ? (val as Record<string, unknown>)._id as string | undefined
     : undefined;
 
@@ -108,19 +108,19 @@ export function prepareForSave(
     rawId = gerarId();
   }
 
-  // Intercepta a chave informada como "auto" via parâmetro direto ou tupla do setMany
+  // Intercept key provided as "auto" via direct parameter or setMany tuple
   const processKey = key === "auto" ? gerarId() : key;
 
   let finalKey = processKey || "";
 
   if (rawId) {
-    if (prefix && rawId.startsWith(prefix,)) {
+    if (prefix && rawId.startsWith(prefix)) {
       finalKey = rawId;
     } else {
       finalKey = prefix ? `${prefix}${rawId}` : rawId;
     }
   } else if (processKey) {
-    if (prefix && processKey.startsWith(prefix,)) {
+    if (prefix && processKey.startsWith(prefix)) {
       finalKey = processKey;
     } else {
       finalKey = prefix ? `${prefix}${processKey}` : processKey;
@@ -129,17 +129,17 @@ export function prepareForSave(
 
   if (!finalKey) {
     throw new Error(
-      "Uma chave (key) ou um atributo '_id' no objeto deve ser fornecido.",
+      "A key or an '_id' attribute on the object must be provided.",
     );
   }
 
   if (
-    val && typeof val === "object" && !Array.isArray(val,) &&
+    val && typeof val === "object" && !Array.isArray(val) &&
     "_id" in (val as Record<string, unknown>)
   ) {
     const { _id: _, ...cleanVal } = val as Record<string, unknown>;
-    return { key: finalKey, cleanVal, };
+    return { key: finalKey, cleanVal };
   }
 
-  return { key: finalKey, cleanVal: val, };
+  return { key: finalKey, cleanVal: val };
 }

@@ -88,20 +88,20 @@ Deno.test({
     store.clear();
     store.set("1", { valid: true, },);
 
-    // AssertThrows captura as exceções síncronas disparadas pelo wrapper ls()
+    // AssertThrows captures synchronous exceptions dispatched by ls() wrapper
     assertThrows(
       () =>
         store.getSome(
           () => ({ obj: "invalid", } as unknown as WithId<unknown>[]),
         ),
       Error,
-      "A função em getSome deve retornar um Array.",
+      "The function in getSome must return an Array.",
     );
 
     assertThrows(
       () => store.delSome(() => false as unknown as WithId<unknown>[]),
       Error,
-      "A função em delSome deve retornar um Array.",
+      "The function in delSome must return an Array.",
     );
 
     assertThrows(
@@ -111,7 +111,7 @@ Deno.test({
           (i: unknown,) => i as unknown as WithId<unknown>,
         ),
       Error,
-      "A função de seleção em setSome deve retornar um Array.",
+      "The selector function in setSome must return an Array.",
     );
 
     store.clear();

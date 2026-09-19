@@ -1,14 +1,14 @@
-// ## Arquivo: monorepo/worker-db/src/db.ts
-import { internalAPI, } from "./db.ts";
-import type { DbStoreOptions, OpfsStoreOptions, } from "./db.ts";
+// src/worker.ts
+import { internalAPI } from "./db.ts";
+import type { DbStoreOptions, OpfsStoreOptions } from "./db.ts";
 
-import { APP_VERSION, } from "./utils/version.ts";
+import { APP_VERSION } from "./utils/version.ts";
 
-console.log(`[DB] 🌌 Worker-db carregado (v${APP_VERSION}).`,);
+console.log(`[DB] 🌌 Worker-db loaded (v${APP_VERSION}).`);
 
 /**
- * Manipulador principal de mensagens RPC do WorkerDB.
- * Pode ser integrado em um Web Worker existente ou executado diretamente.
+ * Main RPC message handler for WorkerDB.
+ * Can be integrated into an existing Web Worker or executed directly.
  */
 export async function handleWorkerMessage(e: MessageEvent): Promise<void> {
   if (
@@ -391,20 +391,20 @@ export async function handleWorkerMessage(e: MessageEvent): Promise<void> {
       }
 
       default:
-        throw new Error(`Comando desconhecido: ${command}`,);
+        throw new Error(`Unknown command: ${command}`);
     }
 
-    self.postMessage({ requestId, success: true, result, },);
+    self.postMessage({ requestId, success: true, result });
   } catch (error) {
     self.postMessage({
       requestId,
       success: false,
       error: (error as Error).message,
-    },);
+    });
   }
 }
 
-// Auto-registrar listener se executado diretamente em contexto de Web Worker
+// Auto-register listener if running directly in a Web Worker context
 if (
   typeof self !== "undefined" &&
   typeof (self as unknown as { postMessage?: unknown }).postMessage === "function" &&

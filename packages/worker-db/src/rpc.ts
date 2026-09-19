@@ -37,10 +37,10 @@ function getWorker(workerPath?: string | URL,): Worker {
       }
     };
 
-    workerInstance.onerror = (event,) => {
-      console.error("⚠️ Falha crítica no Web Worker:", event.message,);
-      pendingRequests.forEach(({ reject, },) =>
-        reject(new Error("Worker crashed",),)
+    workerInstance.onerror = (event) => {
+      console.error("⚠️ Critical failure in Web Worker:", event.message);
+      pendingRequests.forEach(({ reject }) =>
+        reject(new Error("Worker crashed"))
       );
       pendingRequests.clear();
       restartWorker();
@@ -54,8 +54,8 @@ function restartWorker() {
     workerInstance.terminate();
     workerInstance = null;
   }
-  pendingRequests.forEach(({ reject, },) =>
-    reject(new Error("Worker foi reiniciado",),)
+  pendingRequests.forEach(({ reject }) =>
+    reject(new Error("Worker was restarted"))
   );
   pendingRequests.clear();
   getWorker();
@@ -765,8 +765,8 @@ function createScopedOpfs<TDefault = unknown>(
 }
 
 /**
- * Ponto de acesso para o Banco de Dados (IndexedDB) via Web Worker Proxy.
- * Ideal para uso na Main Thread do browser para evitar bloqueio da UI.
+ * Access point for Database (IndexedDB) via Web Worker Proxy.
+ * Ideal for use on the browser Main Thread to prevent UI blocking.
  */
 export const db: (<TDefault = unknown>(
   dbName?: string | DbStoreOptions,
@@ -785,8 +785,8 @@ export const db: (<TDefault = unknown>(
 );
 
 /**
- * Ponto de acesso para o Sistema de Arquivos (OPFS) via Web Worker Proxy.
- * Ideal para uso na Main Thread do browser.
+ * Access point for File System (OPFS) via Web Worker Proxy.
+ * Ideal for use on the browser Main Thread.
  */
 export const opfs: (<TDefault = unknown>(
   dbName?: string | OpfsStoreOptions,

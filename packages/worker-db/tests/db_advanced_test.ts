@@ -91,21 +91,21 @@ Deno.test({
     await store.clear();
     await store.set("1", { valid: true, },);
 
-    // AssertRejects captura os throw Exceptions disparados lá no switch(command) do worker
+    // AssertRejects captures throw Exceptions dispatched in worker switch(command)
     await assertRejects(
       async () =>
         await store.getSome(
           () => ({ obj: "invalid", } as unknown as WithId<unknown>[]),
         ),
       Error,
-      "A função injetada em GET_SOME deve retornar um Array.",
+      "The injected function in GET_SOME must return an Array.",
     );
 
     await assertRejects(
       async () =>
         await store.delSome(() => false as unknown as WithId<unknown>[]),
       Error,
-      "A função injetada em DEL_SOME deve retornar um Array.",
+      "The injected function in DEL_SOME must return an Array.",
     );
 
     await assertRejects(
@@ -115,7 +115,7 @@ Deno.test({
           (i: unknown,) => i as unknown as WithId<unknown>,
         ),
       Error,
-      "A função de seleção em SET_SOME deve retornar um Array.",
+      "The selector function in SET_SOME must return an Array.",
     );
   },
 },);

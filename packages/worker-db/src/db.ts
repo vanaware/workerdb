@@ -1,5 +1,5 @@
-// ## Arquivo: monorepo/worker-db/src/db-sw.ts
-// ⚠️ MÓDULO CENTRAL DO BANCO DE DADOS: Ponto único de verdade para manipulação do IDB e OPFS.
+// src/db.ts
+// Central database module: Single source of truth for IDB and OPFS manipulation.
 import {
   clear,
   createStore,
@@ -14,7 +14,7 @@ import {
   type UseStore,
   values,
 } from "idb-keyval";
-import { unzipSync, zipSync, } from "fflate";
+import { unzipSync, zipSync } from "fflate";
 
 import {
   formatDbItem,
@@ -25,190 +25,190 @@ import {
 } from "./utils/id.ts";
 
 // ============================================================================
-// DEFINIÇÕES DE TIPOS (Single Source of Truth)
+// TYPE DEFINITIONS (Single Source of Truth)
 // ============================================================================
 /**
- * Opções de configuração para o Object Store do IndexedDB.
+ * Configuration options for IndexedDB Object Stores.
  */
 export interface DbStoreOptions {
-  /** Nome do banco de dados IndexedDB. */
+  /** Name of the IndexedDB database. */
   dbName?: string;
-  /** Nome do object store dentro do banco. */
+  /** Name of the object store within the database. */
   storeName?: string;
-  /** Prefixo opcional para isolamento de chaves nesta instância. */
+  /** Optional prefix for key isolation in this instance. */
   prefix?: string;
-  /** Lista de nomes de campos a serem indexados. */
+  /** List of field names to index. */
   indexes?: string[];
-  /** Versão do banco de dados (incremental). */
+  /** Database version (incremental). */
   dbVersion?: number;
-  /** Representação em string da função de validação (usada em RPC). */
+  /** String representation of validation function (used across RPC). */
   validatorStr?: string;
-  /** Função de validação opcional para os dados gravados. */
+  /** Optional validation function for saved records. */
   validator?: (val: unknown) => boolean;
 }
 
 /**
- * Opções estendidas para armazenamento em OPFS.
+ * Extended options for OPFS storage.
  */
 export interface OpfsStoreOptions extends DbStoreOptions {
-  /** Caminho base (diretório raiz) no OPFS. */
+  /** Base path (root directory) in OPFS. */
   basePath?: string;
 }
 
 /**
- * Metadados de um arquivo no OPFS.
+ * File metadata in OPFS.
  */
 export interface OpfsFileInfo {
-  /** Nome do arquivo. */
+  /** Name of the file. */
   name: string;
-  /** Tamanho em bytes. */
+  /** Size in bytes. */
   size: number;
-  /** MIME type do arquivo. */
+  /** MIME type of the file. */
   type: string;
-  /** Timestamp da última modificação. */
+  /** Timestamp of last modification. */
   lastModified: number;
 }
 
 /**
- * Range de consulta para índices.
+ * Query range for index operations.
  */
 export interface IndexRange {
-  /** Valor exato. */
+  /** Exact match value. */
   eq?: IDBValidKey;
-  /** Maior que. */
+  /** Greater than. */
   gt?: IDBValidKey;
-  /** Maior ou igual a. */
+  /** Greater than or equal to. */
   gte?: IDBValidKey;
-  /** Menor que. */
+  /** Less than. */
   lt?: IDBValidKey;
-  /** Menor ou igual a. */
+  /** Less than or equal to. */
   lte?: IDBValidKey;
 }
 
-/** Tipo para consultas em índices (IDBValidKey, IDBKeyRange ou IndexRange). */
+/** Query type for index operations (IDBValidKey, IDBKeyRange, or IndexRange). */
 export type IndexQuery = IDBValidKey | IDBKeyRange | IndexRange;
 
 /**
- * Interface principal para operações de banco de dados (IndexedDB).
- * @template TDefault Tipo padrão para os registros.
+ * Main interface for database operations (IndexedDB).
+ * @template TDefault Default record type.
  */
 export interface WorkerDbAPI<TDefault = unknown> {
-  /** Obtém um registro pela chave. */
+  /** Retrieves a record by key. */
   get: <T = TDefault>(key: string, opts?: DbStoreOptions) => Promise<WithId<T> | undefined>;
-  /** Define um registro (chave/valor ou apenas valor com ID auto-gerado). */
+  /** Sets a record (key/value or value with auto-generated ID). */
   set: <T = TDefault>(keyOrVal: string | T, val?: T | DbStoreOptions, opts?: DbStoreOptions) => Promise<string>;
-  /** Atualiza um registro via função de callback. */
+  /** Updates a record via an updater callback function. */
   update: <T = TDefault>(key: string, updater: (val: WithId<T> | undefined) => T, opts?: DbStoreOptions) => Promise<void>;
-  /** Aplica um patch parcial em um registro. */
+  /** Applies a partial patch to a record. */
   patch: <T extends Record<string, unknown> = TDefault extends Record<string, unknown> ? TDefault : Record<string, unknown>, C = unknown>(
     key: string,
     patchOrFn: Partial<T> | ((prev: WithId<T>, ctx?: C) => T | Partial<T>),
     context?: C,
     opts?: DbStoreOptions
   ) => Promise<WithId<T>>;
-  /** Remove um registro pela chave. */
+  /** Deletes a record by key. */
   delete: (key: string, opts?: DbStoreOptions) => Promise<void>;
-  /** Obtém múltiplos registros. */
+  /** Retrieves multiple records by keys. */
   getMany: <T = TDefault>(keysList: string[], opts?: DbStoreOptions) => Promise<(WithId<T> | undefined)[]>;
-  /** Define múltiplos registros em lote. */
+  /** Sets multiple key-value pairs in batch. */
   setMany: (entriesList: [string, unknown][], opts?: DbStoreOptions) => Promise<void>;
-  /** Remove múltiplos registros em lote. */
+  /** Deletes multiple records by keys in batch. */
   deleteMany: (keysList: string[], opts?: DbStoreOptions) => Promise<void>;
-  /** Obtém todas as chaves da store. */
+  /** Retrieves all keys in the store. */
   keys: (opts?: DbStoreOptions) => Promise<string[]>;
-  /** Obtém todos os valores da store. */
+  /** Retrieves all values in the store. */
   values: <T = TDefault>(opts?: DbStoreOptions) => Promise<T[]>;
-  /** Obtém todos os pares [chave, valor] da store. */
+  /** Retrieves all [key, value] pairs in the store. */
   entries: <T = TDefault>(opts?: DbStoreOptions) => Promise<[string, T][]>;
-  /** Limpa todos os dados da store. */
+  /** Clears all records in the store. */
   clear: (opts?: DbStoreOptions) => Promise<void>;
-  /** Conta registros no índice. */
+  /** Counts records matching an index query. */
   countByIndex: (indexName: string, query?: IndexQuery, opts?: DbStoreOptions) => Promise<number>;
-  /** Obtém um único registro do índice. */
+  /** Retrieves a single record by index query. */
   getOneByIndex: <T = TDefault>(indexName: string, query: IndexQuery, opts?: DbStoreOptions) => Promise<WithId<T> | undefined>;
-  /** Obtém todas as chaves do índice. */
+  /** Retrieves all keys matching an index query. */
   keysByIndex: (indexName: string, query: IndexQuery, opts?: DbStoreOptions) => Promise<string[]>;
-  /** Aplica patch em registros do índice. */
+  /** Applies a partial patch to records matching an index query. */
   patchByIndex: <T = TDefault>(indexName: string, query: IndexQuery, patch: Partial<T>, opts?: DbStoreOptions) => Promise<void>;
-  /** Busca registros indexados com paginação. */
+  /** Retrieves indexed records with cursor-based pagination. */
   getByIndexPaginated: <T = TDefault>(
     indexName: string,
     query: IndexQuery,
     paginationOpts: { limit?: number; cursor?: string; direction?: "next" | "prev" | "nextunique" | "prevunique" },
     opts?: DbStoreOptions
   ) => Promise<{ items: WithId<T>[]; nextCursor?: string }>;
-  /** Busca registros por índice. */
+  /** Retrieves records matching an index query. */
   getByIndex: <T = TDefault>(indexName: string, query: IndexQuery, opts?: DbStoreOptions) => Promise<WithId<T>[]>;
-  /** Busca múltiplos valores de índice. */
+  /** Retrieves records matching multiple index queries. */
   getManyByIndex: <T = TDefault>(indexName: string, queries: IndexQuery[], opts?: DbStoreOptions) => Promise<WithId<T>[]>;
-  /** Filtra subconjunto do índice no Worker. */
+  /** Filters indexed records in the Worker using a selector function. */
   getSomeByIndex: <T = TDefault, C = unknown>(indexName: string, query: IndexQuery, fn: (items: WithId<T>[], ctx?: C) => WithId<T>[], context?: C, opts?: DbStoreOptions) => Promise<WithId<T>[]>;
-  /** Executa agregação no índice no Worker. */
+  /** Executes an aggregation query over indexed records in the Worker. */
   queryByIndex: <T = TDefault, R = unknown, C = unknown>(indexName: string, query: IndexQuery, fn: (items: WithId<T>[], ctx?: C) => R, context?: C, opts?: DbStoreOptions) => Promise<R>;
-  /** Remove por índice. */
+  /** Deletes records matching an index query. */
   deleteByIndex: (indexName: string, query: IndexQuery, opts?: DbStoreOptions) => Promise<void>;
-  /** Remove múltiplos valores de índice. */
+  /** Deletes records matching multiple index queries. */
   deleteManyByIndex: (indexName: string, queries: IndexQuery[], opts?: DbStoreOptions) => Promise<void>;
-  /** Remove subconjunto do índice no Worker. */
+  /** Deletes a subset of indexed records selected by a function in the Worker. */
   delSomeByIndex: <T = TDefault, C = unknown>(indexName: string, query: IndexQuery, fn: (items: WithId<T>[], ctx?: C) => WithId<T>[], context?: C, opts?: DbStoreOptions) => Promise<void>;
-  /** Atualiza subconjunto do índice no Worker. */
+  /** Updates a subset of indexed records selected by a function in the Worker. */
   setSomeByIndex: <T = TDefault, C = unknown>(indexName: string, query: IndexQuery, selectFn: (items: WithId<T>[], ctx?: C) => WithId<T>[], updateFn: (item: WithId<T>, ctx?: C) => WithId<T>, context?: C, opts?: DbStoreOptions) => Promise<void>;
-  /** Executa consulta genérica no Worker. */
+  /** Executes a query function over stored items in the Worker. */
   query: <T = TDefault, R = unknown, C = unknown>(fn: (items: WithId<T>[], ctx?: C) => R, context?: C, opts?: DbStoreOptions) => Promise<R>;
-  /** Filtra registros no Worker. */
+  /** Filters records in the Worker using a selector function. */
   getSome: <T = TDefault, C = unknown>(fn: (items: WithId<T>[], ctx?: C) => WithId<T>[], context?: C, opts?: DbStoreOptions) => Promise<WithId<T>[]>;
-  /** Remove registros filtrados no Worker. */
+  /** Deletes filtered records in the Worker using a selector function. */
   delSome: <T = TDefault, C = unknown>(fn: (items: WithId<T>[], ctx?: C) => WithId<T>[], context?: C, opts?: DbStoreOptions) => Promise<void>;
-  /** Atualiza registros filtrados no Worker. */
+  /** Updates filtered records in the Worker using a selector and updater function. */
   setSome: <T = TDefault, C = unknown>(selectFn: (items: WithId<T>[], ctx?: C) => WithId<T>[], updateFn: (item: WithId<T>, ctx?: C) => WithId<T>, context?: C, opts?: DbStoreOptions) => Promise<void>;
-  /** Exporta banco de dados. */
+  /** Exports database records to a JSON object. */
   exportDB: (opts?: DbStoreOptions) => Promise<Record<string, unknown>>;
-  /** Importa banco de dados. */
+  /** Imports records from a JSON object into the database. */
   importDB: (data: Record<string, unknown>, clearFirst?: boolean, opts?: DbStoreOptions) => Promise<void>;
-  /** Backup para OPFS. */
+  /** Backs up database records to OPFS. */
   backupToOpfs: (key: string, fileName?: string, opts?: DbStoreOptions) => Promise<string>;
-  /** Restaura o banco de dados a partir de um arquivo no OPFS. */
+  /** Restores database records from an OPFS backup file. */
   restoreFromOpfs: (key: string, fileName: string, clearFirst?: boolean, opts?: DbStoreOptions) => Promise<void>;
-  /** Inicializa o Worker. */
+  /** Initializes the Worker. */
   init: (workerPath?: string | URL) => void;
-  /** Reinicia o Worker. */
+  /** Restarts the Worker. */
   restart: () => void;
-  /** Finaliza o Worker. */
+  /** Terminates the Worker. */
   terminate: () => void;
-  /** Gera um ID aleatório. */
+  /** Generates a random unique ID. */
   gerarId: () => string;
-  /** Gera um ID com prefixo. */
+  /** Generates a random unique ID with prefix. */
   gerarIdComPrefixo: (prefix?: string) => string;
 }
 
 /**
- * Interface estendida para operações de sistema de arquivos (OPFS).
- * @template TDefault Tipo padrão para os registros.
+ * Extended interface for file system operations (OPFS).
+ * @template TDefault Default record type.
  */
 export interface WorkerOpfsAPI<TDefault = unknown> extends WorkerDbAPI<TDefault> {
-  /** Lista arquivos. */
+  /** Lists files with lightweight metadata. */
   listFiles: (key: string, opts?: OpfsStoreOptions) => Promise<OpfsFileInfo[]>;
-  /** Obtém arquivo. */
+  /** Retrieves a file. */
   getFile: (key: string, fileName: string, opts?: OpfsStoreOptions) => Promise<File>;
-  /** Obtém stream de arquivo. */
+  /** Retrieves a byte stream of a file. */
   getFileStream: (key: string, fileName: string, opts?: OpfsStoreOptions) => Promise<ReadableStream<Uint8Array>>;
-  /** Adiciona arquivo. */
+  /** Adds a file. */
   addFile: (key: string, file: File | Blob, fileName: string, opts?: OpfsStoreOptions) => Promise<void>;
-  /** Adiciona arquivo via stream. */
+  /** Adds a file via a byte stream. */
   addFileStream: (key: string, streamOrFileName: ReadableStream<Uint8Array> | string, fileNameOrStream: string | ReadableStream<Uint8Array>, opts?: OpfsStoreOptions) => Promise<void>;
-  /** Remove arquivo. */
+  /** Deletes a file. */
   delFile: (key: string, fileName: string, opts?: OpfsStoreOptions) => Promise<void>;
-  /** Renomeia arquivo. */
+  /** Renames a file. */
   renFile: (key: string, oldName: string, newName: string, opts?: OpfsStoreOptions) => Promise<void>;
-  /** Move arquivo. */
+  /** Moves a file to another record key. */
   mvFile: (key: string, fileName: string, newKey: string, opts?: OpfsStoreOptions) => Promise<void>;
-  /** Compacta arquivos. */
+  /** Compresses files into a ZIP archive. */
   zip: (key: string, zipName: string, filesToZip?: string[], deleteOriginals?: boolean, opts?: OpfsStoreOptions) => Promise<void>;
-  /** Descompacta arquivos. */
+  /** Extracts files from a ZIP archive. */
   unzip: (key: string, zipName: string, deleteZip?: boolean, opts?: OpfsStoreOptions) => Promise<void>;
-  /** Adiciona ao ZIP. */
+  /** Adds a file into an existing ZIP archive. */
   addZip: (key: string, zipName: string, file: File | Blob, fileName: string, opts?: OpfsStoreOptions) => Promise<void>;
-  /** Remove do ZIP. */
+  /** Removes a file from an existing ZIP archive. */
   delZip: (key: string, zipName: string, fileName: string, opts?: OpfsStoreOptions) => Promise<void>;
 }
 
@@ -350,7 +350,7 @@ function validateDbItem(
 }
 
 /**
- * API global para acesso direto ao IndexedDB no Worker.
+ * Global API for direct IndexedDB access in the Worker.
  */
 export const globalSwDbAPI: WorkerDbAPI<unknown> = {
   get: async <T,>(
@@ -881,11 +881,11 @@ export const globalSwDbAPI: WorkerDbAPI<unknown> = {
     context?: C,
     opts?: DbStoreOptions,
   ): Promise<WithId<T>[]> => {
-    const matched = await globalSwDbAPI.getByIndex<T>(indexName, query, opts,);
-    const selectedItems = fn(matched, context,);
-    if (!Array.isArray(selectedItems,)) {
+    const matched = await globalSwDbAPI.getByIndex<T>(indexName, query, opts);
+    const selectedItems = fn(matched, context);
+    if (!Array.isArray(selectedItems)) {
       throw new Error(
-        "A função injetada em GET_SOME_BY_INDEX deve retornar um Array.",
+        "The injected function in GET_SOME_BY_INDEX must return an Array.",
       );
     }
     return selectedItems;
@@ -992,33 +992,33 @@ export const globalSwDbAPI: WorkerDbAPI<unknown> = {
       opts?.indexes,
       opts?.dbVersion,
     );
-    const matched = await globalSwDbAPI.getByIndex<T>(indexName, query, opts,);
-    const selectedItems = fn(matched, context,);
-    if (!Array.isArray(selectedItems,)) {
+    const matched = await globalSwDbAPI.getByIndex<T>(indexName, query, opts);
+    const selectedItems = fn(matched, context);
+    if (!Array.isArray(selectedItems)) {
       throw new Error(
-        "A função injetada em DEL_SOME_BY_INDEX deve retornar um Array.",
+        "The injected function in DEL_SOME_BY_INDEX must return an Array.",
       );
     }
-    const keysToDelete: string[] = selectedItems.map((item: WithId<T>,) => {
+    const keysToDelete: string[] = selectedItems.map((item: WithId<T>) => {
       if (!item || item._id === undefined) {
         throw new Error(
-          "Os itens retornados em DEL_SOME_BY_INDEX precisam conter a propriedade '_id'.",
+          "Items returned in DEL_SOME_BY_INDEX must contain an '_id' property.",
         );
       }
-      return opts?.prefix && !item._id.startsWith(opts.prefix,)
+      return opts?.prefix && !item._id.startsWith(opts.prefix)
         ? `${opts.prefix}${item._id}`
         : item._id;
-    },);
+    });
     if (keysToDelete.length > 0) {
-      await delMany(keysToDelete, store,);
+      await delMany(keysToDelete, store);
     }
   },
 
-  setSomeByIndex: async <T, C = unknown,>(
+  setSomeByIndex: async <T, C = unknown>(
     indexName: string,
     query: IndexQuery,
-    selectFn: (items: WithId<T>[], ctx?: C,) => WithId<T>[],
-    updateFn: (item: WithId<T>, ctx?: C,) => WithId<T>,
+    selectFn: (items: WithId<T>[], ctx?: C) => WithId<T>[],
+    updateFn: (item: WithId<T>, ctx?: C) => WithId<T>,
     context?: C,
     opts?: DbStoreOptions,
   ): Promise<void> => {
@@ -1028,28 +1028,28 @@ export const globalSwDbAPI: WorkerDbAPI<unknown> = {
       opts?.indexes,
       opts?.dbVersion,
     );
-    const matched = await globalSwDbAPI.getByIndex<T>(indexName, query, opts,);
-    const selectedItems = selectFn(matched, context,);
-    if (!Array.isArray(selectedItems,)) {
+    const matched = await globalSwDbAPI.getByIndex<T>(indexName, query, opts);
+    const selectedItems = selectFn(matched, context);
+    if (!Array.isArray(selectedItems)) {
       throw new Error(
-        "A função de seleção em SET_SOME_BY_INDEX deve retornar um Array.",
+        "The selector function in SET_SOME_BY_INDEX must return an Array.",
       );
     }
-    const entriesToSet: [string, unknown,][] = selectedItems.map(
-      (item: WithId<T>,) => {
+    const entriesToSet: [string, unknown][] = selectedItems.map(
+      (item: WithId<T>) => {
         if (!item || item._id === undefined) {
           throw new Error(
-            "Os itens selecionados no SET_SOME_BY_INDEX precisam conter a propriedade '_id'.",
+            "Items selected in SET_SOME_BY_INDEX must contain an '_id' property.",
           );
         }
-        const updatedItem = updateFn(item, context,);
-        const { key, cleanVal, } = prepareForSave(
+        const updatedItem = updateFn(item, context);
+        const { key, cleanVal } = prepareForSave(
           undefined,
           updatedItem,
           opts?.prefix,
         );
-        validateDbItem(cleanVal, opts?.validatorStr, opts?.validator,);
-        return [key, cleanVal,];
+        validateDbItem(cleanVal, opts?.validatorStr, opts?.validator);
+        return [key, cleanVal];
       },
     );
     if (entriesToSet.length > 0) {
@@ -1068,83 +1068,83 @@ export const globalSwDbAPI: WorkerDbAPI<unknown> = {
     return fn(formattedItems as WithId<T>[], context,);
   },
 
-  getSome: async <T, C = unknown,>(
-    fn: (items: WithId<T>[], ctx?: C,) => WithId<T>[],
+  getSome: async <T, C = unknown>(
+    fn: (items: WithId<T>[], ctx?: C) => WithId<T>[],
     context?: C,
     opts?: DbStoreOptions,
   ): Promise<WithId<T>[]> => {
     const store = getCustomStore(opts?.dbName, opts?.storeName, opts?.indexes, opts?.dbVersion);
-    const rawEntries = await entries(store,);
-    const formattedItems = formatDbEntries(rawEntries, opts?.prefix,);
-    const selectedItems = fn(formattedItems as WithId<T>[], context,);
-    if (!Array.isArray(selectedItems,)) {
-      throw new Error("A função injetada em GET_SOME deve retornar um Array.",);
+    const rawEntries = await entries(store);
+    const formattedItems = formatDbEntries(rawEntries, opts?.prefix);
+    const selectedItems = fn(formattedItems as WithId<T>[], context);
+    if (!Array.isArray(selectedItems)) {
+      throw new Error("The injected function in GET_SOME must return an Array.");
     }
     return selectedItems;
   },
 
-  delSome: async <T, C = unknown,>(
-    fn: (items: WithId<T>[], ctx?: C,) => WithId<T>[],
+  delSome: async <T, C = unknown>(
+    fn: (items: WithId<T>[], ctx?: C) => WithId<T>[],
     context?: C,
     opts?: DbStoreOptions,
   ): Promise<void> => {
     const store = getCustomStore(opts?.dbName, opts?.storeName, opts?.indexes, opts?.dbVersion);
-    const rawEntries = await entries(store,);
-    const formattedItems = formatDbEntries(rawEntries, opts?.prefix,);
-    const selectedItems = fn(formattedItems as WithId<T>[], context,);
+    const rawEntries = await entries(store);
+    const formattedItems = formatDbEntries(rawEntries, opts?.prefix);
+    const selectedItems = fn(formattedItems as WithId<T>[], context);
 
-    if (!Array.isArray(selectedItems,)) {
-      throw new Error("A função injetada em DEL_SOME deve retornar um Array.",);
+    if (!Array.isArray(selectedItems)) {
+      throw new Error("The injected function in DEL_SOME must return an Array.");
     }
 
-    const keysToDelete: string[] = selectedItems.map((item: WithId<T>,) => {
+    const keysToDelete: string[] = selectedItems.map((item: WithId<T>) => {
       if (!item || item._id === undefined) {
         throw new Error(
-          "Os itens retornados em DEL_SOME precisam conter a propriedade '_id'.",
+          "Items returned in DEL_SOME must contain an '_id' property.",
         );
       }
-      return opts?.prefix && !item._id.startsWith(opts.prefix,)
+      return opts?.prefix && !item._id.startsWith(opts.prefix)
         ? `${opts.prefix}${item._id}`
         : item._id;
-    },);
-    await delMany(keysToDelete, store,);
+    });
+    await delMany(keysToDelete, store);
   },
 
-  setSome: async <T, C = unknown,>(
-    selectFn: (items: WithId<T>[], ctx?: C,) => WithId<T>[],
-    updateFn: (item: WithId<T>, ctx?: C,) => WithId<T>,
+  setSome: async <T, C = unknown>(
+    selectFn: (items: WithId<T>[], ctx?: C) => WithId<T>[],
+    updateFn: (item: WithId<T>, ctx?: C) => WithId<T>,
     context?: C,
     opts?: DbStoreOptions,
   ): Promise<void> => {
     const store = getCustomStore(opts?.dbName, opts?.storeName, opts?.indexes, opts?.dbVersion);
-    const rawEntries = await entries(store,);
-    const formattedItems = formatDbEntries(rawEntries, opts?.prefix,);
+    const rawEntries = await entries(store);
+    const formattedItems = formatDbEntries(rawEntries, opts?.prefix);
 
-    const selectedItems = selectFn(formattedItems as WithId<T>[], context,);
-    if (!Array.isArray(selectedItems,)) {
+    const selectedItems = selectFn(formattedItems as WithId<T>[], context);
+    if (!Array.isArray(selectedItems)) {
       throw new Error(
-        "A função de seleção em SET_SOME deve retornar um Array.",
+        "The selector function in SET_SOME must return an Array.",
       );
     }
 
-    const entriesToSet: [string, unknown,][] = selectedItems.map(
-      (item: WithId<T>,) => {
+    const entriesToSet: [string, unknown][] = selectedItems.map(
+      (item: WithId<T>) => {
         if (!item || item._id === undefined) {
           throw new Error(
-            "Os itens selecionados no SET_SOME precisam conter a propriedade '_id'.",
+            "Items selected in SET_SOME must contain an '_id' property.",
           );
         }
-        const updatedItem = updateFn(item, context,);
-        const { key, cleanVal, } = prepareForSave(
+        const updatedItem = updateFn(item, context);
+        const { key, cleanVal } = prepareForSave(
           undefined,
           updatedItem,
           opts?.prefix,
         );
-        validateDbItem(cleanVal, opts?.validatorStr, opts?.validator,);
-        return [key, cleanVal,];
+        validateDbItem(cleanVal, opts?.validatorStr, opts?.validator);
+        return [key, cleanVal];
       },
     );
-    await setMany(entriesToSet, store,);
+    await setMany(entriesToSet, store);
   },
 
   exportDB: async (
@@ -1254,7 +1254,7 @@ export const globalSwDbAPI: WorkerDbAPI<unknown> = {
 };
 
 /**
- * API global para acesso ao File System (OPFS) no Worker.
+ * Global API for direct File System (OPFS) access in the Worker.
  */
 export const globalSwOpfsAPI: WorkerOpfsAPI<unknown> = {
   ...globalSwDbAPI,
@@ -1532,7 +1532,7 @@ export const globalSwOpfsAPI: WorkerOpfsAPI<unknown> = {
   },
 };
 
-// 💎 EXPORTA A API INTERNA PARA SER CONSUMIDA PELO PROXY (db.ts)
+// Internal API export consumed by RPC proxy (rpc.ts)
 export const internalAPI: WorkerOpfsAPI<unknown> = globalSwOpfsAPI;
 
 export function createScopedDb<TDefault = unknown>(
@@ -1756,8 +1756,8 @@ export function createScopedOpfs<TDefault = unknown>(
 }
 
 /**
- * Ponto de acesso para o Banco de Dados (IndexedDB).
- * Pode ser invocado como função para criar uma instância prefixada ou usado diretamente.
+ * Access point for Database (IndexedDB).
+ * Can be invoked as a function to create a scoped instance or used directly.
  *
  * @example
  * ```ts
@@ -1782,8 +1782,8 @@ export const db: (<TDefault = unknown>(
 );
 
 /**
- * Ponto de acesso para o Sistema de Arquivos (OPFS).
- * Pode ser invocado como função para criar uma instância prefixada ou usado diretamente.
+ * Access point for File System (OPFS).
+ * Can be invoked as a function to create a scoped instance or used directly.
  *
  * @example
  * ```ts

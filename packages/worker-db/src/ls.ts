@@ -1,4 +1,4 @@
-// ## Arquivo: monorepo/worker-db/src/ls.ts
+// src/ls.ts
 import {
   formatDbItem,
   gerarId,
@@ -6,24 +6,24 @@ import {
   prepareForSave,
   type WithId,
 } from "./utils/id.ts";
-import { opfs, } from "./mod-main.ts"; // 💎 Proxy Worker-DB: Ponto de acesso unificado e assíncrono
+import { opfs } from "./mod-main.ts";
 
-/** Opções de configuração para o LocalStorage Store. */
+/** Configuration options for the LocalStorage Store. */
 export interface LsStoreOptions {
-  /** Prefixo opcional para as chaves no LocalStorage. */
+  /** Optional prefix for LocalStorage keys. */
   prefix?: string;
 }
 
 /**
- * Interface para operações síncronas no LocalStorage.
- * @template TDefault Tipo padrão para os registros.
+ * Interface for synchronous operations on LocalStorage.
+ * @template TDefault Default type for stored records.
  */
 export interface WorkerLsAPI<TDefault = unknown> {
-  /** Obtém um registro síncronamente. */
+  /** Synchronously retrieves a record by key. */
   get: <T = TDefault>(key: string) => WithId<T> | undefined;
-  /** Define um registro síncronamente. */
+  /** Synchronously sets a record (key/value or value with auto-generated ID). */
   set: <T = TDefault>(keyOrVal: string | T, val?: T) => string;
-  /** Aplica patch parcial síncronamente. */
+  /** Synchronously applies a partial patch to a record. */
   patch: <
     T extends Record<string, unknown> = TDefault extends Record<string, unknown> ? TDefault : Record<string, unknown>,
     C = unknown
@@ -32,55 +32,55 @@ export interface WorkerLsAPI<TDefault = unknown> {
     patchOrFn: Partial<T> | ((prev: WithId<T>, ctx?: C) => T | Partial<T>),
     context?: C
   ) => WithId<T>;
-  /** Remove um registro síncronamente. */
+  /** Synchronously removes a record by key. */
   delete: (key: string) => void;
-  /** Obtém múltiplos registros síncronamente. */
+  /** Synchronously retrieves multiple records by keys. */
   getMany: <T = TDefault>(keys: string[]) => (WithId<T> | undefined)[];
-  /** Define múltiplos registros síncronamente. */
+  /** Synchronously sets multiple key-value pairs. */
   setMany: (entries: [string, unknown][]) => void;
-  /** Remove múltiplos registros síncronamente. */
+  /** Synchronously removes multiple records by keys. */
   deleteMany: (keys: string[]) => void;
-  /** Obtém todas as chaves filtradas pelo prefixo. */
+  /** Retrieves all keys filtered by prefix. */
   keys: () => string[];
-  /** Obtém todos os valores filtrados pelo prefixo. */
+  /** Retrieves all values filtered by prefix. */
   values: <T = TDefault>() => T[];
-  /** Obtém todos os pares [chave, valor] filtrados pelo prefixo. */
+  /** Retrieves all [key, value] pairs filtered by prefix. */
   entries: <T = TDefault>() => [string, T][];
-  /** Limpa todos os registros do prefixo. */
+  /** Clears all records belonging to this prefix. */
   clear: () => void;
-  /** Executa consulta funcional nos registros síncronos. */
+  /** Executes a synchronous query function over stored items. */
   query: <T = TDefault, R = unknown, C = unknown>(fn: (items: WithId<T>[], ctx?: C) => R, context?: C) => R;
-  /** Filtra registros síncronamente. */
+  /** Synchronously filters records using a predicate/selector function. */
   getSome: <T = TDefault, C = unknown>(fn: (items: WithId<T>[], ctx?: C) => WithId<T>[], context?: C) => WithId<T>[];
-  /** Remove registros filtrados síncronamente. */
+  /** Synchronously deletes records selected by a function. */
   delSome: <T = TDefault, C = unknown>(fn: (items: WithId<T>[], ctx?: C) => WithId<T>[], context?: C) => void;
-  /** Atualiza registros filtrados síncronamente. */
+  /** Synchronously updates records selected by a function. */
   setSome: <T = TDefault, C = unknown>(selectFn: (items: WithId<T>[], ctx?: C) => WithId<T>[], updateFn: (item: WithId<T>, ctx?: C) => WithId<T>, context?: C) => void;
-  /** Exporta o LocalStorage para JSON. */
+  /** Exports LocalStorage records to a JSON object. */
   exportLS: () => Record<string, unknown>;
-  /** Importa JSON para o LocalStorage. */
+  /** Imports records from a JSON object into LocalStorage. */
   importLS: (data: Record<string, unknown>, clearFirst?: boolean) => void;
-  /** Backup assíncrono do LS para OPFS. */
+  /** Asynchronously backs up LocalStorage records to OPFS. */
   backupToOpfs: (recordKey: string, fileName?: string) => Promise<string>;
-  /** Restauração assíncrona do OPFS para LS. */
+  /** Asynchronously restores LocalStorage records from OPFS. */
   restoreFromOpfs: (recordKey: string, fileName: string, clearFirst?: boolean) => Promise<void>;
-  /** Gera ID aleatório. */
+  /** Generates a random unique ID. */
   gerarId: () => string;
-  /** Gera ID com prefixo. */
+  /** Generates a random unique ID with the store prefix. */
   gerarIdComPrefixo: () => string;
 }
 
 function getAllPrefixedEntries(prefix = ""): [string, unknown][] {
-  const entries: [string, unknown,][] = [];
+  const entries: [string, unknown][] = [];
   for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i,);
-    if (key && (!prefix || key.startsWith(prefix,))) {
-      const rawVal = localStorage.getItem(key,);
+    const key = localStorage.key(i);
+    if (key && (!prefix || key.startsWith(prefix))) {
+      const rawVal = localStorage.getItem(key);
       if (rawVal !== null) {
         try {
-          entries.push([key, JSON.parse(rawVal,),],);
+          entries.push([key, JSON.parse(rawVal)]);
         } catch {
-          // Ignora itens que não sejam JSON válido
+          // Ignore items that are not valid JSON
         }
       }
     }
@@ -88,13 +88,13 @@ function getAllPrefixedEntries(prefix = ""): [string, unknown][] {
   return entries;
 }
 
-function getFormattedItems<T,>(prefix = "",): WithId<T>[] {
-  const rawEntries = getAllPrefixedEntries(prefix,);
-  return rawEntries.map(([k, v,],) => formatDbItem(k, v, prefix,) as WithId<T>);
+function getFormattedItems<T>(prefix = ""): WithId<T>[] {
+  const rawEntries = getAllPrefixedEntries(prefix);
+  return rawEntries.map(([k, v]) => formatDbItem(k, v, prefix) as WithId<T>);
 }
 
-function resolveKey(key: string, prefix = "",): string {
-  return prefix && !key.startsWith(prefix,) ? `${prefix}${key}` : key;
+function resolveKey(key: string, prefix = ""): string {
+  return prefix && !key.startsWith(prefix) ? `${prefix}${key}` : key;
 }
 
 function createScopedLs<TDefault = unknown>(prefix = ""): WorkerLsAPI<TDefault> {
@@ -223,7 +223,7 @@ function createScopedLs<TDefault = unknown>(prefix = ""): WorkerLsAPI<TDefault> 
       const items = getFormattedItems<T>(prefix);
       const selected = fn(items, context);
       if (!Array.isArray(selected)) {
-        throw new Error("A função em getSome deve retornar um Array.");
+        throw new Error("The function in getSome must return an Array.");
       }
       return selected;
     },
@@ -235,12 +235,12 @@ function createScopedLs<TDefault = unknown>(prefix = ""): WorkerLsAPI<TDefault> 
       const items = getFormattedItems<T>(prefix);
       const selected = fn(items, context);
       if (!Array.isArray(selected)) {
-        throw new Error("A função em delSome deve retornar um Array.");
+        throw new Error("The function in delSome must return an Array.");
       }
       selected.forEach((item) => {
         if (!item || item._id === undefined) {
           throw new Error(
-            "Os itens retornados em delSome precisam conter a propriedade '_id'.",
+            "Items returned by delSome must contain an '_id' property.",
           );
         }
         const rawKey = prefix && !item._id.startsWith(prefix)
@@ -259,13 +259,13 @@ function createScopedLs<TDefault = unknown>(prefix = ""): WorkerLsAPI<TDefault> 
       const selected = selectFn(items, context);
       if (!Array.isArray(selected)) {
         throw new Error(
-          "A função de seleção em setSome deve retornar um Array.",
+          "The selector function in setSome must return an Array.",
         );
       }
       selected.forEach((item) => {
         if (!item || item._id === undefined) {
           throw new Error(
-            "Os itens selecionados em setSome precisam conter a propriedade '_id'.",
+            "Items selected by setSome must contain an '_id' property.",
           );
         }
         const updatedItem = updateFn(item, context);
@@ -278,7 +278,7 @@ function createScopedLs<TDefault = unknown>(prefix = ""): WorkerLsAPI<TDefault> 
       });
     },
 
-    // --- MÉTODOS DE EXPORTAÇÃO / IMPORTAÇÃO ---
+    // --- EXPORT / IMPORT METHODS ---
 
     exportLS: (): Record<string, unknown> => {
       const allEntries = getAllPrefixedEntries(prefix);
@@ -300,7 +300,7 @@ function createScopedLs<TDefault = unknown>(prefix = ""): WorkerLsAPI<TDefault> 
         type: "application/json",
       });
 
-      // Instancia o drive OPFS via worker apontando para a pasta física /backup
+      // Instantiate OPFS drive via worker targeting the physical /backup directory
       const drive = opfs("LS_SYS", "ls_store", prefix, "backup");
       await drive.addFile(recordKey, blob, fileName);
 
@@ -312,7 +312,7 @@ function createScopedLs<TDefault = unknown>(prefix = ""): WorkerLsAPI<TDefault> 
       fileName: string,
       clearFirst = false,
     ): Promise<void> => {
-      // Instancia o drive OPFS via worker para leitura da pasta /backup
+      // Instantiate OPFS drive via worker for reading from /backup directory
       const drive = opfs("LS_SYS", "ls_store", prefix, "backup");
 
       const fileBlob = await drive.getFile(recordKey, fileName);
@@ -329,8 +329,8 @@ function createScopedLs<TDefault = unknown>(prefix = ""): WorkerLsAPI<TDefault> 
 }
 
 /**
- * Ponto de acesso simplificado para o LocalStorage.
- * Permite persistência síncrona com suporte a objetos complexos (JSON) e IDs automáticos.
+ * Access point for LocalStorage persistence.
+ * Provides synchronous storage with complex object (JSON) support and automatic IDs.
  *
  * @example
  * ```ts

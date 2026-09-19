@@ -1,4 +1,4 @@
-// ## Arquivo: monorepo/worker-db/src/mod.ts
+// src/mod-main.ts
 
 export { ls } from "./ls.ts";
 export type { WorkerLsAPI } from "./ls.ts";

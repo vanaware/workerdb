@@ -1,5 +1,5 @@
 {
-  "version": "0.2.1-mu8rxo4c",
+  "version": "0.2.3-mu8s9ftd",
   "description": "Asynchronous database layer for Web Workers, IndexedDB, and OPFS.",
   "workspace": [
     "./packages/worker-db",
@@ -34,7 +34,7 @@
   "allowScripts": ["npm:esbuild@0.28.2"],
   // 🛠️ Scripts de Automação
   "tasks": {
-    "test": "deno test -P",
+    "test": "deno test --unstable-bundle -P",
     "lint": "deno lint",
     "fmt": "deno fmt",
     "check": "deno task --recursive check && deno check build.ts esbuild.ts export.ts tests/**/*test.ts",

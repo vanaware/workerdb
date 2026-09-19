@@ -1,4 +1,4 @@
-// ## Arquivo: monorepo/worker-db/src/mod.ts
+// src/mod-sw.ts
 
 export { db, opfs } from "./db.ts";
 export { gerarId, gerarIdComPrefixo, validarId } from "./utils/id.ts";
