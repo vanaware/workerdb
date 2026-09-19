@@ -3,7 +3,7 @@ name: Publish to JSR
 on:
   push:
     tags:
-      - 'v*'
+      - 'v*.*' # Dispara apenas para tags iniciando com 'v' (ex: v0.2, v1.0.0)
   workflow_dispatch:
 
 permissions:
@@ -20,8 +20,11 @@ jobs:
       - name: Setup Deno
         uses: denoland/setup-deno@v2
         with:
-          deno-version: v2.x
+          deno-version-file: .tool-versions
           cache: true
+        
+      - name: Install dependencies
+        run: deno ci
 
       - name: Sanitize Version
         run: |
