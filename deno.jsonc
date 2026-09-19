@@ -1,7 +1,7 @@
 {
-  "name": "workerdb",
+  "name": "WorkerDB",
   "version": "0.0.34-mu8lt9lh",
-  "description": "WorkerDB Project Workspace",
+  "description": "Asynchronous database layer for Web Workers, IndexedDB, and OPFS.",
   "workspace": [
     "./packages/worker-db",
     "./packages/server",

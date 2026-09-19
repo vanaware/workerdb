@@ -1,6 +1,5 @@
 {
-  "name": "workerdb",
-  "version": "0.0.2",
+  "name": "WorkerDB",
   "private": false,
   "type": "module",
   "scripts": {
