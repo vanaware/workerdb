@@ -30,9 +30,10 @@
     "lint": "deno lint",
     "fmt": "deno fmt",
     "check": "deno check src/**/*.{ts,tsx} example/**/*.{ts,tsx} tests/**/*.ts",
-    "fmt-check": "deno fmt --check",
-    "lint-fix": "deno lint --fix",
-    "tests": "deno task check && deno task lint && deno task fmt --check && deno task test",
+    "fmt:check": "deno fmt --check",
+    "lint:fix": "deno lint --fix",
+    "lint:doc": "deno doc --lint src/mod-main.ts src/mod-sw.ts src/fake/fake-mod.ts src/fake/fake-db.ts",
+    "tests": "deno task check && deno task lint && deno task fmt:check && deno task test",
     "demo": "deno run --allow-env --allow-read --allow-net ./example/demo.ts"
   },
   // ----------------------------------------------------------------------
