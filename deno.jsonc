@@ -47,7 +47,7 @@
     "export": "deno run --allow-read --allow-write ./export.ts",
     "build": "deno run -A ./esbuild.ts",
     "build:deno": "deno run --unstable-bundle -A ./build.ts",
-    "bump": "./bump.sh"
+    "bump": "deno task build dist && sh ./bump.sh"
   },
   "nodeModulesDir": "none",
   "vendor": true,
