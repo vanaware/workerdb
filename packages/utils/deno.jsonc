@@ -14,14 +14,7 @@
     "noImplicitAny": true,
     "noUncheckedIndexedAccess": true
   },
-  "imports": {
-    "@std/assert": "jsr:@std/assert",
-    "@std/testing": "jsr:@std/testing",
-    "idb-keyval": "https://esm.sh/idb-keyval@6.2.1",
-    "fake-indexeddb": "https://esm.sh/fake-indexeddb@6.2.5?bundle",
-    "fake-indexeddb/auto": "https://esm.sh/fake-indexeddb@6.2.5/auto?bundle",
-    "fflate": "https://esm.sh/fflate@0.8.2?target=es2022"
-  },
+  "imports": {},
   "tasks": {
     "test": "deno test --allow-env --allow-net --allow-read --allow-write tests/",
     "check": "deno check src/**/*.ts src/**/*.tsx tests/**/*.ts",

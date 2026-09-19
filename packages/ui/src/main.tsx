@@ -1,6 +1,13 @@
 import { render, } from "preact";
-import { useEffect, useState, } from "preact/hooks";
 import { db, opfs, } from "@vanaware/workerdb";
+import {
+  activeTab,
+  addLog,
+  indexLog,
+  opfsLog,
+  paginationLog,
+  swLog,
+} from "./stores/app.ts";
 
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.getRegistrations().then(function (registrations,) {
@@ -37,13 +44,10 @@ if ("serviceWorker" in navigator) {
 }
 
 const OPFSDemo = () => {
-  const [log, setLog,] = useState("",);
-  const addLog = (msg: string,) => setLog((prev,) => prev + msg + "\n");
-
   const runTest = async () => {
     try {
       const myOpfs = opfs("WORKERDB_DATA", "files", "FS_", "demo",);
-      addLog("OPFS started.",);
+      addLog(opfsLog, "OPFS started.",);
 
       const fileData = new TextEncoder().encode("Hello from OPFS!",);
       await myOpfs.addFile(
@@ -51,17 +55,17 @@ const OPFSDemo = () => {
         new File([fileData,], "hello.txt", { type: "text/plain", },),
         "hello.txt",
       );
-      addLog("File added to OPFS.",);
+      addLog(opfsLog, "File added to OPFS.",);
 
       const file = await myOpfs.getFile("test-file", "hello.txt",);
       if (file) {
-        addLog("File retrieved: " + await file.text(),);
+        addLog(opfsLog, "File retrieved: " + await file.text(),);
       }
 
       const list = await myOpfs.listFiles("test-file",);
-      addLog("Files list: " + list.map((f,) => f.name).join(", ",),);
+      addLog(opfsLog, "Files list: " + list.map((f,) => f.name).join(", ",),);
     } catch (err) {
-      addLog("Error: " + err,);
+      addLog(opfsLog, "Error: " + err,);
     }
   };
 
@@ -92,15 +96,12 @@ const file = await myOpfs.getFile("doc-id", "report.pdf");`}
           Open OPFS Explorer
         </a>
       </nav>
-      <pre><code>{log}</code></pre>
+      <pre><code>{opfsLog.value}</code></pre>
     </article>
   );
 };
 
 const IndexQueryDemo = () => {
-  const [log, setLog,] = useState("",);
-  const addLog = (msg: string,) => setLog((prev,) => prev + msg + "\n");
-
   const runTest = async () => {
     try {
       db.init();
@@ -111,7 +112,7 @@ const IndexQueryDemo = () => {
         indexes: ["role", "age", "active",],
       },);
 
-      addLog("Setting up data...",);
+      addLog(indexLog, "Setting up data...",);
       await store.setMany([
         ["u1", { role: "admin", age: 30, active: 1, },],
         ["u2", { role: "user", age: 25, active: 1, },],
@@ -120,23 +121,26 @@ const IndexQueryDemo = () => {
       ],);
 
       const count = await store.countByIndex("active", 1,);
-      addLog("Count of active users (countByIndex): " + count,);
+      addLog(indexLog, "Count of active users (countByIndex): " + count,);
 
       const one = await store.getOneByIndex("role", "admin",);
-      addLog("One admin (getOneByIndex): " + JSON.stringify(one,),);
+      addLog(indexLog, "One admin (getOneByIndex): " + JSON.stringify(one,),);
 
       const keys = await store.keysByIndex("role", "user",);
-      addLog("Keys of users (keysByIndex): " + JSON.stringify(keys,),);
+      addLog(
+        indexLog,
+        "Keys of users (keysByIndex): " + JSON.stringify(keys,),
+      );
 
       const range = await store.getByIndex("age", { gte: 30, lte: 40, },);
-      addLog("Users age 30-40 (Range): " + JSON.stringify(range,),);
+      addLog(indexLog, "Users age 30-40 (Range): " + JSON.stringify(range,),);
 
-      addLog("Patching inactive users to active...",);
+      addLog(indexLog, "Patching inactive users to active...",);
       await store.patchByIndex("active", 0, { active: 1, },);
       const newCount = await store.countByIndex("active", 1,);
-      addLog("Count of active users after patch: " + newCount,);
+      addLog(indexLog, "Count of active users after patch: " + newCount,);
     } catch (err) {
-      addLog("Error: " + err,);
+      addLog(indexLog, "Error: " + err,);
     }
   };
 
@@ -168,15 +172,12 @@ await store.patchByIndex("active", 0, { active: 1 });`}
       <button type="button" class="primary" onClick={runTest}>
         Run Index Test
       </button>
-      <pre><code>{log}</code></pre>
+      <pre><code>{indexLog.value}</code></pre>
     </article>
   );
 };
 
 const PaginationDemo = () => {
-  const [log, setLog,] = useState("",);
-  const addLog = (msg: string,) => setLog((prev,) => prev + msg + "\n");
-
   const runTest = async () => {
     try {
       db.init();
@@ -192,31 +193,33 @@ const PaginationDemo = () => {
         i,
       ) => [`l${i}`, { category: "sys", val: i, },]);
       await store.setMany(items as [string, unknown,][],);
-      addLog("Inserted 15 items.",);
+      addLog(paginationLog, "Inserted 15 items.",);
 
-      addLog("Page 1 (Limit 5):",);
+      addLog(paginationLog, "Page 1 (Limit 5):",);
       let res = await store.getByIndexPaginated("category", "sys", {
         limit: 5,
       },);
       addLog(
+        paginationLog,
         JSON.stringify(
           res.items.map((i,) => (i as unknown as Record<string, unknown>).val),
         ),
       );
-      addLog("Next cursor: " + res.nextCursor,);
+      addLog(paginationLog, "Next cursor: " + res.nextCursor,);
 
-      addLog("Page 2 (Limit 5):",);
+      addLog(paginationLog, "Page 2 (Limit 5):",);
       res = await store.getByIndexPaginated("category", "sys", {
         limit: 5,
         cursor: res.nextCursor,
       },);
       addLog(
+        paginationLog,
         JSON.stringify(
           res.items.map((i,) => (i as unknown as Record<string, unknown>).val),
         ),
       );
     } catch (err) {
-      addLog("Error: " + err,);
+      addLog(paginationLog, "Error: " + err,);
     }
   };
 
@@ -247,27 +250,26 @@ const nextPage = await store.getByIndexPaginated("category", "sys", {
       <button type="button" class="primary" onClick={runTest}>
         Run Pagination Test
       </button>
-      <pre><code>{log}</code></pre>
+      <pre><code>{paginationLog.value}</code></pre>
     </article>
   );
 };
 
 const SWDemo = () => {
-  const [log, setLog,] = useState("",);
-  const addLog = (msg: string,) => setLog((prev,) => prev + msg + "\n");
-
   const runTest = () => {
     if (!navigator.serviceWorker || !navigator.serviceWorker.controller) {
       addLog(
+        swLog,
         "Error: Service Worker not active.\n\nNote: If you are in the AI Studio preview environment, strict redirects might prevent the Service Worker from registering correctly during development. This feature works beautifully in production (like GitHub Pages)!",
       );
       return;
     }
 
-    addLog("Sending 'RUN_SW_DEMO' to Service Worker...",);
+    addLog(swLog, "Sending 'RUN_SW_DEMO' to Service Worker...",);
     const channel = new MessageChannel();
     channel.port1.onmessage = (event,) => {
       addLog(
+        swLog,
         "Response from Service Worker:\n" +
           JSON.stringify(event.data, null, 2,),
       );
@@ -304,13 +306,12 @@ await msgStore.set("auto", { senderId: "system_sw", ... });`}</code></pre>
       <button type="button" class="primary" onClick={runTest}>
         Run SW Test
       </button>
-      <pre><code>{log}</code></pre>
+      <pre><code>{swLog.value}</code></pre>
     </article>
   );
 };
 
 const App = () => {
-  const [tab, setTab,] = useState("opfs",);
   return (
     <main class="responsive">
       <h3 class="center-align">
@@ -320,8 +321,10 @@ const App = () => {
       <nav class="m-b-4">
         <button
           type="button"
-          class={`chip ${tab === "opfs" ? "active" : "transparent"}`}
-          onClick={() => setTab("opfs",)}>
+          class={`chip ${
+            activeTab.value === "opfs" ? "active" : "transparent"
+          }`}
+          onClick={() => activeTab.value = "opfs"}>
           <i>
             folder
           </i>
@@ -329,8 +332,10 @@ const App = () => {
         </button>
         <button
           type="button"
-          class={`chip ${tab === "index" ? "active" : "transparent"}`}
-          onClick={() => setTab("index",)}>
+          class={`chip ${
+            activeTab.value === "index" ? "active" : "transparent"
+          }`}
+          onClick={() => activeTab.value = "index"}>
           <i>
             search
           </i>
@@ -338,8 +343,10 @@ const App = () => {
         </button>
         <button
           type="button"
-          class={`chip ${tab === "pagination" ? "active" : "transparent"}`}
-          onClick={() => setTab("pagination",)}>
+          class={`chip ${
+            activeTab.value === "pagination" ? "active" : "transparent"
+          }`}
+          onClick={() => activeTab.value = "pagination"}>
           <i>
             list
           </i>
@@ -347,8 +354,8 @@ const App = () => {
         </button>
         <button
           type="button"
-          class={`chip ${tab === "sw" ? "active" : "transparent"}`}
-          onClick={() => setTab("sw",)}>
+          class={`chip ${activeTab.value === "sw" ? "active" : "transparent"}`}
+          onClick={() => activeTab.value = "sw"}>
           <i>
             memory
           </i>
@@ -359,10 +366,10 @@ const App = () => {
       <div class="space">
       </div>
 
-      {tab === "opfs" && <OPFSDemo />}
-      {tab === "index" && <IndexQueryDemo />}
-      {tab === "pagination" && <PaginationDemo />}
-      {tab === "sw" && <SWDemo />}
+      {activeTab.value === "opfs" && <OPFSDemo />}
+      {activeTab.value === "index" && <IndexQueryDemo />}
+      {activeTab.value === "pagination" && <PaginationDemo />}
+      {activeTab.value === "sw" && <SWDemo />}
     </main>
   );
 };
