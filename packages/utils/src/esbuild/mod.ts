@@ -328,6 +328,34 @@ export async function incrementVersion(
   content = replaceVersionInContent(content, newVersion,);
   await Deno.writeTextFile(denoJsoncPath, content,);
   console.log(`📈 Versão incrementada para: v${newVersion}`,);
+
+  // Atualiza arquivo de versão do worker-db
+  try {
+    const workerDbVersionPath = "packages/worker-db/src/utils/version.ts";
+    const workerDbContent = `// Arquivo gerado automaticamente pelo build
+declare const __APP_VERSION__: string;
+
+export const APP_VERSION = typeof __APP_VERSION__ !== "undefined"
+  ? __APP_VERSION__
+  : "${newVersion}";
+`;
+    await Deno.writeTextFile(workerDbVersionPath, workerDbContent,);
+    console.log(`📝 Versão atualizada em: ${workerDbVersionPath}`,);
+  } catch {
+    // Ignora quando executando em ambientes sem a estrutura completa (ex: testes)
+  }
+
+  // Atualiza também packages/worker-db/deno.jsonc se existir
+  try {
+    const workerDbDenoJsonPath = "packages/worker-db/deno.jsonc";
+    let wContent = await Deno.readTextFile(workerDbDenoJsonPath,);
+    wContent = replaceVersionInContent(wContent, newVersion,);
+    await Deno.writeTextFile(workerDbDenoJsonPath, wContent,);
+    console.log(`📝 Versão atualizada em: ${workerDbDenoJsonPath}`,);
+  } catch {
+    // Ignora
+  }
+
   return newVersion;
 }
 

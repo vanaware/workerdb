@@ -16,18 +16,38 @@ Para garantir que a interface de usuário (UI) nunca congele, mesmo durante oper
 
 ---
 
-## 📦 1. Módulo: `db()` (IndexedDB)
+## 🚀 1. Instalação e Importação
+
+O **WorkerDB** está pronto para ser utilizado em projetos Deno ou navegadores modernos. Você pode importar via JSR (recomendado) ou diretamente via GitHub.
+
+### Via JSR (Recomendado para Deno)
+```ts
+// Main Thread (UI/App)
+import { db, opfs, ls } from "jsr:@vanaware/workerdb";
+
+// Service Worker / Web Worker (Acesso Direto)
+import { dbsw, opfssw } from "jsr:@vanaware/workerdb/sw";
+```
+
+### Via GitHub (Alternativa sem registro)
+```ts
+import { db } from "https://raw.githubusercontent.com/vanaware/workerdb/main/packages/worker-db/src/mod-main.ts";
+```
+
+---
+
+## 📦 2. Módulo: `db()` (IndexedDB)
 
 O `db()` é a fábrica principal para salvar objetos e metadados persistentes de forma assíncrona. Ideal para Fila de Mensagens, Contatos, e Logs E2EE.
 
 ```ts
-import { db, } from "./mod.ts";
+import { db, } from "jsr:@vanaware/workerdb";
 
-// Inicializa o Worker Global
+// Inicializa o Worker Global (apenas na Main Thread)
 db.init();
 
 // Cria uma instância focada (Database, Store, Prefixo)
-const msgStore = db("SYNTAXMESH_DATA", "messages", "MSG_",);
+const msgStore = db("WORKERDB_DATA", "messages", "MSG_",);
 
 // CRUD Básico
 const id = await msgStore.set("auto", { text: "Olá", status: "pending", },); // Retorna MSG_xxx
@@ -48,14 +68,14 @@ const pendingCount = await msgStore.query((items,) =>
 
 ---
 
-## 📦 2. Módulo: `ls()` (LocalStorage)
+## 📦 3. Módulo: `ls()` (LocalStorage)
 
 O `ls()` segue exatamente os mesmos padrões e assinaturas do `db()`, mas de forma **síncrona** interagindo com o `localStorage`. Ideal para preferências de tema, estado de autenticação ou configurações rápidas de boot.
 
 ```ts
-import { ls, } from "./mod.ts";
+import { ls, } from "jsr:@vanaware/workerdb";
 
-const prefStore = ls("SYNTAXMESH_PREF_",);
+const prefStore = ls("WORKERDB_PREF_",);
 
 // Uso imediato (Síncrono)
 prefStore.set("config", { theme: "dark", },);
@@ -67,17 +87,17 @@ await prefStore.backupToOpfs("backups_prefs", "ui_config.json",);
 
 ---
 
-## 📦 3. Módulo: `opfs()` (Sistema de Arquivos Nativo)
+## 📦 4. Módulo: `opfs()` (Sistema de Arquivos Nativo)
 
 A joia da coroa. O `opfs()` **herda tudo do `db()**`, mas estende a API para manipular arquivos físicos no disco. Ele adota o padrão de **Record-Key Isolation**: cada registro do banco de dados ganha a sua própria pasta isolada no FileSystem.
 
 ### Inicialização
 
 ```ts
-import { opfs, } from "./mod.ts";
+import { opfs, } from "jsr:@vanaware/workerdb";
 
 // Parâmetros: DB, Store, Prefixo de ID, Sub-pasta OPFS base
-const drive = opfs("SYNTAXMESH_FILES", "attachments", "ATT_", "chats",);
+const drive = opfs("WORKERDB_FILES", "attachments", "ATT_", "chats",);
 ```
 
 ### Upload e Listagem Leve
@@ -114,7 +134,7 @@ await drive.mvFile(pastaMsgId, "arquivo.txt", "outra_pasta_destino",);
 
 ---
 
-## 🗜️ 4. API de Compressão ZIP Integrada
+## 🗜️ 5. API de Compressão ZIP Integrada
 
 Ferramentas nativas do `opfs()` para compactação pesada rodando fora da UI, essencial para rotinas de exportação massiva ou agrupamento de mídias criptografadas E2EE.
 
@@ -132,7 +152,7 @@ await drive.delZip(pastaMsgId, "album.zip", "foto1.png",);
 
 ---
 
-## 🔄 5. Backups Automáticos e Recuperação
+## 🔄 6. Backups Automáticos e Recuperação
 
 O sistema possui uma engine unificada para fazer _dump_ de stores inteiros (tanto do IndexedDB quanto do LocalStorage) e arquivá-los em segurança no OPFS, em uma pasta global chamada `/backup`.
 

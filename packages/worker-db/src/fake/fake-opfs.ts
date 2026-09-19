@@ -7,23 +7,32 @@ export class FakeOPFSFileHandle {
   ) {}
 
   createWritable() {
-    let content: Uint8Array = new Uint8Array();
+    const chunks: Uint8Array[] = [];
     const storage = this.storage;
     const fullPath = this.fullPath;
     return {
       async write(data: Uint8Array | string | Blob | ArrayBuffer,) {
+        let chunk: Uint8Array;
         if (data instanceof Uint8Array) {
-          content = data;
+          chunk = data;
         } else if (data instanceof ArrayBuffer) {
-          content = new Uint8Array(data,);
+          chunk = new Uint8Array(data,);
         } else if (data instanceof Blob) {
-          content = new Uint8Array(await data.arrayBuffer(),);
+          chunk = new Uint8Array(await data.arrayBuffer(),);
         } else {
-          content = new TextEncoder().encode(String(data,),);
+          chunk = new TextEncoder().encode(String(data,),);
         }
+        chunks.push(chunk,);
       },
       close() {
-        storage.set(fullPath, content,);
+        const totalLen = chunks.reduce((acc, c,) => acc + c.length, 0,);
+        const merged = new Uint8Array(totalLen,);
+        let offset = 0;
+        for (const c of chunks) {
+          merged.set(c, offset,);
+          offset += c.length;
+        }
+        storage.set(fullPath, merged,);
       },
     };
   }

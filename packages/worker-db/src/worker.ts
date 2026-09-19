@@ -2,7 +2,7 @@
 import { internalAPI, } from "./db.ts";
 import type { DbStoreOptions, OpfsStoreOptions, } from "./db.ts";
 
-import { APP_VERSION, } from "@workerdb/utils/config";
+import { APP_VERSION, } from "./utils/version.ts";
 
 console.log(`[DB] 🌌 Worker-db carregado (v${APP_VERSION}).`,);
 
@@ -14,6 +14,9 @@ self.onmessage = async (e: MessageEvent,) => {
       dbName: args.dbName,
       storeName: args.storeName,
       prefix: args.prefix,
+      indexes: args.indexes,
+      dbVersion: args.dbVersion,
+      validatorStr: args.validatorStr,
     };
 
     const opfsOpts: OpfsStoreOptions = {
@@ -220,6 +223,159 @@ self.onmessage = async (e: MessageEvent,) => {
           opfsOpts,
         );
         break;
+      case "GET_BY_INDEX":
+        result = await internalAPI.getByIndex(
+          args.indexName,
+          args.query,
+          dbOpts,
+        );
+        break;
+      case "COUNT_BY_INDEX":
+        result = await internalAPI.countByIndex(
+          args.indexName,
+          args.query,
+          dbOpts,
+        );
+        break;
+      case "GET_ONE_BY_INDEX":
+        result = await internalAPI.getOneByIndex(
+          args.indexName,
+          args.query,
+          dbOpts,
+        );
+        break;
+      case "KEYS_BY_INDEX":
+        result = await internalAPI.keysByIndex(
+          args.indexName,
+          args.query,
+          dbOpts,
+        );
+        break;
+      case "PATCH_BY_INDEX":
+        result = await internalAPI.patchByIndex(
+          args.indexName,
+          args.query,
+          args.patch,
+          dbOpts,
+        );
+        break;
+      case "GET_BY_INDEX_PAGINATED":
+        result = await internalAPI.getByIndexPaginated(
+          args.indexName,
+          args.query,
+          args.paginationOpts,
+          dbOpts,
+        );
+        break;
+      case "GET_MANY_BY_INDEX":
+        result = await internalAPI.getManyByIndex(
+          args.indexName,
+          args.queries,
+          dbOpts,
+        );
+        break;
+      case "GET_SOME_BY_INDEX": {
+        const fn = new Function(
+          "items",
+          "ctx",
+          `return (${args.fnStr})(items, ctx);`,
+        ) as (items: { _id: string }[], ctx?: unknown,) => { _id: string }[];
+        result = await internalAPI.getSomeByIndex(
+          args.indexName,
+          args.query,
+          fn,
+          args.context,
+          dbOpts,
+        );
+        break;
+      }
+      case "QUERY_BY_INDEX": {
+        const fn = new Function(
+          "items",
+          "ctx",
+          `return (${args.fnStr})(items, ctx);`,
+        ) as (items: { _id: string }[], ctx?: unknown,) => unknown;
+        result = await internalAPI.queryByIndex(
+          args.indexName,
+          args.query,
+          fn,
+          args.context,
+          dbOpts,
+        );
+        break;
+      }
+      case "DELETE_BY_INDEX":
+        result = await internalAPI.deleteByIndex(
+          args.indexName,
+          args.query,
+          dbOpts,
+        );
+        break;
+      case "DELETE_MANY_BY_INDEX":
+        result = await internalAPI.deleteManyByIndex(
+          args.indexName,
+          args.queries,
+          dbOpts,
+        );
+        break;
+      case "DEL_SOME_BY_INDEX": {
+        const fn = new Function(
+          "items",
+          "ctx",
+          `return (${args.fnStr})(items, ctx);`,
+        ) as (items: { _id: string }[], ctx?: unknown,) => { _id: string }[];
+        result = await internalAPI.delSomeByIndex(
+          args.indexName,
+          args.query,
+          fn,
+          args.context,
+          dbOpts,
+        );
+        break;
+      }
+      case "SET_SOME_BY_INDEX": {
+        const selectFn = new Function(
+          "items",
+          "ctx",
+          `return (${args.selectFnStr})(items, ctx);`,
+        ) as (items: { _id: string }[], ctx?: unknown,) => { _id: string }[];
+        const updateFn = new Function(
+          "item",
+          "ctx",
+          `return (${args.updateFnStr})(item, ctx);`,
+        ) as (item: { _id: string }, ctx?: unknown,) => { _id: string };
+        result = await internalAPI.setSomeByIndex(
+          args.indexName,
+          args.query,
+          selectFn,
+          updateFn,
+          args.context,
+          dbOpts,
+        );
+        break;
+      }
+      case "OPFS_ADD_STREAM":
+        result = await internalAPI.addFileStream(
+          args.key,
+          args.stream,
+          args.fileName,
+          opfsOpts,
+        );
+        break;
+      case "OPFS_GET_STREAM": {
+        const stream = await internalAPI.getFileStream(
+          args.key,
+          args.fileName,
+          opfsOpts,
+        );
+        (self as unknown as {
+          postMessage: (message: unknown, transfer?: Transferable[],) => void;
+        }).postMessage(
+          { requestId, success: true, result: stream, },
+          [stream as unknown as Transferable,],
+        );
+        return;
+      }
 
       default:
         throw new Error(`Comando desconhecido: ${command}`,);

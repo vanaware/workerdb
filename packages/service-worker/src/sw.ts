@@ -1,7 +1,7 @@
 // ## Arquivo: monorepo/worker-db/example/sw.ts
 /// <reference lib="webworker" />
 
-import { dbsw as db, } from "@workerdb/workerdb";
+import { db, } from "@vanaware/workerdb/sw";
 import {
   getFileFromOpfs,
   listOpfsFiles,
@@ -106,7 +106,7 @@ sw.addEventListener("fetch", (event,) => {
 sw.addEventListener("message", async (event,) => {
   if (event.data && event.data.type === "RUN_SW_DEMO") {
     try {
-      const msgStore = db("SYNTAXMESH_DATA", "messages", "MSG_",);
+      const msgStore = db("WORKERDB_DATA", "messages", "MSG_",);
 
       const insertedId = await msgStore.set("auto", {
         senderId: "system_sw",

@@ -25,6 +25,9 @@
     "npm:@cloudflare/workers-types@*": "5.20260915.1",
     "npm:esbuild@~0.25.5": "0.25.12",
     "npm:esbuild@~0.28.2": "0.28.2",
+    "npm:fake-indexeddb@^6.2.5": "6.2.5",
+    "npm:fflate@~0.8.2": "0.8.3",
+    "npm:idb-keyval@^6.2.1": "6.3.0",
     "npm:wrangler@*": "4.132.0_@cloudflare+workers-types@5.20260915.1",
     "npm:wrangler@^4.131.1": "4.132.0_@cloudflare+workers-types@5.20260915.1"
   },
@@ -867,10 +870,19 @@
       "scripts": true,
       "bin": true
     },
+    "fake-indexeddb@6.2.5": {
+      "integrity": "sha512-CGnyrvbhPlWYMngksqrSSUT1BAVP49dZocrHuK0SvtR0D5TMs5wP0o3j7jexDJW01KSadjBp1M/71o/KR3nD1w=="
+    },
+    "fflate@0.8.3": {
+      "integrity": "sha512-tbZNuJrLwGUp3zshBtdy4W+ORxZuIh8a5ilyIEQDC5rY1f3U20JMry0Ll3WBzU58EZKsEuJFXhb5gwv8CsPvgA=="
+    },
     "fsevents@2.3.3": {
       "integrity": "sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==",
       "os": ["darwin"],
       "scripts": true
+    },
+    "idb-keyval@6.3.0": {
+      "integrity": "sha512-um+2dgAWmYsu615EXpWVwSmapJhON0G43t3Ka/EVaohzPQXSMqKEqeDK/oIW3Ow+BXaF2PvSc+oBTFp793A5Ow=="
     },
     "kleur@4.1.5": {
       "integrity": "sha512-o+NO+8WrRiQEE4/7nwRJhN1HWpVmJm511pBHUxPLtp0BUISzlBplORYSmTclCnJvQq2tKu/sgl3xVpkc7ZWuQQ=="
@@ -1006,7 +1018,10 @@
     "https://esm.sh/fflate@0.8.2/es2022/fflate.mjs": "84afaa7491d754b566dd8608dcc784e7fdd4f0342e2c5b0bd1442e77782ec1a2",
     "https://esm.sh/fflate@0.8.2?target=es2022": "c127de9122b64d0866c6988baf5d7b21d6a1aca3989e8828f9c7f27029081b0c",
     "https://esm.sh/idb-keyval@6.2.1": "5d100f5a349dbff1e6b4889580c12e35b68b1388cbc117d11a90d7768f20be4f",
-    "https://esm.sh/idb-keyval@6.2.1/denonext/idb-keyval.mjs": "82bb3b0e594a5f57d4b017f4a6d1c038d6fe6d88a197e8e0cc445db144b15da7"
+    "https://esm.sh/idb-keyval@6.2.1/denonext/idb-keyval.mjs": "82bb3b0e594a5f57d4b017f4a6d1c038d6fe6d88a197e8e0cc445db144b15da7",
+    "https://esm.sh/preact@10.29.7": "abf0b5cdfb728a6478766261cbbeeb09b2e6b02b385815b123a597826d6e005d",
+    "https://esm.sh/preact@10.29.7/hooks": "ac657d2b4adb381305514bd77cbeac5fe12c67fc5fe9a8b547da138a3a2592c1",
+    "https://esm.sh/preact@10.29.7/jsx-runtime": "e91f1a3af922e702c8afccbaf8497670939fa00fac1ef2ced7a24e187b0f570e"
   },
   "workspace": {
     "dependencies": [
@@ -1017,6 +1032,9 @@
       "jsr:@std/path@^1.1.6",
       "jsr:@std/testing@^1.0.20",
       "npm:esbuild@~0.28.2",
+      "npm:fake-indexeddb@^6.2.5",
+      "npm:fflate@~0.8.2",
+      "npm:idb-keyval@^6.2.1",
       "npm:wrangler@^4.131.1"
     ],
     "members": {
@@ -1049,13 +1067,18 @@
           "jsr:@std/assert@*",
           "jsr:@std/testing@*"
         ]
-      },
-      "packages/worker-db": {
+      }
+    },
+    "links": {
+      "jsr:@vanaware/workerdb@1.0.3-h3": {
         "dependencies": [
           "jsr:@std/assert@*",
           "jsr:@std/fs@*",
           "jsr:@std/http@*",
-          "jsr:@std/path@*"
+          "jsr:@std/path@*",
+          "npm:fake-indexeddb@^6.2.5",
+          "npm:fflate@~0.8.2",
+          "npm:idb-keyval@^6.2.1"
         ]
       }
     }
