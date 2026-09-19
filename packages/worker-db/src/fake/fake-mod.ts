@@ -1,4 +1,10 @@
-// src/fake/fake-mod.ts
+/**
+ * @module @vanaware/workerdb/fake
+ * @description Testing and simulation environment for Main Thread applications.
+ * Automatically injects in-memory IndexedDB (via fake-indexeddb), simulated OPFS,
+ * and a Mock Web Worker for end-to-end testing in Node.js or Deno without headless browsers.
+ */
+
 // 1. Inject Fake IndexedDB globally (Main Thread)
 import "fake-indexeddb/auto";
 import { FakeOPFSDirectory } from "./fake-opfs.ts";

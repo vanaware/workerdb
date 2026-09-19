@@ -1,4 +1,9 @@
-// src/worker.ts
+/**
+ * @module @vanaware/workerdb/worker
+ * @description Dedicated Web Worker script and RPC request router for WorkerDB.
+ * Handles background IndexedDB queries, validations, OPFS file storage, and data streaming.
+ */
+
 import { internalAPI } from "./db.ts";
 import type { DbStoreOptions, OpfsStoreOptions } from "./db.ts";
 

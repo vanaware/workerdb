@@ -1,7 +1,7 @@
-// Arquivo gerado automaticamente pelo build
+// Automatically generated file during build
 declare const __APP_VERSION__: string;
 
-/** Versão atual da aplicação. */
+/** Current library/application version. */
 export const APP_VERSION: string = typeof __APP_VERSION__ !== "undefined"
   ? __APP_VERSION__
-  : "0.2.4-mu8sw50p";
+  : "0.2.12-mu8wn9vo";

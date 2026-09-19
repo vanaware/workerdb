@@ -13,7 +13,7 @@ import {
   setMany,
   type UseStore,
   values,
-} from "idb-keyval";
+} from "./utils/idb-keyval.ts";
 import { unzipSync, zipSync } from "fflate";
 
 import {
@@ -212,6 +212,13 @@ export interface WorkerOpfsAPI<TDefault = unknown> extends WorkerDbAPI<TDefault>
   delZip: (key: string, zipName: string, fileName: string, opts?: OpfsStoreOptions) => Promise<void>;
 }
 
+/**
+ * Converts an IndexQuery (value, key range, or boundary object) into an IDBValidKey or IDBKeyRange.
+ *
+ * @param query The index query specification.
+ * @returns The converted IDBValidKey or native IDBKeyRange.
+ * @throws {Error} If query is null or undefined.
+ */
 export function buildIDBQuery(query: IndexQuery): IDBValidKey | IDBKeyRange {
   if (query == null) throw new Error("Query cannot be null");
   if (

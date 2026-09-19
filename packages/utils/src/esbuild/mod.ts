@@ -365,10 +365,10 @@ export async function incrementVersion(
   // Atualiza arquivo de versão do worker-db (específico para injeção de código)
   try {
     const workerDbVersionPath = "packages/worker-db/src/utils/version.ts";
-    const workerDbContent = `// Arquivo gerado automaticamente pelo build
+    const workerDbContent = `// Automatically generated file during build
 declare const __APP_VERSION__: string;
 
-/** Versão atual da aplicação. */
+/** Current library/application version. */
 export const APP_VERSION: string = typeof __APP_VERSION__ !== "undefined"
   ? __APP_VERSION__
   : "${newVersion}";

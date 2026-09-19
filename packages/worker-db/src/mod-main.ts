@@ -1,4 +1,19 @@
-// src/mod-main.ts
+/**
+ * @module @vanaware/workerdb
+ * @description Main Thread entry point for WorkerDB.
+ * Provides asynchronous IndexedDB and OPFS file system APIs with non-blocking Web Worker execution,
+ * along with synchronous LocalStorage support and unique ID generation utilities.
+ *
+ * @example
+ * ```ts
+ * import { db, opfs, ls } from "@vanaware/workerdb";
+ *
+ * // Scoped IndexedDB store running in Web Worker
+ * const users = db("my-app", "users", "usr_");
+ * await users.set("1", { name: "Alice", email: "alice@example.com" });
+ * const user = await users.get("1");
+ * ```
+ */
 
 export { ls } from "./ls.ts";
 export type { WorkerLsAPI } from "./ls.ts";

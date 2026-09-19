@@ -41,6 +41,7 @@ Todas as capacidades da **Fase 1: Performance & Advanced Data Capabilities** for
    - **Preact Signals**: Refatoração total da UI (`packages/ui/src/main.tsx`) para utilizar `@preact/signals` em vez de `useState`/`useEffect`, centralizando o estado em `packages/ui/src/stores/app.ts`.
    - **Cleanup de Dependências**: Consolidação de imports no `deno.jsonc` raiz e pacotes específicos, mantendo apenas dependências ativas e otimizadas (via `esm.sh` com suporte a Deno 2.x).
    - **Otimização de Utils**: Limpeza de funções utilitárias não utilizadas e migração de `id-utils` para `worker-db` com suite de testes dedicada.
+   - **Internalização do `idb-keyval`**: Implementação nativa e enxuta em `packages/worker-db/src/utils/idb-keyval.ts` com tipagens completas, eliminando a dependência externa `npm:idb-keyval` e cobrindo todas as operações com testes BDD em `packages/worker-db/tests/idb-keyval.test.ts` (100% aprovados).
 
 ## Próximos Passos (Fase 2 - Planejamento)
 
