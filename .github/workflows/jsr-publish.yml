@@ -34,4 +34,4 @@ jobs:
       - name: Publish to JSR
         run: |
           cd packages/worker-db
-          deno publish --allow-slow-types
+          deno publish --allow-slow-types --allow-dirty
