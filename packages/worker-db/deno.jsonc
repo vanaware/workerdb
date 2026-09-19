@@ -18,8 +18,14 @@
     "noUncheckedIndexedAccess": true
   },
   "imports": {
-    "idb-keyval": "npm:idb-keyval@^6.2.1",
-    "fflate": "npm:fflate@^0.8.2"
+    "idb-keyval": "https://esm.sh/idb-keyval@6.2.1",
+     // 🔥 CORREÇÃO: Removido ?dev e adicionado ?bundle para resolver
+     // circular dependency do fake-indexeddb no Deno 2.x (denonext target).
+     // O ?bundle força o esm.sh a empacotar tudo em um único arquivo,
+     // eliminando o erro "Class extends value undefined".
+     "fake-indexeddb": "https://esm.sh/fake-indexeddb@6.2.5?bundle",
+     "fake-indexeddb/auto": "https://esm.sh/fake-indexeddb@6.2.5/auto?bundle",
+     "fflate": "https://esm.sh/fflate@0.8.2?target=es2022"
   },
   "tasks": {
     // 🔥 CORREÇÃO: Adicionado --allow-write para permitir testes que

@@ -1,12 +1,4 @@
 // TODO(@djones): no novo worker-db, função ls(), "id" deverá ser "_id" para debug
-export interface DebugLogPayload {
-  id: string;
-  timestamp: string;
-  type: "info" | "warn" | "error" | "success";
-  module: string;
-  message: string;
-  details?: unknown;
-}
 
 // ============================================================================
 // 📦 TIPOS ESBUILD

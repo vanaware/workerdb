@@ -1,7 +1,7 @@
 /// <reference lib="deno.ns" />
 import "fake-indexeddb/auto";
 import { assert, assertEquals, assertNotEquals, } from "@std/assert";
-import { gerarId, gerarIdFallback, validarId, } from "../../src/db/mod.ts";
+import { gerarId, gerarIdFallback, validarId, } from "../src/utils/id.ts";
 
 Deno.test("gerarId - Deve gerar um ID no formato string e com tamanho adequado", () => {
   const id = gerarId();

@@ -17,6 +17,16 @@ export function gerarId(): string {
         12,
       );
   }
+  return gerarIdFallback();
+}
+
+
+/**
+ * Fallback para geração de ID caso crypto.getRandomValues não esteja disponível.
+ * Combina o timestamp em base36 com um random.
+ * @returns {string} ID temporário
+ */
+export function gerarIdFallback(): string {
   return Date.now().toString(36,) +
     Math.random().toString(36,).substring(2, 8,);
 }

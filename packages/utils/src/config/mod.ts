@@ -1,20 +1,5 @@
 export { APP_VERSION, } from "../../../worker-db/src/utils/version.ts";
 
-export const DB_NAMES = {
-  CONFIG: "Config",
-} as const;
-
-export const STORE_NAMES = {
-  KEYVAL: "keyval",
-} as const;
-
-export const KEY_NAMES = {
-  PROFILE: "profile",
-  CONFIG: "config",
-} as const;
-
-export const DEBUG_CHANNEL_NAME = "workerdb_debug_channel";
-
 /**
  * Extensões de arquivo padrão que são comumente incluídas em snapshots.
  * Reutilizável em qualquer projeto de software.
