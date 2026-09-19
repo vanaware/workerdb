@@ -1,6 +1,6 @@
 {
   "name": "@vanaware/workerdb",
-  "version": "1.0.3-h3",
+  "version": "0.0.23-mu8cgue5",
   // ----------------------------------------------------------------------
   // 🔧 Compiler Options específicos do pacote
   // ----------------------------------------------------------------------
@@ -17,7 +17,10 @@
     "noImplicitAny": true,
     "noUncheckedIndexedAccess": true
   },
-  "imports": {},
+  "imports": {
+    "idb-keyval": "npm:idb-keyval@^6.2.1",
+    "fflate": "npm:fflate@^0.8.2"
+  },
   "tasks": {
     // 🔥 CORREÇÃO: Adicionado --allow-write para permitir testes que
     // criam arquivos temporários (padrão consistente com @workerdb/utils)

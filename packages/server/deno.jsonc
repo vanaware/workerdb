@@ -14,7 +14,9 @@
     "noImplicitAny": true,
     "noUncheckedIndexedAccess": true
   },
-  "imports": {},
+  "imports": {
+    "@std/http": "jsr:@std/http@^1.0.13"
+  },
   "tasks": {
     "test": "deno test --allow-env --allow-net --allow-read --unstable-bundle tests/",
     "check": "deno check --unstable-bundle src/**/*.ts src/**/*.tsx tests/**/*.ts",
