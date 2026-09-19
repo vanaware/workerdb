@@ -3,12 +3,8 @@
   "publish": false,
   "compilerOptions": {
     "lib": [
-      "dom",
-      "dom.iterable",
-      "dom.asynciterable",
-      "esnext",
-      "deno.ns",
-      "webworker"
+      "webworker",
+      "esnext"
     ],
     "strict": true,
     "noImplicitAny": true,
@@ -17,8 +13,7 @@
   "imports": {},
   "tasks": {
     "test": "deno test --allow-env --allow-net --allow-read --allow-write tests/",
-    "check": "deno check src/**/*.ts tests/**/*.ts",
-    "build": "deno run --allow-import --allow-read --allow-write --allow-env --allow-net --env-file --unstable-bundle ../esbuild.ts sw",
+    "check": "deno check src/**/*.{ts,tsx} tests/**/*.ts",
     "tests": "deno task check && deno task test"
   },
   "exports": {

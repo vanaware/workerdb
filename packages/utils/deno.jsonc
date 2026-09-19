@@ -3,21 +3,14 @@
   "publish": false,
   "compilerOptions": {
     "lib": [
-      "dom",
-      "dom.iterable",
-      "dom.asynciterable",
-      "esnext",
-      "deno.ns",
+      "deno.window",
       "deno.unstable"
-    ],
-    "strict": true,
-    "noImplicitAny": true,
-    "noUncheckedIndexedAccess": true
+    ]
   },
   "imports": {},
   "tasks": {
     "test": "deno test --allow-env --allow-net --allow-read --allow-write tests/",
-    "check": "deno check src/**/*.ts src/**/*.tsx tests/**/*.ts",
+    "check": "deno check src/**/*.{ts,tsx} tests/**/*.ts",
     "tests": "deno task check && deno task test"
   },
   "exports": {

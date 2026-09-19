@@ -11,15 +11,9 @@
   // ⚙️ Configurações Rigorosas do Compilador TypeScript (FASE 4)
   "compilerOptions": {
     "lib": [
-      "dom",
-      "dom.iterable",
-      "dom.asynciterable",
-      "esnext",
-      "deno.ns",
+      "deno.window",
       "deno.unstable"
     ],
-    "jsx": "react-jsx",
-    "jsxImportSource": "preact",
     "strict": true,
     "noImplicitAny": true,
     "noUncheckedIndexedAccess": true
@@ -44,7 +38,7 @@
     "test": "deno test -P",
     "lint": "deno lint",
     "fmt": "deno fmt",
-    "check": "deno check build.ts esbuild.ts export.ts tests/**/*test.ts packages/**/tests/**/*test.ts packages/**/src/**/*.{ts,tsx}",
+    "check": "deno task --recursive check && deno check build.ts esbuild.ts export.ts tests/**/*test.ts",
     "fmt:check": "deno fmt --check",
     "lint:fix": "deno lint --fix",
     "lint:doc": "deno task --recursive lint:doc",

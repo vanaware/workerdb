@@ -9,16 +9,14 @@
   // ----------------------------------------------------------------------
   "compilerOptions": {
     "lib": [
-      "dom",
-      "dom.iterable",
-      "dom.asynciterable",
+      "dom", 
+      "dom.iterable", 
+      "dom.asynciterable", 
       "esnext",
-      "deno.ns",
-      "deno.worker"
-    ],
-    "strict": true,
-    "noImplicitAny": true,
-    "noUncheckedIndexedAccess": true
+      "webworker",
+      "webworker.asynciterable",
+      "webworker.iterable"
+    ]
   },
   "imports": {
     "idb-keyval": "npm:idb-keyval@^6.2.1",
@@ -61,7 +59,6 @@
     "include": [
       "src/**/*.ts",
       "README.md",
-      "LICENSE",
       "docs/**/*.md"
     ],
     "exclude": [

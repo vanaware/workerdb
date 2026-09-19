@@ -3,28 +3,19 @@
   "publish": false,
   "compilerOptions": {
     "lib": [
-      "dom",
-      "dom.iterable",
-      "dom.asynciterable",
-      "esnext",
-      "deno.ns",
-      "deno.unstable"
-    ],
-    "strict": true,
-    "noImplicitAny": true,
-    "noUncheckedIndexedAccess": true
+      "deno.window"
+    ]
   },
   "imports": {
     "@std/http": "jsr:@std/http@^1.0.13"
   },
   "tasks": {
-    "test": "deno test --allow-env --allow-net --allow-read --unstable-bundle tests/",
-    "check": "deno check --unstable-bundle src/**/*.ts src/**/*.tsx tests/**/*.ts",
+    "test": "deno test --allow-env --allow-net --allow-read tests/",
+    "check": "deno check src/**/*.{ts,tsx} tests/**/*.ts",
     "tests": "deno task check && deno task test",
     "start": "deno run --allow-read --allow-write --allow-env --allow-net --env-file ./src/main.ts",
     "dev": "deno run --allow-read --allow-write --allow-env --allow-net --env-file --watch ./src/main.ts",
-    "clean": "deno clean && rm -rf ./build && mkdir -p ./build/dist",
-    "deploy": "deno task init && ./deploy.sh"
+    "clean": "deno clean && rm -rf ./build && mkdir -p ./build/dist"
   },
   "exports": "./src/main.ts",
   "exclude": ["./build/"]

@@ -9,18 +9,8 @@
     "lib": [
       "dom",
       "dom.iterable",
-      "dom.asynciterable",
-      "esnext",
-      "deno.ns",
-      "deno.unstable"
+      "dom.asynciterable"
     ],
-    "strict": true,
-    "noImplicitAny": true,
-    "noUncheckedIndexedAccess": true,
-
-    // ⚠️ MUDANÇA CRÍTICA: Deno 2.x usa "react-jsx" em vez de "automatic"
-    // O comportamento é idêntico — é apenas uma mudança de nomenclatura.
-    // O esbuild continua usando "automatic" (valor correto para ele).
     "jsx": "react-jsx",
     "jsxImportSource": "preact"
   },
@@ -40,8 +30,7 @@
   // 🛠️ Scripts de Automação
   "tasks": {
     "test": "deno test --allow-env --allow-net tests/",
-    "check": "deno check build.ts src/**/*.ts src/**/*.tsx tests/**/*.ts",
-    "build": "deno run --allow-import --allow-read --allow-write --allow-env --allow-net --env-file --unstable-bundle build.ts",
+    "check": "deno check src/**/*.{ts,tsx} tests/**/*.ts",
     "tests": "deno task check && deno task test"
   },
   "exclude": ["public/"],
