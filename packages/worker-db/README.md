@@ -102,17 +102,17 @@ import { db, opfs } from "jsr:@vanaware/workerdb";
 db.init(); 
 ```
 
-#### Usando outro nome ou caminho personalizado (Ex: `workerdb.js`):
-Se você salvou o arquivo com outro nome (como `workerdb.js`) ou em um subdiretório (como `/assets/workerdb.js`), passe o caminho ou `URL` para `init()`:
+#### Usando outro nome ou caminho personalizado (Ex: `workerdb.min.js`):
+Se você salvou o arquivo com outro nome (como `workerdb.min.js`) ou em um subdiretório (como `/assets/worker.js`), passe o caminho ou `URL` para `init()`:
 
 ```ts
 import { db, opfs } from "jsr:@vanaware/workerdb";
 
 // Caminho relativo personalizado:
-db.init("./workerdb.js");
+db.init("./workerdb.min.js");
 
 // Ou caminho absoluto / URL resolvida:
-db.init(new URL("./assets/workerdb.js", import.meta.url));
+db.init(new URL("./assets/worker.js", import.meta.url));
 
 // O mesmo caminho se aplica a qualquer chamada opfs:
 opfs.init("./workerdb.js");

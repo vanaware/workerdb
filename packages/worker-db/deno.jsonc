@@ -1,6 +1,6 @@
 {
   "name": "@vanaware/workerdb",
-  "version": "0.1.14-mu8r6b8y",
+  "version": "0.2.1-mu8rxo4c",
   "description": "Indexeddb wrapper on Web Worker, with a simple API and a powerful query engine.",
   "author": "Vanaware",
   "license": "MIT",
@@ -57,7 +57,8 @@
     "include": [
       "src/**/*.ts",
       "README.md",
-      "docs/**/*.md"
+      "docs/**/*.md",
+      "dist/workerdb.min.{js,js.map}"
     ],
     "exclude": [
       "tests",

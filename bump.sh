@@ -60,7 +60,7 @@ echo "🏷️  3/3 - Publicando nova tag ..."
 git tag -a $TAG_NAME -m "Versão $TAG_NAME"
 git push origin $TAG_NAME --force
 
-echo ""
+echo " "
 echo "✅ NOVA TAG ADICIONADA COM SUCESSO!"
 echo "Acompanhe o andamento na aba Actions do seu repositório."
 echo "============================================================"

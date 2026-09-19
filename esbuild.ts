@@ -106,6 +106,30 @@ const CONFIG: GlobalTargetConfig = {
       js: `/* WorkerDB v__APP_VERSION__ */\n`,
     },
   },
+  dist: {
+    mode: "build",
+    default: true,
+    srcdir: "packages/worker-db/src",
+    distdir: "packages/worker-db/dist",
+    clean: [".",],
+    entryPoints: ["worker.ts",],
+    outfile: "workerdb.min.js",
+    platform: "browser",
+    format: "esm",
+    bundle: true,
+    minify: true,
+    sourcemap: "external",
+    drop: ["debugger",],
+    conditions: ["worker",],
+    metafile: false,
+    write: true,
+    legalComments: "eof",
+    keepNames: true,
+    splitting: false,
+    banner: {
+      js: `/* WorkerDB v__APP_VERSION__ */\n`,
+    },
+  },
   // ------------------------------------------------------------------
   // 👀 ALVOS WATCH (modo de desenvolvimento contínuo)
   // ------------------------------------------------------------------
