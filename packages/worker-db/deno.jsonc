@@ -58,7 +58,8 @@
       "src/**/*.ts",
       "README.md",
       "docs/**/*.md",
-      "dist/workerdb.min.{js,js.map}"
+      "dist/workerdb.min.js",
+      "dist/workerdb.min.js.map"
     ],
     "exclude": [
       "tests",
