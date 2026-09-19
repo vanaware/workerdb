@@ -1,14 +1,6 @@
 /// <reference lib="deno.ns" />
-export interface DenoBundleOptions {
-  entrypoints: string[];
-  write?: boolean;
-  outputPath?: string;
-  outputDir?: string;
-  sourceMap?: boolean;
-  platform?: "browser" | "deno" | "node";
-  minify?: boolean;
-  [key: string]: unknown;
-}
+/// <reference lib="deno.unstable" />
+
 /**
  * @module @workerdb/utils/build/bundle
  * @description Funções específicas para o motor Deno.bundle (API nativa --unstable-bundle).
@@ -62,7 +54,7 @@ export function applyDefines(
 // ============================================================================
 export function buildBundleOptions(
   config: DenoBundleTargetConfig,
-): DenoBundleOptions {
+): Deno.bundle.Options {
   // 🔥 RESOLUÇÃO DE ENTRYPOINTS (srcdir opcional)
   const resolvedEntryPoints = resolveEntryPoints(
     config.srcdir,
@@ -72,7 +64,7 @@ export function buildBundleOptions(
   // 🔥 RESOLUÇÃO DE OUTPUT PATHS (outfile relativo ao distdir)
   const { outfile, outdir, } = resolveOutputPaths(config,);
 
-  const options: DenoBundleOptions = {
+  const options: Deno.bundle.Options = {
     entrypoints: resolvedEntryPoints,
     write: false, // 🔥 SEMPRE false — salvamos manualmente após injetar defines
   };
@@ -150,8 +142,7 @@ export async function processBundleTarget(
   console.log(`🔨 Compilando com Deno.bundle...`,);
   const startTime = performance.now();
   const bundleOptions = buildBundleOptions(config,);
-  // deno-lint-ignore no-explicit-any
-  const result = await (Deno as any).bundle(bundleOptions,);
+  const result = await Deno.bundle(bundleOptions,);
 
   // 5. Verificar erros
   if (!result.success) {

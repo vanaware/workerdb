@@ -3,7 +3,8 @@
   "publish": false,
   "compilerOptions": {
     "lib": [
-      "deno.window"
+      "deno.window",
+      "deno.unstable"
     ]
   },
   "imports": {},
@@ -18,5 +19,6 @@
     "./interfaces": "./src/interfaces/mod.ts",
     "./build": "./src/esbuild/mod.ts",
     "./export": "./src/export/mod.ts"
-  }
+  },
+  "unstable": ["bundle"]
 }
