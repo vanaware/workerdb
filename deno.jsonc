@@ -1,4 +1,7 @@
 {
+  "name": "workerdb",
+  "version": "0.0.29-mu8gbgoo",
+  "description": "WorkerDB Project Workspace",
   "workspace": [
     "./packages/worker-db",
     "./packages/server",

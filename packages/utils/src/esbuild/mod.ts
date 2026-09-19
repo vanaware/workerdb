@@ -335,7 +335,8 @@ export async function incrementVersion(
     const workerDbContent = `// Arquivo gerado automaticamente pelo build
 declare const __APP_VERSION__: string;
 
-export const APP_VERSION = typeof __APP_VERSION__ !== "undefined"
+/** Versão atual da aplicação. */
+export const APP_VERSION: string = typeof __APP_VERSION__ !== "undefined"
   ? __APP_VERSION__
   : "${newVersion}";
 `;
