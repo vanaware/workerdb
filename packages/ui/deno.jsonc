@@ -30,7 +30,6 @@
     // Preact Core — versão fixa e canônica
     "preact": "https://esm.sh/preact@10.29.8",
     "preact/": "https://esm.sh/preact@10.29.8/",
-    "preact/hooks": "https://esm.sh/preact@10.29.8/hooks",
     "preact/jsx-runtime": "https://esm.sh/preact@10.29.8/jsx-runtime",
 
     // Signals — mapeados explicitamente para evitar npm

@@ -106,7 +106,7 @@ const file = await myOpfs.getFile("doc-id", "report.pdf");`}
           Open OPFS Explorer
         </a>
       </nav>
-      <pre><code>{opfsLog.value}</code></pre>
+      <pre><code>{opfsLog}</code></pre>
     </article>
   );
 };
@@ -182,7 +182,7 @@ await store.patchByIndex("active", 0, { active: 1 });`}
       <button type="button" class="primary" onClick={runTest}>
         Run Index Test
       </button>
-      <pre><code>{indexLog.value}</code></pre>
+      <pre><code>{indexLog}</code></pre>
     </article>
   );
 };
@@ -260,7 +260,7 @@ const nextPage = await store.getByIndexPaginated("category", "sys", {
       <button type="button" class="primary" onClick={runTest}>
         Run Pagination Test
       </button>
-      <pre><code>{paginationLog.value}</code></pre>
+      <pre><code>{paginationLog}</code></pre>
     </article>
   );
 };
@@ -316,7 +316,7 @@ await msgStore.set("auto", { senderId: "system_sw", ... });`}</code></pre>
       <button type="button" class="primary" onClick={runTest}>
         Run SW Test
       </button>
-      <pre><code>{swLog.value}</code></pre>
+      <pre><code>{swLog}</code></pre>
     </article>
   );
 };
@@ -381,7 +381,7 @@ const App = () => {
       {activeTab.value === "pagination" && <PaginationDemo />}
       {activeTab.value === "sw" && <SWDemo />}
 
-      <footer class="center-align padding opacity">
+      <footer class="center-align padding surface-container-highest">
         <p class="italic small-text">
           WorkerDB v{version} — Powered by Deno & Preact
         </p>
