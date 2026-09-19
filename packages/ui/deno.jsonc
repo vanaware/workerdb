@@ -28,13 +28,14 @@
   // 📦 Gerenciamento de Dependências
   "imports": {
     // Preact Core — versão fixa e canônica
-    "preact": "https://esm.sh/preact@10.29.7",
-    "preact/": "https://esm.sh/preact@10.29.7/",
-    "preact/hooks": "https://esm.sh/preact@10.29.7/hooks",
-    "preact/jsx-runtime": "https://esm.sh/preact@10.29.7/jsx-runtime",
+    "preact": "https://esm.sh/preact@10.29.8",
+    "preact/": "https://esm.sh/preact@10.29.8/",
+    "preact/hooks": "https://esm.sh/preact@10.29.8/hooks",
+    "preact/jsx-runtime": "https://esm.sh/preact@10.29.8/jsx-runtime",
+
     // Signals — mapeados explicitamente para evitar npm
-    "@preact/signals": "https://esm.sh/@preact/signals@1.3.1?deps=preact@10.29.7",
-    "@preact/signals-core": "https://esm.sh/@preact/signals-core@1.10.1"
+    "@preact/signals": "https://esm.sh/@preact/signals@2.11.1?deps=preact@10.29.8",
+    "@preact/signals-core": "https://esm.sh/@preact/signals-core@1.14.4"
   },
 
   // 🛠️ Scripts de Automação

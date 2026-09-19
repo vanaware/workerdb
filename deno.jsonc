@@ -1,5 +1,4 @@
 {
-  "name": "WorkerDB",
   "version": "0.1.0-mu8lt9lh",
   "description": "Asynchronous database layer for Web Workers, IndexedDB, and OPFS.",
   "workspace": [
@@ -39,7 +38,7 @@
   "catalog": {
     "esbuild": "^0.28.2"
   },
-  "allowScripts": ["npm:esbuild@0.28.1", "npm:esbuild@0.28.2", "npm:workerd"],
+  "allowScripts": ["npm:esbuild@0.28.2"],
   // 🛠️ Scripts de Automação
   "tasks": {
     "test": "deno test -P",
