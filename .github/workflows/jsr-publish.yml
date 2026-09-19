@@ -32,4 +32,6 @@ jobs:
           ./sanitize-version.sh ./packages/worker-db/deno.jsonc
 
       - name: Publish to JSR
-        run: deno publish --allow-slow-types packages/worker-db
+        run: |
+          cd packages/worker-db
+          deno publish --allow-slow-types

@@ -1,28 +1,28 @@
 # 🌌 WorkerDB
 
-**WorkerDB** is a lightweight, high-performance IndexedDB wrapper running entirely within a Web Worker. It features a simple API, a powerful query engine, native OPFS (Origin Private File System) integration, and offline-first Progressive Web App (PWA) architecture.
+**Asynchronous database layer for Web Workers, IndexedDB, and OPFS.**
 
-## ✨ Features
+WorkerDB is a high-performance, non-blocking persistence engine designed for modern Deno and Web applications. It offloads all database and filesystem operations to background threads, ensuring a smooth 60fps user interface even during massive data processing.
 
-- **Non-Blocking UI:** Offloads all heavy database (IndexedDB) and filesystem (OPFS) operations to a background Web Worker.
-- **Native IndexedDB Indexes & Operations:** Fast $O(\log N)$ secondary index queries (`getByIndex`, `getManyByIndex`), targeted in-worker filtering (`getSomeByIndex`), aggregations (`queryByIndex`), index-driven updates (`setSomeByIndex`), and efficient deletions (`deleteByIndex`, `deleteManyByIndex`, `delSomeByIndex`).
-- **OPFS Streaming API:** Read and write large files directly with `ReadableStream<Uint8Array>` (`getFileStream`, `addFileStream`), avoiding out-of-memory overhead.
-- **In-Worker Schema Validation:** Declarative schema validator functions running inside the worker thread to safeguard data integrity before persisting to disk.
-- **OPFS File System Integration:** Seamlessly write, read, backup, and zip files using the Origin Private File System.
-- **Service Worker Explorer:** Includes a built-in OPFS file explorer hosted directly from the Service Worker (accessible via `./opfs/`).
-- **Offline-First PWA:** Robust caching strategies ensuring the app works perfectly when disconnected from the internet.
-- **Pure Deno Environment:** Zero local `node_modules`. Uses Deno-native tooling and ES modules (from `jsr:` and `npm:`/`esm.sh`).
-- **Reactive UI:** Built with Preact, `@preact/signals` for state management, and Semantic Material Design 3 via BeerCSS.
+## ✨ Core Features
 
-## 📦 Monorepo Architecture
+- **Non-Blocking Architecture:** Offloads all heavy IndexedDB and OPFS operations to a background Web Worker via a transparent RPC proxy.
+- **Advanced Query Engine:** Leverages native IDB indexes for fast aggregations, range filters, and cursor-based pagination.
+- **OPFS File System:** High-performance, private, persistent file system integration for large binary blobs and encrypted media.
+- **ZIP Compression:** Native in-worker zipping and unzipping of files stored in the OPFS.
+- **Offline-First PWA:** Robust Service Worker caching and PWA manifest for a native-app experience.
+- **Deno-Native Toolchain:** Zero `node_modules`. Pure TypeScript ecosystem with built-in build orchestration.
+- **Reactive UI:** Built with Preact, granular state via `@preact/signals`, and Material Design 3 (BeerCSS).
 
-This project is organized as a Deno monorepo with the following packages:
+## 📦 Monorepo Structure
 
-- `packages/worker-db/`: The core database engine. Wraps `idb-keyval` and exposes a Promise-based RPC client to the main thread.
-- `packages/ui/`: The Preact + Signals + BeerCSS frontend application.
-- `packages/server/`: A lightweight Deno file server (`@std/http/file-server`) used to serve the `build/dist` output.
-- `packages/service-worker/`: The PWA Service Worker script, handling offline caching and the `/opfs/` network interceptor.
-- `packages/utils/`: Shared utilities, including the custom Deno `esbuild` build orchestration script.
+This project is organized as a Deno monorepo:
+
+- `packages/worker-db/`: The core persistence engine (JSR: `@vanaware/workerdb`).
+- `packages/ui/`: The Preact-based reactive frontend application.
+- `packages/server/`: A lightweight Deno file server for production delivery.
+- `packages/service-worker/`: PWA logic and OPFS explorer network interceptor.
+- `packages/utils/`: Shared build tools and esbuild orquestration scripts.
 
 ## 📚 Library Usage
 

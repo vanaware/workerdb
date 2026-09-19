@@ -1,5 +1,5 @@
 {
-  "version": "0.1.0-mu8lt9lh",
+  "version": "0.1.2-mu8n3ao4",
   "description": "Asynchronous database layer for Web Workers, IndexedDB, and OPFS.",
   "workspace": [
     "./packages/worker-db",

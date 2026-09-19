@@ -1,18 +1,19 @@
-# 🗄️ WorkerDB PWA - Worker-DB
+# 🗄️ WorkerDB Core
 
-O **Worker-DB** é o coração da arquitetura _Offline-First_ do WorkerDB PWA. Ele provê uma interface unificada, tipada e de altíssima performance para interagir com as APIs de persistência nativas dos navegadores modernos (`IndexedDB`, `LocalStorage` e `Origin Private File System - OPFS`).
+**Asynchronous database layer for Web Workers, IndexedDB, and OPFS.**
 
-Para garantir que a interface de usuário (UI) nunca congele, mesmo durante operações massivas de criptografia E2EE ou I/O de arquivos pesados, **todo o processamento de banco de dados e arquivos ocorre em uma thread separada (Web Worker)**.
+WorkerDB provides a unified, typed, and high-performance interface to interact with native browser persistence APIs (`IndexedDB`, `LocalStorage`, and `Origin Private File System`). 
 
----
+To ensure the UI never freezes, even during heavy E2EE cryptography or massive file I/O, **all database and file processing occurs in a background Web Worker.**
 
-## ✨ Principais Funcionalidades
+## ✨ Core Features
 
-- 🧵 **Non-Blocking UI:** Proxy transparente via `postMessage`. A Thread Principal apenas despacha comandos; o Worker faz o trabalho pesado.
-- 🛡️ **Isolamento por Escopos:** Bancos e _Stores_ são isolados. Além disso, suportamos `prefixos` dinâmicos para isolar chaves no mesmo store (ex: `MSG_`, `CONFIG_`).
-- 🔑 **Gestão Automática de IDs:** Suporte para inserção usando `_id: "auto"`, convertendo automaticamente para UUIDs curtos e limpando prefixos nos retornos.
-- 🚀 **High Performance OPFS:** Manipulação nativa de arquivos no disco do dispositivo com recuperação estrita sob demanda (evitando vazamentos de memória).
-- 🗜️ **Compressão Nativa (ZIP):** Empacotamento e descompactação de pastas e arquivos no OPFS utilizando a engine `fflate` em background.
+- 🧵 **Non-Blocking UI:** Transparent RPC proxy via `postMessage`.
+- 🛡️ **Scope Isolation:** Database stores and record-level isolation with dynamic prefixes.
+- 🔑 **Automatic ID Management:** Native support for UUID generation and short IDs.
+- 🚀 **High Performance OPFS:** Direct file system manipulation with metadata-only discovery.
+- 🗜️ **Native ZIP Engine:** Background compression and extraction using `fflate`.
+- 🔄 **Backup & Recovery:** Integrated snapshot engine for OPFS and IndexedDB.
 
 ---
 
