@@ -1,5 +1,6 @@
 {
   "name": "@workerdb/ui",
+  "publish": false,
 
   // ----------------------------------------------------------------------
   // 🔧 Compiler Options — AJUSTADO PARA DENO 2.x

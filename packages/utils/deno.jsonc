@@ -1,5 +1,6 @@
 {
   "name": "@workerdb/utils",
+  "publish": false,
   "compilerOptions": {
     "lib": [
       "dom",

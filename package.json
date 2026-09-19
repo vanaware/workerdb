@@ -1,5 +1,5 @@
 {
-  "name": "@vanaware/workerdb",
+  "name": "workerdb",
   "version": "0.0.2",
   "private": false,
   "type": "module",
@@ -7,6 +7,6 @@
     "dev": "bash ./install-script.sh && deno task build && deno task dev",
     "build": "bash ./install-script.sh && deno task build",
     "lint": "bash ./install-script.sh && deno task lint",
-    "test": "bash ./install-script.sh && deno task check-all"
+    "test": "bash ./install-script.sh && deno task tests"
   }
 }

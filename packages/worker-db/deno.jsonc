@@ -1,8 +1,5 @@
 {
-  "name": "@workerdb/workerdb",
-  // ----------------------------------------------------------------------
-  // 🔧 Compiler Options específicos do pacote
-  // ----------------------------------------------------------------------
+  "name": "@vanaware/workerdb",
   "compilerOptions": {
     "lib": [
       "dom",
@@ -31,22 +28,24 @@
     "@std/path": "jsr:@std/path"
   },
   "tasks": {
-    "build": "deno run -A --unstable-bundle build.ts",
     // 🔥 CORREÇÃO: Adicionado --allow-write para permitir testes que
     // criam arquivos temporários (padrão consistente com @workerdb/utils)
-    "test": "deno test --allow-env --allow-net --allow-read --allow-write tests/",
-    "check": "deno check build.ts src/**/*.ts src/**/*.tsx example/**/*.ts tests/**/*.ts",
-    "tests": "deno task check && deno task test",
-    "demo": "deno run --allow-env --allow-read --allow-net ./example/demo.ts",
-    "example": "deno run -A --unstable-bundle ./example/server.ts"
+    "test": "deno test -P",
+    "lint": "deno lint",
+    "fmt": "deno fmt",
+    "check": "deno check src/**/*.{ts,tsx} example/**/*.{ts,tsx} tests/**/*.ts",
+    "fmt-check": "deno fmt --check",
+    "lint-fix": "deno lint --fix",
+    "tests": "deno task check && deno task lint && deno task fmt --check && deno task test",
+    "demo": "deno run --allow-env --allow-read --allow-net ./example/demo.ts"
   },
   // ----------------------------------------------------------------------
   // 🎯 Exports via subpaths (Deno não suporta conditional exports)
   //
   // Uso no código fonte:
-  //   - Main Thread:  import { db, opfs, ls } from "@workerdb/workerdb";
-  //   - Service Worker: import { dbsw, opfssw } from "@workerdb/workerdb/sw";
-  //   - Web Worker:   import { dbsw, opfssw } from "@workerdb/workerdb/sw";
+  //   - Main Thread:  import { db, opfs, ls } from "@vanaware/workerdb";
+  //   - Service Worker: import { dbsw, opfssw } from "@vanaware/workerdb/sw";
+  //   - Web Worker:   import { dbsw, opfssw } from "@vanaware/workerdb/sw";
   // ----------------------------------------------------------------------
   "exports": {
     // Entry point padrão — Main Thread (browser)
@@ -57,5 +56,70 @@
     "./sw": "./src/mod-sw.ts",
     "./fake": "./src/fake-mod.ts",
     "./swfake": "./src/fake-db.ts"
-  }
+  },
+  "publish": {
+    "include": [
+      "src/**/*.ts",
+      "README.md",
+      "docs/**/*.md"
+    ],
+    "exclude": [
+      "tests",
+      "example"
+    ]
+  },
+  "lint": {
+    "rules": {
+      "tags": ["recommended"],
+      "include": ["ban-untagged-todo"],
+      "exclude": ["no-unused-vars"]
+    },
+    "include": [
+      "example/**/*.{ts,tsx}",
+      "src/**/*.{ts,tsx}",
+      "tests/**/*test.ts"
+    ]
+  },
+  "test": {
+    "permissions": {
+      "read": true,
+      "write": true,
+      "net": true,
+      "env": true,
+      "sys": true,
+      "run": true,
+      "ffi": true,
+      "import": true
+    },
+    "include": [
+      "tests/**/*test.ts"
+    ],
+    "exclude": [
+      "example/**/*.{ts,tsx}",
+      "src/**/*.{ts,tsx}"
+    ]
+  },
+  "fmt": {
+    "useTabs": false,
+    "lineWidth": 80,
+    "indentWidth": 2,
+    "semiColons": true,
+    "singleQuote": false,
+    "proseWrap": "preserve",
+    "trailingCommas": "always",
+    "json.trailingCommas": "never",
+    "operatorPosition": "maintain",
+    "jsx.bracketPosition": "sameLine",
+    "jsx.forceNewLinesSurroundingContent": true,
+    "jsx.multiLineParens": "always",
+    "newLineKind": "lf",
+    "include": [
+      "example/**/*.{ts,tsx}",
+      "src/**/*.{ts,tsx}",
+      "tests/**/*test.ts"
+    ]
+  },
+  "exclude": [
+    "docs"
+  ]
 }
