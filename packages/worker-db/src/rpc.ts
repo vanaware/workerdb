@@ -5,6 +5,8 @@ import type {
   IndexQuery,
   OpfsFileInfo,
   OpfsStoreOptions,
+  WorkerDbAPI,
+  WorkerOpfsAPI,
 } from "./db.ts";
 
 let workerInstance: Worker | null = null;
@@ -66,7 +68,7 @@ function terminateWorker() {
   }
 }
 
-function exec<T,>(
+function exec<T>(
   command: string,
   args: Record<string, unknown> = {},
   transfer: Transferable[] = [],
@@ -102,7 +104,7 @@ function serializeDbOpts<T extends DbStoreOptions>(
   return result;
 }
 
-const globalDbAPI = {
+const globalDbAPI: WorkerDbAPI<unknown> = {
   get: <T,>(key: string, opts?: DbStoreOptions,) =>
     exec<WithId<T>>("GET", { key, ...serializeDbOpts(opts), },),
   set: <T,>(
@@ -138,7 +140,7 @@ const globalDbAPI = {
   },
   patch: <T extends Record<string, unknown>, C = unknown,>(
     key: string,
-    patchOrFn: Partial<T> | ((prev: WithId<T>, ctx: C,) => T | Partial<T>),
+    patchOrFn: Partial<T> | ((prev: WithId<T>, ctx?: C) => T | Partial<T>),
     context?: C,
     opts?: DbStoreOptions,
   ): Promise<WithId<T>> => {
@@ -244,10 +246,10 @@ const globalDbAPI = {
       queries,
       ...serializeDbOpts(opts),
     },),
-  getSomeByIndex: <T, C = unknown,>(
+  getSomeByIndex: <T, C = unknown>(
     indexName: string,
     query: IndexQuery,
-    fn: (items: WithId<T>[], ctx: C,) => WithId<T>[],
+    fn: (items: WithId<T>[], ctx?: C) => WithId<T>[],
     context?: C,
     opts?: DbStoreOptions,
   ): Promise<WithId<T>[]> =>
@@ -257,11 +259,11 @@ const globalDbAPI = {
       fnStr: fn.toString(),
       context,
       ...serializeDbOpts(opts),
-    },),
-  queryByIndex: <T, R, C = unknown,>(
+    }),
+  queryByIndex: <T, R, C = unknown>(
     indexName: string,
     query: IndexQuery,
-    fn: (items: WithId<T>[], ctx: C,) => R,
+    fn: (items: WithId<T>[], ctx?: C) => R,
     context?: C,
     opts?: DbStoreOptions,
   ): Promise<R> =>
@@ -271,7 +273,7 @@ const globalDbAPI = {
       fnStr: fn.toString(),
       context,
       ...serializeDbOpts(opts),
-    },),
+    }),
   deleteByIndex: (
     indexName: string,
     query: IndexQuery,
@@ -292,10 +294,10 @@ const globalDbAPI = {
       queries,
       ...serializeDbOpts(opts),
     },),
-  delSomeByIndex: <T, C = unknown,>(
+  delSomeByIndex: <T, C = unknown>(
     indexName: string,
     query: IndexQuery,
-    fn: (items: WithId<T>[], ctx: C,) => WithId<T>[],
+    fn: (items: WithId<T>[], ctx?: C) => WithId<T>[],
     context?: C,
     opts?: DbStoreOptions,
   ): Promise<void> =>
@@ -305,12 +307,12 @@ const globalDbAPI = {
       fnStr: fn.toString(),
       context,
       ...serializeDbOpts(opts),
-    },),
-  setSomeByIndex: <T, C = unknown,>(
+    }),
+  setSomeByIndex: <T, C = unknown>(
     indexName: string,
     query: IndexQuery,
-    selectFn: (items: WithId<T>[], ctx: C,) => WithId<T>[],
-    updateFn: (item: WithId<T>, ctx: C,) => WithId<T>,
+    selectFn: (items: WithId<T>[], ctx?: C) => WithId<T>[],
+    updateFn: (item: WithId<T>, ctx?: C) => WithId<T>,
     context?: C,
     opts?: DbStoreOptions,
   ): Promise<void> =>
@@ -321,9 +323,9 @@ const globalDbAPI = {
       updateFnStr: updateFn.toString(),
       context,
       ...serializeDbOpts(opts),
-    },),
-  query: <T, R, C = unknown,>(
-    fn: (items: WithId<T>[], ctx: C,) => R,
+    }),
+  query: <T, R, C = unknown>(
+    fn: (items: WithId<T>[], ctx?: C) => R,
     context?: C,
     opts?: DbStoreOptions,
   ): Promise<R> =>
@@ -331,9 +333,9 @@ const globalDbAPI = {
       fnStr: fn.toString(),
       context,
       ...serializeDbOpts(opts),
-    },),
-  getSome: <T, C = unknown,>(
-    fn: (items: WithId<T>[], ctx: C,) => WithId<T>[],
+    }),
+  getSome: <T, C = unknown>(
+    fn: (items: WithId<T>[], ctx?: C) => WithId<T>[],
     context?: C,
     opts?: DbStoreOptions,
   ): Promise<WithId<T>[]> =>
@@ -341,9 +343,9 @@ const globalDbAPI = {
       fnStr: fn.toString(),
       context,
       ...serializeDbOpts(opts),
-    },),
-  delSome: <T, C = unknown,>(
-    fn: (items: WithId<T>[], ctx: C,) => WithId<T>[],
+    }),
+  delSome: <T, C = unknown>(
+    fn: (items: WithId<T>[], ctx?: C) => WithId<T>[],
     context?: C,
     opts?: DbStoreOptions,
   ): Promise<void> =>
@@ -351,10 +353,10 @@ const globalDbAPI = {
       fnStr: fn.toString(),
       context,
       ...serializeDbOpts(opts),
-    },),
-  setSome: <T, C = unknown,>(
-    selectFn: (items: WithId<T>[], ctx: C,) => WithId<T>[],
-    updateFn: (item: WithId<T>, ctx: C,) => WithId<T>,
+    }),
+  setSome: <T, C = unknown>(
+    selectFn: (items: WithId<T>[], ctx?: C) => WithId<T>[],
+    updateFn: (item: WithId<T>, ctx?: C) => WithId<T>,
     context?: C,
     opts?: DbStoreOptions,
   ): Promise<void> =>
@@ -363,7 +365,7 @@ const globalDbAPI = {
       updateFnStr: updateFn.toString(),
       context,
       ...serializeDbOpts(opts),
-    },),
+    }),
   exportDB: (opts?: DbStoreOptions,) =>
     exec<Record<string, unknown>>("EXPORT", { ...serializeDbOpts(opts), },),
   importDB: (
@@ -400,6 +402,9 @@ const globalDbAPI = {
   },
   restart: () => restartWorker(),
   terminate: () => terminateWorker(),
+  gerarId: (): string => gerarId(),
+  gerarIdComPrefixo: (prefix?: string): string =>
+    gerarIdComPrefixo(prefix || ""),
 };
 
 function createScopedDb<TDefault = unknown>(
@@ -407,7 +412,7 @@ function createScopedDb<TDefault = unknown>(
   storeName = "keyval",
   prefix = "",
   extraOpts?: Partial<DbStoreOptions>,
-) {
+): WorkerDbAPI<TDefault> {
   let opts: DbStoreOptions;
   if (typeof dbName === "object" && dbName !== null) {
     opts = { ...dbName, };
@@ -422,11 +427,18 @@ function createScopedDb<TDefault = unknown>(
       key: string,
       updater: (val: WithId<T> | undefined,) => T,
     ) => globalDbAPI.update<T>(key, updater, opts,),
-    patch: <T extends Record<string, unknown> = TDefault extends Record<string, unknown> ? TDefault : Record<string, unknown>, C = unknown,>(
+    patch: <
+      T extends Record<string, unknown> = TDefault extends Record<
+        string,
+        unknown
+      > ? TDefault
+        : Record<string, unknown>,
+      C = unknown,
+    >(
       key: string,
-      patchOrFn: Partial<T> | ((prev: WithId<T>, ctx: C,) => T | Partial<T>),
+      patchOrFn: Partial<T> | ((prev: WithId<T>, ctx?: C) => T | Partial<T>),
       context?: C,
-    ) => globalDbAPI.patch<T, C>(key, patchOrFn, context, opts,),
+    ) => globalDbAPI.patch<T, C>(key, patchOrFn, context, opts),
     delete: (key: string,) => globalDbAPI.delete(key, opts,),
     getMany: <T = TDefault,>(keys: string[],) =>
       globalDbAPI.getMany<T>(keys, opts,),
@@ -456,91 +468,98 @@ function createScopedDb<TDefault = unknown>(
       indexName: string,
       queries: IndexQuery[],
     ) => globalDbAPI.getManyByIndex<T>(indexName, queries, opts,),
-    getSomeByIndex: <T = TDefault, C = unknown,>(
+    getSomeByIndex: <T = TDefault, C = unknown>(
       indexName: string,
       query: IndexQuery,
-      fn: (items: WithId<T>[], ctx: C,) => WithId<T>[],
+      fn: (items: WithId<T>[], ctx?: C) => WithId<T>[],
       context?: C,
-    ) => globalDbAPI.getSomeByIndex<T, C>(
-      indexName,
-      query,
-      fn,
-      context,
-      opts,
-    ),
-    queryByIndex: <T = TDefault, R = unknown, C = unknown,>(
+    ) =>
+      globalDbAPI.getSomeByIndex<T, C>(
+        indexName,
+        query,
+        fn,
+        context,
+        opts,
+      ),
+    queryByIndex: <T = TDefault, R = unknown, C = unknown>(
       indexName: string,
       query: IndexQuery,
-      fn: (items: WithId<T>[], ctx: C,) => R,
+      fn: (items: WithId<T>[], ctx?: C) => R,
       context?: C,
-    ) => globalDbAPI.queryByIndex<T, R, C>(
-      indexName,
-      query,
-      fn,
-      context,
-      opts,
-    ),
+    ) =>
+      globalDbAPI.queryByIndex<T, R, C>(
+        indexName,
+        query,
+        fn,
+        context,
+        opts,
+      ),
     deleteByIndex: (indexName: string, query: IndexQuery,) =>
       globalDbAPI.deleteByIndex(indexName, query, opts,),
     deleteManyByIndex: (indexName: string, queries: IndexQuery[],) =>
       globalDbAPI.deleteManyByIndex(indexName, queries, opts,),
-    delSomeByIndex: <T = TDefault, C = unknown,>(
+    delSomeByIndex: <T = TDefault, C = unknown>(
       indexName: string,
       query: IndexQuery,
-      fn: (items: WithId<T>[], ctx: C,) => WithId<T>[],
+      fn: (items: WithId<T>[], ctx?: C) => WithId<T>[],
       context?: C,
-    ) => globalDbAPI.delSomeByIndex<T, C>(
-      indexName,
-      query,
-      fn,
-      context,
-      opts,
-    ),
-    setSomeByIndex: <T = TDefault, C = unknown,>(
+    ) =>
+      globalDbAPI.delSomeByIndex<T, C>(
+        indexName,
+        query,
+        fn,
+        context,
+        opts,
+      ),
+    setSomeByIndex: <T = TDefault, C = unknown>(
       indexName: string,
       query: IndexQuery,
-      selectFn: (items: WithId<T>[], ctx: C,) => WithId<T>[],
-      updateFn: (item: WithId<T>, ctx: C,) => WithId<T>,
+      selectFn: (items: WithId<T>[], ctx?: C) => WithId<T>[],
+      updateFn: (item: WithId<T>, ctx?: C) => WithId<T>,
       context?: C,
-    ) => globalDbAPI.setSomeByIndex<T, C>(
-      indexName,
-      query,
-      selectFn,
-      updateFn,
-      context,
-      opts,
-    ),
-    query: <T = TDefault, R = unknown, C = unknown,>(
-      fn: (items: WithId<T>[], ctx: C,) => R,
+    ) =>
+      globalDbAPI.setSomeByIndex<T, C>(
+        indexName,
+        query,
+        selectFn,
+        updateFn,
+        context,
+        opts,
+      ),
+    query: <T = TDefault, R = unknown, C = unknown>(
+      fn: (items: WithId<T>[], ctx?: C) => R,
       context?: C,
-    ) => globalDbAPI.query<T, R, C>(fn, context, opts,),
-    getSome: <T = TDefault, C = unknown,>(
-      fn: (items: WithId<T>[], ctx: C,) => WithId<T>[],
+    ) => globalDbAPI.query<T, R, C>(fn, context, opts),
+    getSome: <T = TDefault, C = unknown>(
+      fn: (items: WithId<T>[], ctx?: C) => WithId<T>[],
       context?: C,
-    ) => globalDbAPI.getSome<T, C>(fn, context, opts,),
-    delSome: <T = TDefault, C = unknown,>(
-      fn: (items: WithId<T>[], ctx: C,) => WithId<T>[],
+    ) => globalDbAPI.getSome<T, C>(fn, context, opts),
+    delSome: <T = TDefault, C = unknown>(
+      fn: (items: WithId<T>[], ctx?: C) => WithId<T>[],
       context?: C,
-    ) => globalDbAPI.delSome<T, C>(fn, context, opts,),
-    setSome: <T = TDefault, C = unknown,>(
-      selectFn: (items: WithId<T>[], ctx: C,) => WithId<T>[],
-      updateFn: (item: WithId<T>, ctx: C,) => WithId<T>,
+    ) => globalDbAPI.delSome<T, C>(fn, context, opts),
+    setSome: <T = TDefault, C = unknown>(
+      selectFn: (items: WithId<T>[], ctx?: C) => WithId<T>[],
+      updateFn: (item: WithId<T>, ctx?: C) => WithId<T>,
       context?: C,
-    ) => globalDbAPI.setSome<T, C>(selectFn, updateFn, context, opts,),
+    ) => globalDbAPI.setSome<T, C>(selectFn, updateFn, context, opts),
     exportDB: () => globalDbAPI.exportDB(opts,),
     importDB: (data: Record<string, unknown>, clearFirst = false,) =>
       globalDbAPI.importDB(data, clearFirst, opts,),
     backupToOpfs: (key: string, fileName?: string,) =>
       globalDbAPI.backupToOpfs(key, fileName, opts,),
-    restoreFromOpfs: (key: string, fileName: string, clearFirst = false,) =>
-      globalDbAPI.restoreFromOpfs(key, fileName, clearFirst, opts,),
-    gerarId,
+    restoreFromOpfs: (key: string, fileName: string, clearFirst = false) =>
+      globalDbAPI.restoreFromOpfs(key, fileName, clearFirst, opts),
+    init: (workerPath?: string | URL) => globalDbAPI.init(workerPath),
+    restart: () => globalDbAPI.restart(),
+    terminate: () => globalDbAPI.terminate(),
+    gerarId: () => globalDbAPI.gerarId(),
     gerarIdComPrefixo: () =>
-      opts.prefix ? gerarIdComPrefixo(opts.prefix,) : gerarId(),
+      opts.prefix ? globalDbAPI.gerarIdComPrefixo(opts.prefix) : globalDbAPI.gerarId(),
   };
 }
 
-const globalOpfsAPI = {
+const globalOpfsAPI: WorkerOpfsAPI<unknown> = {
   ...globalDbAPI,
   listFiles: (key: string, opts?: OpfsStoreOptions,) =>
     exec<OpfsFileInfo[]>("OPFS_LIST", {
@@ -678,7 +697,13 @@ const globalOpfsAPI = {
       zipName,
       fileName,
       ...serializeDbOpts(opts),
-    },),
+    }),
+  init: (workerPath?: string | URL) => globalDbAPI.init(workerPath),
+  restart: () => globalDbAPI.restart(),
+  terminate: () => globalDbAPI.terminate(),
+  gerarId: (): string => gerarId(),
+  gerarIdComPrefixo: (prefix?: string): string =>
+    gerarIdComPrefixo(prefix || ""),
 };
 
 function createScopedOpfs<TDefault = unknown>(
@@ -687,7 +712,7 @@ function createScopedOpfs<TDefault = unknown>(
   prefix = "",
   basePath = "",
   extraOpts?: Partial<OpfsStoreOptions>,
-) {
+): WorkerOpfsAPI<TDefault> {
   let opts: OpfsStoreOptions;
   if (typeof dbName === "object" && dbName !== null) {
     opts = { ...dbName, };
@@ -739,23 +764,44 @@ function createScopedOpfs<TDefault = unknown>(
   };
 }
 
-export const db = Object.assign(
-  <TDefault = unknown,>(
+/**
+ * Ponto de acesso para o Banco de Dados (IndexedDB) via Web Worker Proxy.
+ * Ideal para uso na Main Thread do browser para evitar bloqueio da UI.
+ */
+export const db: (<TDefault = unknown>(
+  dbName?: string | DbStoreOptions,
+  storeName?: string,
+  prefix?: string,
+  extraOpts?: Partial<DbStoreOptions>,
+) => WorkerDbAPI<TDefault>) & WorkerDbAPI<unknown> = Object.assign(
+  <TDefault = unknown>(
     dbName?: string | DbStoreOptions,
     storeName?: string,
     prefix?: string,
     extraOpts?: Partial<DbStoreOptions>,
-  ) => createScopedDb<TDefault>(dbName, storeName, prefix, extraOpts,),
+  ): WorkerDbAPI<TDefault> =>
+    createScopedDb<TDefault>(dbName, storeName, prefix, extraOpts),
   globalDbAPI,
 );
 
-export const opfs = Object.assign(
-  <TDefault = unknown,>(
+/**
+ * Ponto de acesso para o Sistema de Arquivos (OPFS) via Web Worker Proxy.
+ * Ideal para uso na Main Thread do browser.
+ */
+export const opfs: (<TDefault = unknown>(
+  dbName?: string | OpfsStoreOptions,
+  storeName?: string,
+  prefix?: string,
+  basePath?: string,
+  extraOpts?: Partial<OpfsStoreOptions>,
+) => WorkerOpfsAPI<TDefault>) & WorkerOpfsAPI<unknown> = Object.assign(
+  <TDefault = unknown>(
     dbName?: string | OpfsStoreOptions,
     storeName?: string,
     prefix?: string,
     basePath = "",
     extraOpts?: Partial<OpfsStoreOptions>,
-  ) => createScopedOpfs<TDefault>(dbName, storeName, prefix, basePath, extraOpts,),
+  ): WorkerOpfsAPI<TDefault> =>
+    createScopedOpfs<TDefault>(dbName, storeName, prefix, basePath, extraOpts),
   globalOpfsAPI,
 );

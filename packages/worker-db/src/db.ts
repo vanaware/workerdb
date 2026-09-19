@@ -27,36 +27,139 @@ import {
 // ============================================================================
 // DEFINIÇÕES DE TIPOS (Single Source of Truth)
 // ============================================================================
+/**
+ * Opções de configuração para o Object Store do IndexedDB.
+ */
 export interface DbStoreOptions {
+  /** Nome do banco de dados IndexedDB. */
   dbName?: string;
+  /** Nome do object store dentro do banco. */
   storeName?: string;
+  /** Prefixo opcional para isolamento de chaves nesta instância. */
   prefix?: string;
+  /** Lista de nomes de campos a serem indexados. */
   indexes?: string[];
+  /** Versão do banco de dados (incremental). */
   dbVersion?: number;
+  /** Representação em string da função de validação (usada em RPC). */
   validatorStr?: string;
-  validator?: (val: unknown,) => boolean;
+  /** Função de validação opcional para os dados gravados. */
+  validator?: (val: unknown) => boolean;
 }
 
+/**
+ * Opções estendidas para armazenamento em OPFS.
+ */
 export interface OpfsStoreOptions extends DbStoreOptions {
+  /** Caminho base (diretório raiz) no OPFS. */
   basePath?: string;
 }
 
+/**
+ * Metadados de um arquivo no OPFS.
+ */
 export interface OpfsFileInfo {
+  /** Nome do arquivo. */
   name: string;
+  /** Tamanho em bytes. */
   size: number;
+  /** MIME type do arquivo. */
   type: string;
+  /** Timestamp da última modificação. */
   lastModified: number;
 }
 
+/**
+ * Range de consulta para índices.
+ */
 export interface IndexRange {
+  /** Valor exato. */
   eq?: IDBValidKey;
+  /** Maior que. */
   gt?: IDBValidKey;
+  /** Maior ou igual a. */
   gte?: IDBValidKey;
+  /** Menor que. */
   lt?: IDBValidKey;
+  /** Menor ou igual a. */
   lte?: IDBValidKey;
 }
 
 export type IndexQuery = IDBValidKey | IDBKeyRange | IndexRange;
+
+/**
+ * Interface principal para operações de banco de dados (IndexedDB).
+ * @template TDefault Tipo padrão para os registros.
+ */
+export interface WorkerDbAPI<TDefault = unknown> {
+  get: <T = TDefault>(key: string, opts?: DbStoreOptions) => Promise<WithId<T> | undefined>;
+  set: <T = TDefault>(keyOrVal: string | T, val?: T | DbStoreOptions, opts?: DbStoreOptions) => Promise<string>;
+  update: <T = TDefault>(key: string, updater: (val: WithId<T> | undefined) => T, opts?: DbStoreOptions) => Promise<void>;
+  patch: <T extends Record<string, unknown> = TDefault extends Record<string, unknown> ? TDefault : Record<string, unknown>, C = unknown>(
+    key: string,
+    patchOrFn: Partial<T> | ((prev: WithId<T>, ctx?: C) => T | Partial<T>),
+    context?: C,
+    opts?: DbStoreOptions
+  ) => Promise<WithId<T>>;
+  delete: (key: string, opts?: DbStoreOptions) => Promise<void>;
+  getMany: <T = TDefault>(keysList: string[], opts?: DbStoreOptions) => Promise<(WithId<T> | undefined)[]>;
+  setMany: (entriesList: [string, unknown][], opts?: DbStoreOptions) => Promise<void>;
+  deleteMany: (keysList: string[], opts?: DbStoreOptions) => Promise<void>;
+  keys: (opts?: DbStoreOptions) => Promise<string[]>;
+  values: <T = TDefault>(opts?: DbStoreOptions) => Promise<T[]>;
+  entries: <T = TDefault>(opts?: DbStoreOptions) => Promise<[string, T][]>;
+  clear: (opts?: DbStoreOptions) => Promise<void>;
+  countByIndex: (indexName: string, query?: IndexQuery, opts?: DbStoreOptions) => Promise<number>;
+  getOneByIndex: <T = TDefault>(indexName: string, query: IndexQuery, opts?: DbStoreOptions) => Promise<WithId<T> | undefined>;
+  keysByIndex: (indexName: string, query: IndexQuery, opts?: DbStoreOptions) => Promise<string[]>;
+  patchByIndex: <T = TDefault>(indexName: string, query: IndexQuery, patch: Partial<T>, opts?: DbStoreOptions) => Promise<void>;
+  getByIndexPaginated: <T = TDefault>(
+    indexName: string,
+    query: IndexQuery,
+    paginationOpts: { limit?: number; cursor?: string; direction?: "next" | "prev" | "nextunique" | "prevunique" },
+    opts?: DbStoreOptions
+  ) => Promise<{ items: WithId<T>[]; nextCursor?: string }>;
+  getByIndex: <T = TDefault>(indexName: string, query: IndexQuery, opts?: DbStoreOptions) => Promise<WithId<T>[]>;
+  getManyByIndex: <T = TDefault>(indexName: string, queries: IndexQuery[], opts?: DbStoreOptions) => Promise<WithId<T>[]>;
+  getSomeByIndex: <T = TDefault, C = unknown>(indexName: string, query: IndexQuery, fn: (items: WithId<T>[], ctx?: C) => WithId<T>[], context?: C, opts?: DbStoreOptions) => Promise<WithId<T>[]>;
+  queryByIndex: <T = TDefault, R = unknown, C = unknown>(indexName: string, query: IndexQuery, fn: (items: WithId<T>[], ctx?: C) => R, context?: C, opts?: DbStoreOptions) => Promise<R>;
+  deleteByIndex: (indexName: string, query: IndexQuery, opts?: DbStoreOptions) => Promise<void>;
+  deleteManyByIndex: (indexName: string, queries: IndexQuery[], opts?: DbStoreOptions) => Promise<void>;
+  delSomeByIndex: <T = TDefault, C = unknown>(indexName: string, query: IndexQuery, fn: (items: WithId<T>[], ctx?: C) => WithId<T>[], context?: C, opts?: DbStoreOptions) => Promise<void>;
+  setSomeByIndex: <T = TDefault, C = unknown>(indexName: string, query: IndexQuery, selectFn: (items: WithId<T>[], ctx?: C) => WithId<T>[], updateFn: (item: WithId<T>, ctx?: C) => WithId<T>, context?: C, opts?: DbStoreOptions) => Promise<void>;
+  query: <T = TDefault, R = unknown, C = unknown>(fn: (items: WithId<T>[], ctx?: C) => R, context?: C, opts?: DbStoreOptions) => Promise<R>;
+  getSome: <T = TDefault, C = unknown>(fn: (items: WithId<T>[], ctx?: C) => WithId<T>[], context?: C, opts?: DbStoreOptions) => Promise<WithId<T>[]>;
+  delSome: <T = TDefault, C = unknown>(fn: (items: WithId<T>[], ctx?: C) => WithId<T>[], context?: C, opts?: DbStoreOptions) => Promise<void>;
+  setSome: <T = TDefault, C = unknown>(selectFn: (items: WithId<T>[], ctx?: C) => WithId<T>[], updateFn: (item: WithId<T>, ctx?: C) => WithId<T>, context?: C, opts?: DbStoreOptions) => Promise<void>;
+  exportDB: (opts?: DbStoreOptions) => Promise<Record<string, unknown>>;
+  importDB: (data: Record<string, unknown>, clearFirst?: boolean, opts?: DbStoreOptions) => Promise<void>;
+  backupToOpfs: (key: string, fileName?: string, opts?: DbStoreOptions) => Promise<string>;
+  restoreFromOpfs: (key: string, fileName: string, clearFirst?: boolean, opts?: DbStoreOptions) => Promise<void>;
+  init: (workerPath?: string | URL) => void;
+  restart: () => void;
+  terminate: () => void;
+  gerarId: () => string;
+  gerarIdComPrefixo: (prefix?: string) => string;
+}
+
+/**
+ * Interface estendida para operações de sistema de arquivos (OPFS).
+ * @template TDefault Tipo padrão para os registros.
+ */
+export interface WorkerOpfsAPI<TDefault = unknown> extends WorkerDbAPI<TDefault> {
+  listFiles: (key: string, opts?: OpfsStoreOptions) => Promise<OpfsFileInfo[]>;
+  getFile: (key: string, fileName: string, opts?: OpfsStoreOptions) => Promise<File>;
+  getFileStream: (key: string, fileName: string, opts?: OpfsStoreOptions) => Promise<ReadableStream<Uint8Array>>;
+  addFile: (key: string, file: File | Blob, fileName: string, opts?: OpfsStoreOptions) => Promise<void>;
+  addFileStream: (key: string, streamOrFileName: ReadableStream<Uint8Array> | string, fileNameOrStream: string | ReadableStream<Uint8Array>, opts?: OpfsStoreOptions) => Promise<void>;
+  delFile: (key: string, fileName: string, opts?: OpfsStoreOptions) => Promise<void>;
+  renFile: (key: string, oldName: string, newName: string, opts?: OpfsStoreOptions) => Promise<void>;
+  mvFile: (key: string, fileName: string, newKey: string, opts?: OpfsStoreOptions) => Promise<void>;
+  zip: (key: string, zipName: string, filesToZip?: string[], deleteOriginals?: boolean, opts?: OpfsStoreOptions) => Promise<void>;
+  unzip: (key: string, zipName: string, deleteZip?: boolean, opts?: OpfsStoreOptions) => Promise<void>;
+  addZip: (key: string, zipName: string, file: File | Blob, fileName: string, opts?: OpfsStoreOptions) => Promise<void>;
+  delZip: (key: string, zipName: string, fileName: string, opts?: OpfsStoreOptions) => Promise<void>;
+}
 
 export function buildIDBQuery(query: IndexQuery): IDBValidKey | IDBKeyRange {
   if (query == null) throw new Error("Query cannot be null");
@@ -195,7 +298,10 @@ function validateDbItem(
   }
 }
 
-export const globalSwDbAPI = {
+/**
+ * API global para acesso direto ao IndexedDB no Worker.
+ */
+export const globalSwDbAPI: WorkerDbAPI<unknown> = {
   get: async <T,>(
     key: string,
     opts?: DbStoreOptions,
@@ -1081,9 +1187,25 @@ export const globalSwDbAPI = {
     );
     await setMany(entriesToImport, store,);
   },
+
+  init: (_workerPath?: string | URL): void => {
+    // No-op no Worker
+  },
+  restart: (): void => {
+    // No-op no Worker
+  },
+  terminate: (): void => {
+    // No-op no Worker
+  },
+  gerarId,
+  gerarIdComPrefixo: (prefix?: string): string =>
+    gerarIdComPrefixo(prefix || ""),
 };
 
-export const globalSwOpfsAPI = {
+/**
+ * API global para acesso ao File System (OPFS) no Worker.
+ */
+export const globalSwOpfsAPI: WorkerOpfsAPI<unknown> = {
   ...globalSwDbAPI,
 
   listFiles: async (
@@ -1360,14 +1482,14 @@ export const globalSwOpfsAPI = {
 };
 
 // 💎 EXPORTA A API INTERNA PARA SER CONSUMIDA PELO PROXY (db.ts)
-export const internalAPI = globalSwOpfsAPI;
+export const internalAPI: WorkerOpfsAPI<unknown> = globalSwOpfsAPI;
 
 export function createScopedDb<TDefault = unknown>(
   dbName?: string | DbStoreOptions,
   storeName = "keyval",
   prefix = "",
   extraOpts?: Partial<DbStoreOptions>,
-) {
+): WorkerDbAPI<TDefault> {
   let opts: DbStoreOptions;
   if (typeof dbName === "object" && dbName !== null) {
     opts = { ...dbName, };
@@ -1397,44 +1519,72 @@ export function createScopedDb<TDefault = unknown>(
     values: <T = TDefault,>() => globalSwDbAPI.values<T>(opts,),
     entries: <T = TDefault,>() => globalSwDbAPI.entries<T>(opts,),
     clear: () => globalSwDbAPI.clear(opts,),
-    getByIndex: <T = TDefault,>(indexName: string, query: IDBValidKey,) =>
-      globalSwDbAPI.getByIndex<T>(indexName, query, opts,),
-    getManyByIndex: <T = TDefault,>(
+    countByIndex: (indexName: string, query?: IndexQuery) =>
+      globalSwDbAPI.countByIndex(indexName, query, opts),
+    getOneByIndex: <T = TDefault>(indexName: string, query: IndexQuery) =>
+      globalSwDbAPI.getOneByIndex<T>(indexName, query, opts),
+    keysByIndex: (indexName: string, query: IndexQuery) =>
+      globalSwDbAPI.keysByIndex(indexName, query, opts),
+    patchByIndex: <T = TDefault>(
       indexName: string,
-      queries: IDBValidKey[],
-    ) => globalSwDbAPI.getManyByIndex<T>(indexName, queries, opts,),
-    getSomeByIndex: <T = TDefault, C = unknown,>(
+      query: IndexQuery,
+      patch: Partial<T>,
+    ) => globalSwDbAPI.patchByIndex<T>(indexName, query, patch, opts),
+    getByIndexPaginated: <T = TDefault>(
       indexName: string,
-      query: IDBValidKey,
-      fn: (items: WithId<T>[], ctx?: C,) => WithId<T>[],
+      query: IndexQuery,
+      paginationOpts: {
+        limit?: number;
+        cursor?: string;
+        direction?: "next" | "prev" | "nextunique" | "prevunique";
+      },
+    ) =>
+      globalSwDbAPI.getByIndexPaginated<T>(
+        indexName,
+        query,
+        paginationOpts,
+        opts,
+      ),
+    getByIndex: <T = TDefault>(indexName: string, query: IndexQuery) =>
+      globalSwDbAPI.getByIndex<T>(indexName, query, opts),
+    getManyByIndex: <T = TDefault>(
+      indexName: string,
+      queries: IndexQuery[],
+    ) => globalSwDbAPI.getManyByIndex<T>(indexName, queries, opts),
+    getSomeByIndex: <T = TDefault, C = unknown>(
+      indexName: string,
+      query: IndexQuery,
+      fn: (items: WithId<T>[], ctx?: C) => WithId<T>[],
       context?: C,
-    ) => globalSwDbAPI.getSomeByIndex<T, C>(
-      indexName,
-      query,
-      fn,
-      context,
-      opts,
-    ),
-    queryByIndex: <T = TDefault, R = unknown, C = unknown,>(
+    ) =>
+      globalSwDbAPI.getSomeByIndex<T, C>(
+        indexName,
+        query,
+        fn,
+        context,
+        opts,
+      ),
+    queryByIndex: <T = TDefault, R = unknown, C = unknown>(
       indexName: string,
-      query: IDBValidKey,
-      fn: (items: WithId<T>[], ctx?: C,) => R,
+      query: IndexQuery,
+      fn: (items: WithId<T>[], ctx?: C) => R,
       context?: C,
-    ) => globalSwDbAPI.queryByIndex<T, R, C>(
-      indexName,
-      query,
-      fn,
-      context,
-      opts,
-    ),
-    deleteByIndex: (indexName: string, query: IDBValidKey,) =>
-      globalSwDbAPI.deleteByIndex(indexName, query, opts,),
-    deleteManyByIndex: (indexName: string, queries: IDBValidKey[],) =>
-      globalSwDbAPI.deleteManyByIndex(indexName, queries, opts,),
-    delSomeByIndex: <T = TDefault, C = unknown,>(
+    ) =>
+      globalSwDbAPI.queryByIndex<T, R, C>(
+        indexName,
+        query,
+        fn,
+        context,
+        opts,
+      ),
+    deleteByIndex: (indexName: string, query: IndexQuery) =>
+      globalSwDbAPI.deleteByIndex(indexName, query, opts),
+    deleteManyByIndex: (indexName: string, queries: IndexQuery[]) =>
+      globalSwDbAPI.deleteManyByIndex(indexName, queries, opts),
+    delSomeByIndex: <T = TDefault, C = unknown>(
       indexName: string,
-      query: IDBValidKey,
-      fn: (items: WithId<T>[], ctx?: C,) => WithId<T>[],
+      query: IndexQuery,
+      fn: (items: WithId<T>[], ctx?: C) => WithId<T>[],
       context?: C,
     ) => globalSwDbAPI.delSomeByIndex<T, C>(
       indexName,
@@ -1443,11 +1593,11 @@ export function createScopedDb<TDefault = unknown>(
       context,
       opts,
     ),
-    setSomeByIndex: <T = TDefault, C = unknown,>(
+    setSomeByIndex: <T = TDefault, C = unknown>(
       indexName: string,
-      query: IDBValidKey,
-      selectFn: (items: WithId<T>[], ctx?: C,) => WithId<T>[],
-      updateFn: (item: WithId<T>, ctx?: C,) => WithId<T>,
+      query: IndexQuery,
+      selectFn: (items: WithId<T>[], ctx?: C) => WithId<T>[],
+      updateFn: (item: WithId<T>, ctx?: C) => WithId<T>,
       context?: C,
     ) => globalSwDbAPI.setSomeByIndex<T, C>(
       indexName,
@@ -1457,33 +1607,36 @@ export function createScopedDb<TDefault = unknown>(
       context,
       opts,
     ),
-    query: <T = TDefault, R = unknown, C = unknown,>(
-      fn: (items: WithId<T>[], ctx?: C,) => R,
+    query: <T = TDefault, R = unknown, C = unknown>(
+      fn: (items: WithId<T>[], ctx?: C) => R,
       context?: C,
-    ) => globalSwDbAPI.query<T, R, C>(fn, context, opts,),
-    getSome: <T = TDefault, C = unknown,>(
-      fn: (items: WithId<T>[], ctx?: C,) => WithId<T>[],
+    ) => globalSwDbAPI.query<T, R, C>(fn, context, opts),
+    getSome: <T = TDefault, C = unknown>(
+      fn: (items: WithId<T>[], ctx?: C) => WithId<T>[],
       context?: C,
-    ) => globalSwDbAPI.getSome<T, C>(fn, context, opts,),
-    delSome: <T = TDefault, C = unknown,>(
-      fn: (items: WithId<T>[], ctx?: C,) => WithId<T>[],
+    ) => globalSwDbAPI.getSome<T, C>(fn, context, opts),
+    delSome: <T = TDefault, C = unknown>(
+      fn: (items: WithId<T>[], ctx?: C) => WithId<T>[],
       context?: C,
-    ) => globalSwDbAPI.delSome<T, C>(fn, context, opts,),
-    setSome: <T = TDefault, C = unknown,>(
-      selectFn: (items: WithId<T>[], ctx?: C,) => WithId<T>[],
-      updateFn: (item: WithId<T>, ctx?: C,) => WithId<T>,
+    ) => globalSwDbAPI.delSome<T, C>(fn, context, opts),
+    setSome: <T = TDefault, C = unknown>(
+      selectFn: (items: WithId<T>[], ctx?: C) => WithId<T>[],
+      updateFn: (item: WithId<T>, ctx?: C) => WithId<T>,
       context?: C,
-    ) => globalSwDbAPI.setSome<T, C>(selectFn, updateFn, context, opts,),
-    exportDB: () => globalSwDbAPI.exportDB(opts,),
-    importDB: (data: Record<string, unknown>, clearFirst = false,) =>
-      globalSwDbAPI.importDB(data, clearFirst, opts,),
-    backupToOpfs: (key: string, fileName?: string,) =>
-      globalSwDbAPI.backupToOpfs(key, fileName, opts,),
-    restoreFromOpfs: (key: string, fileName: string, clearFirst = false,) =>
-      globalSwDbAPI.restoreFromOpfs(key, fileName, clearFirst, opts,),
+    ) => globalSwDbAPI.setSome<T, C>(selectFn, updateFn, context, opts),
+    exportDB: () => globalSwDbAPI.exportDB(opts),
+    importDB: (data: Record<string, unknown>, clearFirst = false) =>
+      globalSwDbAPI.importDB(data, clearFirst, opts),
+    backupToOpfs: (key: string, fileName?: string) =>
+      globalSwDbAPI.backupToOpfs(key, fileName, opts),
+    restoreFromOpfs: (key: string, fileName: string, clearFirst = false) =>
+      globalSwDbAPI.restoreFromOpfs(key, fileName, clearFirst, opts),
+    init: (workerPath?: string | URL) => globalSwDbAPI.init(workerPath),
+    restart: () => globalSwDbAPI.restart(),
+    terminate: () => globalSwDbAPI.terminate(),
     gerarId,
     gerarIdComPrefixo: () =>
-      opts.prefix ? gerarIdComPrefixo(opts.prefix,) : gerarId(),
+      opts.prefix ? gerarIdComPrefixo(opts.prefix) : gerarId(),
   };
 }
 
@@ -1493,7 +1646,7 @@ export function createScopedOpfs<TDefault = unknown>(
   prefix = "",
   basePath = "",
   extraOpts?: Partial<OpfsStoreOptions>,
-) {
+): WorkerOpfsAPI<TDefault> {
   let opts: OpfsStoreOptions;
   if (typeof dbName === "object" && dbName !== null) {
     opts = { ...dbName, };
@@ -1540,27 +1693,67 @@ export function createScopedOpfs<TDefault = unknown>(
       file: File | Blob,
       fileName: string,
     ) => globalSwOpfsAPI.addZip(key, zipName, file, fileName, opts,),
-    delZip: (key: string, zipName: string, fileName: string,) =>
-      globalSwOpfsAPI.delZip(key, zipName, fileName, opts,),
+    delZip: (key: string, zipName: string, fileName: string) =>
+      globalSwOpfsAPI.delZip(key, zipName, fileName, opts),
+    init: (workerPath?: string | URL) => globalSwOpfsAPI.init(workerPath),
+    restart: () => globalSwOpfsAPI.restart(),
+    terminate: () => globalSwOpfsAPI.terminate(),
+    gerarId,
+    gerarIdComPrefixo: () =>
+      opts.prefix ? gerarIdComPrefixo(opts.prefix) : gerarId(),
   };
 }
 
-export const db = Object.assign(
-  <TDefault = unknown,>(
+/**
+ * Ponto de acesso para o Banco de Dados (IndexedDB).
+ * Pode ser invocado como função para criar uma instância prefixada ou usado diretamente.
+ *
+ * @example
+ * ```ts
+ * const myDb = db("my-app", "users", "user_");
+ * await myDb.set("123", { name: "John" });
+ * ```
+ */
+export const db: (<TDefault = unknown>(
+  dbName?: string | DbStoreOptions,
+  storeName?: string,
+  prefix?: string,
+  extraOpts?: Partial<DbStoreOptions>,
+) => WorkerDbAPI<TDefault>) & WorkerDbAPI<unknown> = Object.assign(
+  <TDefault = unknown>(
     dbName?: string | DbStoreOptions,
     storeName?: string,
     prefix?: string,
     extraOpts?: Partial<DbStoreOptions>,
-  ) => createScopedDb<TDefault>(dbName, storeName, prefix, extraOpts,),
+  ): WorkerDbAPI<TDefault> =>
+    createScopedDb<TDefault>(dbName, storeName, prefix, extraOpts),
   globalSwDbAPI,
 );
-export const opfs = Object.assign(
-  <TDefault = unknown,>(
+
+/**
+ * Ponto de acesso para o Sistema de Arquivos (OPFS).
+ * Pode ser invocado como função para criar uma instância prefixada ou usado diretamente.
+ *
+ * @example
+ * ```ts
+ * const drive = opfs("my-app", "files", "docs_");
+ * await drive.addFile("doc1", blob, "manual.pdf");
+ * ```
+ */
+export const opfs: (<TDefault = unknown>(
+  dbName?: string | OpfsStoreOptions,
+  storeName?: string,
+  prefix?: string,
+  basePath?: string,
+  extraOpts?: Partial<OpfsStoreOptions>,
+) => WorkerOpfsAPI<TDefault>) & WorkerOpfsAPI<unknown> = Object.assign(
+  <TDefault = unknown>(
     dbName?: string | OpfsStoreOptions,
     storeName?: string,
     prefix?: string,
     basePath = "",
     extraOpts?: Partial<OpfsStoreOptions>,
-  ) => createScopedOpfs<TDefault>(dbName, storeName, prefix, basePath, extraOpts,),
+  ): WorkerOpfsAPI<TDefault> =>
+    createScopedOpfs<TDefault>(dbName, storeName, prefix, basePath, extraOpts),
   globalSwOpfsAPI,
 );

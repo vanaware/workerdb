@@ -35,3 +35,16 @@ Todas as capacidades da **Fase 1: Performance & Advanced Data Capabilities** for
 6. **Documentação & Testes**:
    - BDD unit tests em `packages/worker-db/tests/db_phase1_features_test.ts` (100% aprovados).
    - Documentação atualizada em `README.md`, `AGENTS.md` e `docs/api.md`.
+
+7. **Melhorias Técnicas & Refatoração (Pós-Fase 1)**:
+   - **Deno-Native Architecture**: Migração completa para Deno, removendo dependências Node.js locais e `node_modules`.
+   - **Preact Signals**: Refatoração total da UI (`packages/ui/src/main.tsx`) para utilizar `@preact/signals` em vez de `useState`/`useEffect`, centralizando o estado em `packages/ui/src/stores/app.ts`.
+   - **Cleanup de Dependências**: Consolidação de imports no `deno.jsonc` raiz e pacotes específicos, mantendo apenas dependências ativas e otimizadas (via `esm.sh` com suporte a Deno 2.x).
+   - **Otimização de Utils**: Limpeza de funções utilitárias não utilizadas e migração de `id-utils` para `worker-db` com suite de testes dedicada.
+
+## Próximos Passos (Fase 2 - Planejamento)
+
+*Aguardando definições de requisitos para a Fase 2.* Sugestões:
+- Replicação Sincronizada (Sync engine básica).
+- Suporte a CouchDB/PouchDB protocol.
+- Interface Visual para gerenciamento de Coleções.

@@ -1,6 +1,6 @@
 {
   "name": "@vanaware/workerdb",
-  "version": "0.0.23-mu8cgue5",
+  "version": "1.0.3-h3",
   // ----------------------------------------------------------------------
   // 🔧 Compiler Options específicos do pacote
   // ----------------------------------------------------------------------
@@ -18,14 +18,10 @@
     "noUncheckedIndexedAccess": true
   },
   "imports": {
-    "idb-keyval": "https://esm.sh/idb-keyval@6.2.1",
-     // 🔥 CORREÇÃO: Removido ?dev e adicionado ?bundle para resolver
-     // circular dependency do fake-indexeddb no Deno 2.x (denonext target).
-     // O ?bundle força o esm.sh a empacotar tudo em um único arquivo,
-     // eliminando o erro "Class extends value undefined".
-     "fake-indexeddb": "https://esm.sh/fake-indexeddb@6.2.5?bundle",
-     "fake-indexeddb/auto": "https://esm.sh/fake-indexeddb@6.2.5/auto?bundle",
-     "fflate": "https://esm.sh/fflate@0.8.2?target=es2022"
+    "idb-keyval": "npm:idb-keyval@^6.2.1",
+    "fake-indexeddb": "npm:fake-indexeddb@^6.2.5",
+    "fake-indexeddb/auto": "npm:fake-indexeddb@^6.2.5/auto",
+    "fflate": "npm:fflate@^0.8.2"
   },
   "tasks": {
     // 🔥 CORREÇÃO: Adicionado --allow-write para permitir testes que
@@ -54,8 +50,8 @@
     // Subpath para Service Worker e Web Worker
     // Retorna db(), opfs() com acesso direto (sem Web Worker interno)
     "./sw": "./src/mod-sw.ts",
-    "./fake": "./src/fake-mod.ts",
-    "./swfake": "./src/fake-db.ts"
+    "./fake": "./src/fake/fake-mod.ts",
+    "./swfake": "./src/fake/fake-db.ts"
   },
   "publish": {
     "include": [
