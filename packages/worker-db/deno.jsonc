@@ -1,6 +1,6 @@
 {
   "name": "@vanaware/workerdb",
-  "version": "0.1.12-mu8nunna",
+  "version": "0.1.14-mu8r6b8y",
   "description": "Indexeddb wrapper on Web Worker, with a simple API and a powerful query engine.",
   "author": "Vanaware",
   "license": "MIT",
@@ -12,10 +12,7 @@
       "dom", 
       "dom.iterable", 
       "dom.asynciterable", 
-      "esnext",
-      "webworker",
-      "webworker.asynciterable",
-      "webworker.iterable"
+      "esnext"
     ]
   },
   "imports": {
@@ -53,7 +50,8 @@
     // Retorna db(), opfs() com acesso direto (sem Web Worker interno)
     "./sw": "./src/mod-sw.ts",
     "./fake": "./src/fake/fake-mod.ts",
-    "./swfake": "./src/fake/fake-db.ts"
+    "./swfake": "./src/fake/fake-db.ts",
+    "./worker": "./src/worker.ts"
   },
   "publish": {
     "include": [

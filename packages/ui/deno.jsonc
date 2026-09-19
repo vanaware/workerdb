@@ -9,7 +9,8 @@
     "lib": [
       "dom",
       "dom.iterable",
-      "dom.asynciterable"
+      "dom.asynciterable",
+      "esnext"
     ],
     "jsx": "react-jsx",
     "jsxImportSource": "preact"

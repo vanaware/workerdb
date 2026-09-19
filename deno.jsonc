@@ -1,5 +1,5 @@
 {
-  "version": "0.1.12-mu8nunna",
+  "version": "0.1.14-mu8r6b8y",
   "description": "Asynchronous database layer for Web Workers, IndexedDB, and OPFS.",
   "workspace": [
     "./packages/worker-db",
@@ -11,8 +11,7 @@
   // ⚙️ Configurações Rigorosas do Compilador TypeScript (FASE 4)
   "compilerOptions": {
     "lib": [
-      "deno.window",
-      "deno.unstable"
+      "deno.window"
     ],
     "strict": true,
     "noImplicitAny": true,
@@ -50,7 +49,7 @@
     "build:deno": "deno run --unstable-bundle -A ./build.ts",
     "bump": "./bump.sh"
   },
-  "nodeModulesDir": "auto",
+  "nodeModulesDir": "none",
   "vendor": true,
   "lint": {
     "rules": {

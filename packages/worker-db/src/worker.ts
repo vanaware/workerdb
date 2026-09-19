@@ -6,8 +6,21 @@ import { APP_VERSION, } from "./utils/version.ts";
 
 console.log(`[DB] 🌌 Worker-db carregado (v${APP_VERSION}).`,);
 
-self.onmessage = async (e: MessageEvent,) => {
-  const { requestId, command, args, } = e.data;
+/**
+ * Manipulador principal de mensagens RPC do WorkerDB.
+ * Pode ser integrado em um Web Worker existente ou executado diretamente.
+ */
+export async function handleWorkerMessage(e: MessageEvent): Promise<void> {
+  if (
+    !e.data ||
+    typeof e.data !== "object" ||
+    !("requestId" in e.data) ||
+    !("command" in e.data)
+  ) {
+    return;
+  }
+
+  const { requestId, command, args = {}, } = e.data;
 
   try {
     const dbOpts: DbStoreOptions = {
@@ -389,4 +402,16 @@ self.onmessage = async (e: MessageEvent,) => {
       error: (error as Error).message,
     },);
   }
-};
+}
+
+// Auto-registrar listener se executado diretamente em contexto de Web Worker
+if (
+  typeof self !== "undefined" &&
+  typeof (self as unknown as { postMessage?: unknown }).postMessage === "function" &&
+  typeof (self as unknown as { document?: unknown }).document === "undefined"
+) {
+  self.addEventListener("message", (e: Event) => {
+    handleWorkerMessage(e as MessageEvent);
+  });
+}
+

@@ -23,16 +23,128 @@ O **WorkerDB** está pronto para ser utilizado em projetos Deno ou navegadores m
 
 ### Via JSR (Recomendado para Deno)
 ```ts
-// Main Thread (UI/App)
+// Main Thread (UI/App via RPC Proxy não-bloqueante)
 import { db, opfs, ls } from "jsr:@vanaware/workerdb";
 
-// Service Worker / Web Worker (Acesso Direto)
+// Web Worker Standalone ou Composto
+import "jsr:@vanaware/workerdb/worker";
+import { handleWorkerMessage } from "jsr:@vanaware/workerdb/worker";
+
+// Service Worker / Web Worker (Acesso Direto sem RPC)
 import { dbsw, opfssw } from "jsr:@vanaware/workerdb/sw";
 ```
 
 ---
 
-## 📦 2. Módulo: `db()` (IndexedDB)
+## ⚙️ 2. Configurando o Web Worker na UI
+
+Para garantir que a UI nunca trave durante operações intensivas de banco ou processamento de arquivos OPFS/ZIP, o `db()` e o `opfs()` na Main Thread operam como um **Proxy RPC transparente** que delega o trabalho para um Web Worker em background.
+
+Por isso, **o seu app web precisa disponibilizar o arquivo `.js` compilado do Worker** para ser carregado pelo navegador.
+
+### 📦 2.1 Como fazer o Bundle do Worker
+
+Você pode empacotar o worker fornecido pelo subpath `jsr:@vanaware/workerdb/worker` de forma direta:
+
+#### Opção A: Script com esbuild + Deno 2 (Recomendado)
+Crie um script de build (ex: `build-worker.ts`):
+
+```ts
+import * as esbuild from "npm:esbuild@0.28.2";
+import { denoPlugins } from "jsr:@deno/esbuild-plugin@1.2.1";
+
+await esbuild.build({
+  plugins: [...denoPlugins()],
+  entryPoints: ["jsr:@vanaware/workerdb/worker"],
+  outfile: "./public/worker.js",
+  bundle: true,
+  format: "esm",
+  minify: true,
+});
+
+esbuild.stop();
+console.log("✅ Worker compilado em ./public/worker.js");
+```
+
+Execute com:
+```bash
+deno run -A build-worker.ts
+```
+
+#### Opção B: Usando Deno 2 Bundle API (`--unstable-bundle`)
+Crie um arquivo local `src/worker.ts`:
+```ts
+// src/worker.ts
+import "jsr:@vanaware/workerdb/worker";
+```
+
+E compile para a sua pasta pública:
+```bash
+deno run --unstable-bundle -A ./src/worker.ts --output ./public/worker.js
+```
+
+---
+
+### 📂 2.2 Onde Salvar o Arquivo Gerado?
+
+Salve o arquivo bundle gerado na pasta de arquivos estáticos públicos do seu projeto (por exemplo, `./public/worker.js`, `./static/worker.js` ou `./dist/worker.js`). Ele deve ser servido como um asset estático acessível via HTTP pelo navegador.
+
+---
+
+### 🚀 2.3 Como Inicializar na UI
+
+Por padrão, `db()` e `opfs()` procuram o worker no caminho relativo `./worker.js`:
+
+```ts
+import { db, opfs } from "jsr:@vanaware/workerdb";
+
+// Inicialização com o caminho padrão ("./worker.js"):
+db.init(); 
+```
+
+#### Usando outro nome ou caminho personalizado (Ex: `workerdb.js`):
+Se você salvou o arquivo com outro nome (como `workerdb.js`) ou em um subdiretório (como `/assets/workerdb.js`), passe o caminho ou `URL` para `init()`:
+
+```ts
+import { db, opfs } from "jsr:@vanaware/workerdb";
+
+// Caminho relativo personalizado:
+db.init("./workerdb.js");
+
+// Ou caminho absoluto / URL resolvida:
+db.init(new URL("./assets/workerdb.js", import.meta.url));
+
+// O mesmo caminho se aplica a qualquer chamada opfs:
+opfs.init("./workerdb.js");
+```
+
+---
+
+### 🧩 2.4 Composição em um Web Worker Existente
+
+Se a sua aplicação já possui um Web Worker próprio para outras tarefas de background e você deseja unificar tudo no mesmo worker sem criar múltiplos threads, utilize a função exportada `handleWorkerMessage`:
+
+```ts
+// src/meu-app-worker.ts
+import { handleWorkerMessage } from "jsr:@vanaware/workerdb/worker";
+
+self.addEventListener("message", async (event: MessageEvent) => {
+  // Comandos do WorkerDB contêm `command` e `requestId`
+  if (event.data?.command && event.data?.requestId) {
+    await handleWorkerMessage(event);
+    return;
+  }
+
+  // Suas outras mensagens personalizadas do app:
+  if (event.data?.type === "PROCESSAR_AUDIO") {
+    // seu código aqui...
+  }
+});
+```
+
+---
+
+## 📦 3. Módulo: `db()` (IndexedDB)
 
 O `db()` é a fábrica principal para salvar objetos e metadados persistentes de forma assíncrona. Ideal para Fila de Mensagens, Contatos, e Logs E2EE.
 
@@ -64,7 +176,7 @@ const pendingCount = await msgStore.query((items) =>
 
 ---
 
-## 📦 3. Módulo: `ls()` (LocalStorage)
+## 📦 4. Módulo: `ls()` (LocalStorage)
 
 O `ls()` segue exatamente os mesmos padrões e assinaturas do `db()`, mas de forma **síncrona** interagindo com o `localStorage`. Ideal para preferências de tema, estado de autenticação ou configurações rápidas de boot.
 
@@ -83,7 +195,7 @@ await prefStore.backupToOpfs("backups_prefs", "ui_config.json");
 
 ---
 
-## 📦 4. Módulo: `opfs()` (Sistema de Arquivos Nativo)
+## 📦 5. Módulo: `opfs()` (Sistema de Arquivos Nativo)
 
 A joia da coroa. O `opfs()` **herda tudo do `db()`**, mas estende a API para manipular arquivos físicos no disco. Ele adota o padrão de **Record-Key Isolation**: cada registro do banco de dados ganha a sua própria pasta isolada no FileSystem.
 
@@ -130,7 +242,7 @@ await drive.mvFile(pastaMsgId, "arquivo.txt", "outra_pasta_destino");
 
 ---
 
-## 🗜️ 5. API de Compressão ZIP Integrada
+## 🗜️ 6. API de Compressão ZIP Integrada
 
 Ferramentas nativas do `opfs()` para compactação pesada rodando fora da UI, essencial para rotinas de exportação massiva ou agrupamento de mídias criptografadas E2EE.
 
@@ -148,7 +260,7 @@ await drive.delZip(pastaMsgId, "album.zip", "foto1.png");
 
 ---
 
-## 🔄 6. Backups Automáticos e Recuperação
+## 🔄 7. Backups Automáticos e Recuperação
 
 O sistema possui uma engine unificada para fazer _dump_ de stores inteiros (tanto do IndexedDB quanto do LocalStorage) e arquivá-los em segurança no OPFS, em uma pasta global chamada `/backup`.
 
@@ -162,7 +274,7 @@ await msgStore.restoreFromOpfs("minha_conta", "bkp_v1.json", true);
 
 ---
 
-## 🚧 Roadmap da Camada de Banco
+## 🚧 8. Roadmap da Camada de Banco
 
 - [x] Abstração de IDB em Web Worker
 - [x] Sincronia de IDs (Prefixo dinâmico, interceptação "auto")
