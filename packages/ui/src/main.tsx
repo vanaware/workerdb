@@ -1,5 +1,5 @@
 import { render, } from "preact";
-import { db, opfs, } from "@vanaware/workerdb";
+import { db, opfs, version, } from "@vanaware/workerdb";
 import {
   activeTab,
   addLog,
@@ -10,37 +10,47 @@ import {
 } from "./stores/app.ts";
 
 if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.getRegistrations().then(function (registrations,) {
-    let unregisteredAny = false;
-    const unregisterPromises = registrations.map((registration,) => {
-      console.log(
-        "Unregistering old service worker to fix AI Studio cache loop...",
-      );
-      unregisteredAny = true;
-      return registration.unregister();
-    },);
+  const swUrl = "./sw.js";
 
-    Promise.all(unregisterPromises,).then(() => {
-      if (unregisteredAny) {
-        console.log(
-          "Service Workers unregistered. Reloading to bust cache...",
+  // Pre-check for redirects (common in AI Studio/Proxy environments)
+  const checkAndRegister = async () => {
+    try {
+      const response = await fetch(swUrl, { method: "HEAD", },);
+      if (response.redirected) {
+        console.warn(
+          `⚠️ Registro do Service Worker abortado: Redirecionamento detectado para ${response.url}. 
+          Isso geralmente acontece no ambiente de preview do AI Studio. 
+          O app continuará funcionando em modo online.`,
         );
+        return;
+      }
+
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      let unregisteredAny = false;
+
+      for (const reg of registrations) {
+        console.log(
+          "Limpando Service Worker antigo para evitar loop de cache...",
+        );
+        unregisteredAny = true;
+        await reg.unregister();
+      }
+
+      if (unregisteredAny) {
+        console.log("Service Workers removidos. Recarregando para limpar...");
         globalThis.location.reload();
       } else {
-        // Only register if we didn't just unregister (to avoid infinite reload loops)
-        navigator.serviceWorker.register("./sw.js", { type: "module", },)
-          .then((reg,) =>
-            console.log("Service Worker registrado com sucesso:", reg,)
-          )
-          .catch((err,) =>
-            console.warn(
-              "Erro ao registrar Service Worker (esperado no preview do AI Studio devido a redirecionamentos):",
-              err,
-            )
-          );
+        const reg = await navigator.serviceWorker.register(swUrl, {
+          type: "module",
+        },);
+        console.log("🚀 Service Worker registrado com sucesso:", reg,);
       }
-    },);
-  },);
+    } catch (err) {
+      console.warn("Falha silenciosa ao verificar/registrar SW:", err,);
+    }
+  };
+
+  checkAndRegister();
 }
 
 const OPFSDemo = () => {
@@ -370,6 +380,12 @@ const App = () => {
       {activeTab.value === "index" && <IndexQueryDemo />}
       {activeTab.value === "pagination" && <PaginationDemo />}
       {activeTab.value === "sw" && <SWDemo />}
+
+      <footer class="center-align padding opacity">
+        <p class="italic small-text">
+          WorkerDB v{version} — Powered by Deno & Preact
+        </p>
+      </footer>
     </main>
   );
 };

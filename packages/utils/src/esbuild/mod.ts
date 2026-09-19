@@ -1,6 +1,7 @@
 /// <reference lib="deno.ns" />
 import { copy, emptyDir, ensureDir, walk, } from "@std/fs";
-import { isAbsolute, join, } from "@std/path";
+import { dirname, isAbsolute, join, } from "@std/path";
+import { parse as parseJsonc, } from "@std/jsonc";
 
 // ============================================================================
 // 📦 TIPOS
@@ -324,12 +325,44 @@ export async function incrementVersion(
   const { major, minor, patch, } = parseVersion(version,);
   const nextPatch = patch + 1;
   const newVersion = formatVersion(major, minor, nextPatch, buildHash,);
-  let content = await Deno.readTextFile(denoJsoncPath,);
-  content = replaceVersionInContent(content, newVersion,);
-  await Deno.writeTextFile(denoJsoncPath, content,);
+  const content = await Deno.readTextFile(denoJsoncPath,);
+  const updatedRootContent = replaceVersionInContent(content, newVersion,);
+  await Deno.writeTextFile(denoJsoncPath, updatedRootContent,);
   console.log(`📈 Versão incrementada para: v${newVersion}`,);
 
-  // Atualiza arquivo de versão do worker-db
+  // Sincronização de Workspaces
+  try {
+    const rootDir = dirname(denoJsoncPath,);
+    const parsed = parseJsonc(content,) as { workspace?: string[] };
+
+    if (parsed.workspace && Array.isArray(parsed.workspace,)) {
+      console.log(`📦 Sincronizando workspaces...`,);
+      for (const ws of parsed.workspace) {
+        const wsPath = isAbsolute(ws,) ? ws : join(rootDir, ws,);
+
+        // Tenta deno.jsonc depois deno.json
+        for (const fileName of ["deno.jsonc", "deno.json",]) {
+          const configPath = join(wsPath, fileName,);
+          try {
+            const stat = await Deno.stat(configPath,);
+            if (stat.isFile) {
+              let wsContent = await Deno.readTextFile(configPath,);
+              wsContent = replaceVersionInContent(wsContent, newVersion,);
+              await Deno.writeTextFile(configPath, wsContent,);
+              console.log(`   ✅ Sincronizado: ${join(ws, fileName,)}`,);
+              break; // Para no primeiro que encontrar
+            }
+          } catch {
+            continue;
+          }
+        }
+      }
+    }
+  } catch (error) {
+    console.warn(`⚠️ Falha ao sincronizar workspaces:`, error,);
+  }
+
+  // Atualiza arquivo de versão do worker-db (específico para injeção de código)
   try {
     const workerDbVersionPath = "packages/worker-db/src/utils/version.ts";
     const workerDbContent = `// Arquivo gerado automaticamente pelo build
@@ -344,17 +377,6 @@ export const APP_VERSION: string = typeof __APP_VERSION__ !== "undefined"
     console.log(`📝 Versão atualizada em: ${workerDbVersionPath}`,);
   } catch {
     // Ignora quando executando em ambientes sem a estrutura completa (ex: testes)
-  }
-
-  // Atualiza também packages/worker-db/deno.jsonc se existir
-  try {
-    const workerDbDenoJsonPath = "packages/worker-db/deno.jsonc";
-    let wContent = await Deno.readTextFile(workerDbDenoJsonPath,);
-    wContent = replaceVersionInContent(wContent, newVersion,);
-    await Deno.writeTextFile(workerDbDenoJsonPath, wContent,);
-    console.log(`📝 Versão atualizada em: ${workerDbDenoJsonPath}`,);
-  } catch {
-    // Ignora
   }
 
   return newVersion;
