@@ -2,7 +2,7 @@
 
 import { serveDir, } from "@std/http/file-server";
 
-const port = Number(Deno.env.get("PORT",) ?? 3000,);
+const port = 3000;
 
 Deno.serve({ port, hostname: "0.0.0.0", }, async (req,) => {
   try {

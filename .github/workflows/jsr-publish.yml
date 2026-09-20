@@ -30,8 +30,14 @@ jobs:
         run: |
           chmod +x ./sanitize-version.sh
           ./sanitize-version.sh ./packages/worker-db/deno.jsonc
+          ./sanitize-version.sh ./packages/service-worker/deno.jsonc
 
-      - name: Publish to JSR
+      - name: Publish WorkerDB to JSR
         run: |
           cd packages/worker-db
+          deno publish --allow-slow-types --allow-dirty
+
+      - name: Publish OPFS Explorer to JSR
+        run: |
+          cd packages/service-worker
           deno publish --allow-slow-types --allow-dirty
