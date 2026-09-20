@@ -28,9 +28,8 @@ jobs:
 
       - name: Sanitize Version
         run: |
-          chmod +x ./sanitize-version.sh
-          ./sanitize-version.sh ./packages/worker-db/deno.jsonc
-          ./sanitize-version.sh ./packages/service-worker/deno.jsonc
+          sh ./sanitize-version.sh ./packages/worker-db/deno.jsonc
+          sh ./sanitize-version.sh ./packages/service-worker/deno.jsonc
 
       - name: Publish WorkerDB to JSR
         run: |

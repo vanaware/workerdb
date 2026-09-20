@@ -1,80 +1,92 @@
-#!/usr/bin/env bash
-set -e
+#!/bin/sh
+# =============================================================================
+# sanitize-version.sh — normaliza a versão do deno.json[c] para semver estrito
+#
+# Uso:
+#   ./sanitize-version.sh [caminho/para/deno.json[c]]
+#
+# Sem argumento, procura deno.jsonc (preferido) ou deno.json a partir do
+# diretório do script.
+# =============================================================================
+set -eu
 
-# Se um argumento foi passado, usa ele como o caminho do arquivo
-# Caso contrário, procura deno.json ou deno.jsonc no mesmo diretório do script
-if [ -n "$1" ]; then
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck source=lib-version.sh
+. "$SCRIPT_DIR/lib-version.sh"
+
+# -----------------------------------------------------------------------------
+# 1) Localizar arquivo
+# -----------------------------------------------------------------------------
+if [ "$#" -gt 0 ]; then
   FILE_PATH="$1"
-else
-  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-  if [ -f "$SCRIPT_DIR/deno.jsonc" ]; then
-    FILE_PATH="$SCRIPT_DIR/deno.jsonc"
-  elif [ -f "$SCRIPT_DIR/deno.json" ]; then
-    FILE_PATH="$SCRIPT_DIR/deno.json"
-  else
-    echo "❌ Erro: Nenhum arquivo de configuração do Deno encontrado no diretório do script." >&2
+  if [ ! -f "$FILE_PATH" ]; then
+    echo "❌ Erro: Arquivo '$FILE_PATH' não encontrado." >&2
     exit 1
   fi
+else
+  FILE_PATH="$(find_deno_file "$SCRIPT_DIR")" || {
+    echo "❌ Erro: Nenhum deno.json[c] encontrado a partir de $SCRIPT_DIR" >&2
+    exit 1
+  }
 fi
 
-if [ ! -f "$FILE_PATH" ]; then
-  echo "❌ Erro: Arquivo '$FILE_PATH' não encontrado." >&2
-  exit 1
-fi
+echo "🔍 Buscando versão em: $FILE_PATH"
 
-echo "🔍 Buscando versão no arquivo: $FILE_PATH"
+# -----------------------------------------------------------------------------
+# 2) Extrair versão bruta
+# -----------------------------------------------------------------------------
+RAW_VERSION="$(extract_raw_version "$FILE_PATH")"
 
-# Extrai o valor do campo "version" (lida com aspas duplas)
-RAW_VERSION=$(grep -E '"version"\s*:\s*"[^"]+"' "$FILE_PATH" | head -n 1 | sed -E 's/.*"version"\s*:\s*"([^"]+)".*/\1/' || true)
-
+# -----------------------------------------------------------------------------
+# 3) Se ausente, injeta "0.0.0" após a primeira "{" de abertura
+#    Ancorado em /^[[:space:]]*\{/ para não casar com "{" em comentários.
+# -----------------------------------------------------------------------------
 if [ -z "$RAW_VERSION" ]; then
-  # Tenta com aspas simples caso exista
-  RAW_VERSION=$(grep -E "'version'\s*:\s*'[^']+'" "$FILE_PATH" | head -n 1 | sed -E "s/.*'version'\s*:\s*'([^']+)'.*/\1/" || true)
-fi
+  echo "⚠️  Nenhum campo 'version' encontrado. Inserindo \"0.0.0\"..."
 
-if [ -z "$RAW_VERSION" ]; then
-  echo "⚠️ Nenhum campo 'version' encontrado em $FILE_PATH. Criando versão '0.0.0'..."
-  awk 'BEGIN{done=0} { if (!done && /{/) { print "{"; print "  \"version\": \"0.0.0\","; done=1 } else { print } }' "$FILE_PATH" > "$FILE_PATH.tmp"
-  mv "$FILE_PATH.tmp" "$FILE_PATH"
+  awk '
+    BEGIN { done = 0 }
+    !done && /^[[:space:]]*\{/ {
+      print
+      print "  \"version\": \"0.0.0\","
+      done = 1
+      next
+    }
+    { print }
+  ' "$FILE_PATH" > "$FILE_PATH.tmp" && mv "$FILE_PATH.tmp" "$FILE_PATH"
+
   RAW_VERSION="0.0.0"
 fi
 
-echo "📌 Versão original encontrada: $RAW_VERSION"
+echo "📌 Versão original: $RAW_VERSION"
 
-# Remove qualquer prefixo não numérico no início (como 'v', 'V', 'release-', etc.)
-VERSION_CLEAN=$(echo "$RAW_VERSION" | sed -E 's/^[^0-9]*//')
+# -----------------------------------------------------------------------------
+# 4) Sanitizar via lib
+# -----------------------------------------------------------------------------
+SANITIZED_VERSION="$(sanitize_version "$RAW_VERSION")"
+echo "✅ Versão sanitizada: $SANITIZED_VERSION"
 
-# Remove qualquer sufixo começando com hífens ou mais (como -alpha, -mu73p02v, +build)
-VERSION_CLEAN=$(echo "$VERSION_CLEAN" | sed -E 's/[-+].*$//')
-
-# Filtra apenas números e pontos
-VERSION_CLEAN=$(echo "$VERSION_CLEAN" | tr -cd '0-9.')
-
-# Divide a versão por pontos
-IFS='.' read -r -a PARTS <<< "$VERSION_CLEAN"
-
-MAJOR="${PARTS[0]}"
-MINOR="${PARTS[1]}"
-PATCH="${PARTS[2]}"
-
-# Se alguma parte estiver vazia ou não for numérica, substitui por 0
-if [[ ! "$MAJOR" =~ ^[0-9]+$ ]]; then MAJOR="0"; fi
-if [[ ! "$MINOR" =~ ^[0-9]+$ ]]; then MINOR="0"; fi
-if [[ ! "$PATCH" =~ ^[0-9]+$ ]]; then PATCH="0"; fi
-
-SANITIZED_VERSION="$MAJOR.$MINOR.$PATCH"
-echo "✅ Versão sanitizada para semver: $SANITIZED_VERSION"
-
-# Se a versão sanitizada for diferente da original, atualiza o arquivo
+# -----------------------------------------------------------------------------
+# 5) Reescrever o arquivo se mudou
+#    Substituição LITERAL via awk + index() — nada de regex em RAW_VERSION.
+# -----------------------------------------------------------------------------
 if [ "$RAW_VERSION" != "$SANITIZED_VERSION" ]; then
-  if sed --version >/dev/null 2>&1; then
-    # GNU sed
-    sed -i "s/\"version\"[[:space:]]*:[[:space:]]*\"$RAW_VERSION\"/\"version\": \"$SANITIZED_VERSION\"/g" "$FILE_PATH"
-  else
-    # BSD sed (macOS)
-    sed -i '' "s/\"version\"[[:space:]]*:[[:space:]]*\"$RAW_VERSION\"/\"version\": \"$SANITIZED_VERSION\"/g" "$FILE_PATH"
-  fi
-  echo "📝 Arquivo atualizado com sucesso com a versão sanitizada!"
+  awk -v old="$RAW_VERSION" -v new="$SANITIZED_VERSION" '
+    {
+      pos = index($0, "\"version\"")
+      if (pos > 0) {
+        vpos = index(substr($0, pos), old)
+        if (vpos > 0) {
+          actual = pos + vpos - 1
+          printf "%s%s%s\n", substr($0, 1, actual - 1), new, substr($0, actual + length(old))
+          next
+        }
+      }
+      print
+    }
+  ' "$FILE_PATH" > "$FILE_PATH.tmp" && mv "$FILE_PATH.tmp" "$FILE_PATH"
+
+  echo "📝 Arquivo atualizado: $RAW_VERSION → $SANITIZED_VERSION"
 else
-  echo "✨ A versão já estava no formato semver correto."
+  echo "✨ Já estava no formato semver correto."
 fi

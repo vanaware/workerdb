@@ -1,42 +1,94 @@
 #!/usr/bin/env bash
-set -e
+set -eu
 
-echo "🔌 Releasing port 3000 if in use..."
-if command -v fuser >/dev/null 2>&1; then
-  fuser -k 3000/tcp || true
-elif command -v lsof >/dev/null 2>&1; then
-  lsof -t -i:3000 | xargs kill -9 >/dev/null 2>&1 || true
+# ---------- Localizar .tool-versions ----------
+# Procura no diretório do script, depois sobe a árvore até a raiz
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+find_tool_versions() {
+  dir="$1"
+  while [ -n "$dir" ] && [ "$dir" != "/" ]; do
+    if [ -f "$dir/.tool-versions" ]; then
+      printf '%s\n' "$dir/.tool-versions"
+      return 0
+    fi
+    dir="$(dirname "$dir")"
+  done
+  # Último recurso: diretório atual
+  if [ -f ".tool-versions" ]; then
+    printf '%s\n' ".tool-versions"
+    return 0
+  fi
+  return 1
+}
+
+TOOL_VERSIONS_FILE=""
+if TOOL_VERSIONS_FILE="$(find_tool_versions "$SCRIPT_DIR")"; then
+  echo "📄 Usando $TOOL_VERSIONS_FILE"
 else
-  PID=$(ss -tulpn 2>/dev/null | grep -E "(:3000|sport = :3000)" | awk '{print $7}' | grep -oE "[0-9]+" | head -n 1 || true)
-  if [ ! -z "$PID" ]; then
-    echo "Killing process $PID using port 3000..."
-    kill -9 "$PID" >/dev/null 2>&1 || true
+  echo "⚠️ .tool-versions não encontrado — instalará a versão mais recente" >&2
+fi
+
+# ---------- Extrair versão do Deno ----------
+DENO_VERSION=""
+if [ -n "$TOOL_VERSIONS_FILE" ]; then
+  DENO_VERSION="$(awk '
+    /^[[:space:]]*#/ { next }
+    /^[[:space:]]*deno[[:space:]]+/ { print $2; exit }
+  ' "$TOOL_VERSIONS_FILE")"
+fi
+
+# Normaliza: remove prefixo "v" se existir
+DENO_VERSION="${DENO_VERSION#v}"
+
+# Valida formato (apenas dígitos e pontos)
+case "$DENO_VERSION" in
+  ''|*[!0-9.]*)
+    if [ -n "$DENO_VERSION" ]; then
+      echo "⚠️ Versão inválida em .tool-versions: '$DENO_VERSION'" >&2
+    fi
+    DENO_VERSION=""
+    ;;
+esac
+
+# ---------- PATH e detecção do Deno instalado ----------
+export PATH="${HOME:-/root}/.deno/bin:/root/.deno/bin:/usr/local/bin:$PATH"
+
+INSTALLED_VERSION=""
+if command -v deno >/dev/null 2>&1; then
+  INSTALLED_VERSION="$(deno --version 2>/dev/null | head -n 1 | awk '{print $2}')"
+fi
+
+# ---------- Instalar / reinstalar se necessário ----------
+if [ -n "$DENO_VERSION" ]; then
+  if [ "$INSTALLED_VERSION" = "$DENO_VERSION" ]; then
+    echo "✅ Deno $DENO_VERSION já instalado"
+  else
+    if [ -n "$INSTALLED_VERSION" ]; then
+      echo "🔄 Deno $INSTALLED_VERSION encontrado, reinstalando $DENO_VERSION..."
+    else
+      echo "📥 Instalando Deno $DENO_VERSION (unattended)..."
+    fi
+    curl -fsSL https://deno.land/install.sh \
+      | sh -s -- -y -f "v$DENO_VERSION"
+  fi
+else
+  if [ -z "$INSTALLED_VERSION" ]; then
+    echo "📥 Instalando Deno (versão mais recente)..."
+    curl -fsSL https://deno.land/install.sh | sh -s -- -y
   fi
 fi
 
-echo "📦 Checking and installing zip/unzip prerequisites..."
-if ! command -v zip >/dev/null 2>&1 || ! command -v unzip >/dev/null 2>&1; then
-  echo "Installing zip and unzip via apt-get..."
-  DEBIAN_FRONTEND=noninteractive apt-get update -y && \
-  DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-    -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" \
-    zip unzip
-fi
-
-echo "🦕 Checking Deno installation..."
-export PATH="/root/.deno/bin:$HOME/.deno/bin:/usr/local/bin:$PATH"
-
-if ! command -v deno >/dev/null 2>&1; then
-  echo "Installing Deno unattended (-y)..."
-  curl -fsSL https://deno.land/install.sh | sh -s -- -y
-  mkdir -p /usr/local/bin
-  ln -sf /root/.deno/bin/deno /usr/local/bin/deno || true
-  ln -sf /root/.deno/bin/deno /usr/bin/deno || true
+# ---------- Symlinks (Debian/root-friendly) ----------
+if [ -w /usr/local/bin ] && [ -x "${HOME:-/root}/.deno/bin/deno" ]; then
+  ln -sf "${HOME:-/root}/.deno/bin/deno" /usr/local/bin/deno || true
 fi
 
 echo "✅ Deno ready: $(deno --version | head -n 1)"
 
-DENO_DIR_PATH="${DENO_DIR:-$(deno info --json | grep -o '"denoDir": *"[^"]*"' | cut -d'"' -f4)}"
+# ---------- denoDir ----------
+DENO_DIR_PATH="${DENO_DIR:-$(deno info --json \
+  | sed -n 's/.*"denoDir": *"\([^"]*\)".*/\1/p')}"
 echo "     denoDir: ${DENO_DIR_PATH}"
 
 export PORT=3000
