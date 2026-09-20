@@ -21,8 +21,6 @@
     "fflate": "npm:fflate@^0.8.2"
   },
   "tasks": {
-    // 🔥 CORREÇÃO: Adicionado --allow-write para permitir testes que
-    // criam arquivos temporários (padrão consistente com @workerdb/utils)
     "test": "deno test -P",
     "lint": "deno lint",
     "fmt": "deno fmt",
@@ -58,7 +56,8 @@
       "README.md",
       "docs/**/*.md",
       "dist/workerdb.min.js",
-      "dist/workerdb.min.js.map"
+      "dist/workerdb.min.js.map",
+      "deno.jsonc"
     ],
     "exclude": [
       "tests",

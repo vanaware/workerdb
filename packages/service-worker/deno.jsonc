@@ -4,38 +4,91 @@
   "description": "Lightweight Service Worker middleware and UI Explorer for the Origin Private File System (OPFS).",
   "author": "Vanaware",
   "license": "MIT",
+  // ----------------------------------------------------------------------
+  // 🔧 Compiler Options específicos do pacote
+  // ----------------------------------------------------------------------
   "compilerOptions": {
     "lib": [
       "webworker",
-      "dom",
-      "dom.iterable",
-      "dom.asynciterable",
-      "esnext"
-    ],
-    "strict": true,
-    "noImplicitAny": true,
-    "noUncheckedIndexedAccess": true
+      "webworker.asynciterable",
+      "webworker.iterable"
+    ]
   },
-  "imports": {
-    "@vanaware/workerdb/sw": "../worker-db/src/mod-sw.ts"
-  },
+  "imports": {},
   "tasks": {
-    "test": "deno test --allow-env --allow-net --allow-read --allow-write tests/",
+    "test": "deno test -P",
+    "lint": "deno lint",
+    "fmt": "deno fmt",
     "check": "deno check src/**/*.{ts,tsx} tests/**/*.ts",
-    "tests": "deno task check && deno task test"
+    "fmt:check": "deno fmt --check",
+    "lint:fix": "deno lint --fix",
+    "lint:doc": "deno doc --lint src/mod.ts",
+    "tests": "deno task check && deno task lint && deno task fmt:check && deno task test"
   },
   "exports": {
-    ".": "./src/mod.ts",
-    "./sw": "./src/sw.ts"
+    ".": "./src/mod.ts"
   },
   "publish": {
     "include": [
       "src/**/*.ts",
       "README.md",
+      "docs/**/*.md",
       "deno.jsonc"
     ],
     "exclude": [
+      "src/sw.ts",
       "tests"
     ]
-  }
+  },
+  "lint": {
+    "rules": {
+      "tags": ["recommended"],
+      "include": ["ban-untagged-todo"],
+      "exclude": ["no-unused-vars"]
+    },
+    "include": [
+      "src/**/*.{ts,tsx}",
+      "tests/**/*test.ts"
+    ]
+  },
+  "test": {
+    "permissions": {
+      "read": true,
+      "write": true,
+      "net": true,
+      "env": true,
+      "sys": true,
+      "run": true,
+      "ffi": true,
+      "import": true
+    },
+    "include": [
+      "tests/**/*test.ts"
+    ],
+    "exclude": [
+      "src/**/*.{ts,tsx}"
+    ]
+  },
+  "fmt": {
+    "useTabs": false,
+    "lineWidth": 80,
+    "indentWidth": 2,
+    "semiColons": true,
+    "singleQuote": false,
+    "proseWrap": "preserve",
+    "trailingCommas": "always",
+    "json.trailingCommas": "never",
+    "operatorPosition": "maintain",
+    "jsx.bracketPosition": "sameLine",
+    "jsx.forceNewLinesSurroundingContent": true,
+    "jsx.multiLineParens": "always",
+    "newLineKind": "lf",
+    "include": [
+      "src/**/*.{ts,tsx}",
+      "tests/**/*test.ts"
+    ]
+  },
+  "exclude": [
+    "docs"
+  ]
 }
