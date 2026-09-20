@@ -1,6 +1,6 @@
 {
   "name": "@vanaware/opfs-explorer",
-  "version": "0.2.36-mu9ylrqu",
+  "version": "0.3.0#mua6j68d",
   "description": "Lightweight Service Worker middleware and UI Explorer for the Origin Private File System (OPFS).",
   "author": "Vanaware",
   "license": "MIT",

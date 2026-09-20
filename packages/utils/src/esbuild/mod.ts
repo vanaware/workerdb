@@ -23,10 +23,10 @@ export function parseVersion(version: string,): ParsedVersion {
   if (trimmed !== version) {
     throw new Error(`❌ Versão não pode ter espaços: ${version}`,);
   }
-  const versionWithoutHash = version.split("-",)[0] ?? "";
-  if (version.includes("-",) && version.endsWith("-",)) {
+  const versionWithoutHash = version.split("#",)[0] ?? "";
+  if (version.includes("#",) && version.endsWith("#",)) {
     throw new Error(
-      `❌ Formato de versão inválido (hífen sem hash): ${version}`,
+      `❌ Formato de versão inválido (# sem hash): ${version}`,
     );
   }
   const parts = versionWithoutHash.split(".",);
@@ -57,7 +57,7 @@ export function formatVersion(
   buildHash?: string,
 ): string {
   const hash = buildHash ?? Date.now().toString(36,);
-  return `${major}.${minor}.${patch}-${hash}`;
+  return `${major}.${minor}.${patch}#${hash}`;
 }
 
 export function extractVersionFromContent(content: string,): string | null {

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Aborta o script se ocorrer algum erro crítico nas operações normais
 set -e

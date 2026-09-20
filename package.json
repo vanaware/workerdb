@@ -3,7 +3,7 @@
   "private": false,
   "type": "module",
   "scripts": {
-    "dev": "bash ./install-script.sh && deno task build && deno task dev",
+    "dev": "bash ./install-script.sh && deno task build noversion && deno task dev",
     "build": "bash ./install-script.sh && deno task build",
     "lint": "bash ./install-script.sh && deno task lint",
     "test": "bash ./install-script.sh && deno task tests"
