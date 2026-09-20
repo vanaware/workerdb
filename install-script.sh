@@ -36,4 +36,7 @@ fi
 
 echo "✅ Deno ready: $(deno --version | head -n 1)"
 
+DENO_DIR_PATH="${DENO_DIR:-$(deno info --json | grep -o '"denoDir": *"[^"]*"' | cut -d'"' -f4)}"
+echo "     denoDir: ${DENO_DIR_PATH}"
+
 export PORT=3000
