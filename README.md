@@ -16,23 +16,29 @@ WorkerDB is a high-performance, non-blocking persistence engine designed for mod
 
 ## 📦 Monorepo Structure
 
-This project is organized as a Deno monorepo:
+This project is organized as a Deno monorepo publishing multiple packages to JSR:
 
-- `packages/worker-db/`: The core persistence engine (JSR: `@vanaware/workerdb`).
+- `packages/worker-db/`: The core persistence engine (JSR: [`@vanaware/workerdb`](https://jsr.io/@vanaware/workerdb)).
+- `packages/service-worker/`: Standalone OPFS file explorer & Service Worker router (JSR: [`@vanaware/opfs-explorer`](https://jsr.io/@vanaware/opfs-explorer)).
 - `packages/ui/`: The Preact-based reactive frontend application.
 - `packages/server/`: A lightweight Deno file server for production delivery.
-- `packages/service-worker/`: PWA logic and OPFS explorer network interceptor.
-- `packages/utils/`: Shared build tools and esbuild orquestration scripts.
+- `packages/utils/`: Shared build tools and esbuild orchestration scripts.
 
 ## 📚 Library Usage
 
-If you are a developer looking to use **WorkerDB** in your own project, see:
+If you are a developer looking to use **WorkerDB** or **OPFS Explorer** in your own projects, see:
 - [Getting Started Guide](./docs/getting-started.md)
 - [API Reference](./docs/api.md)
+- [OPFS Explorer Documentation](./packages/service-worker/README.md)
 
-### Quick Import (JSR)
+### Quick Imports (JSR)
+
 ```ts
+// WorkerDB (Core Persistence)
 import { db, opfs, ls } from "jsr:@vanaware/workerdb";
+
+// OPFS Explorer (Service Worker Handler)
+import { createOpfsFetchHandler } from "jsr:@vanaware/opfs-explorer";
 ```
 
 ## 🚀 Getting Started (Development)
@@ -85,15 +91,29 @@ deno task check-all
 - **File System:** [OPFS](https://developer.mozilla.org/en-US/docs/Web/API/File_System_API/Origin_private_file_system)
 - **Bundler:** [esbuild](https://esbuild.github.io/)
 
-## 📂 OPFS Explorer
+## 📂 OPFS Explorer (`@vanaware/opfs-explorer`)
 
-Once the application is running and the Service Worker is registered, you can navigate to:
+Once the application is running and the Service Worker is registered, you can navigate to the configured explorer endpoint:
 
 ```text
+# Default route in demo app:
 http://localhost:3000/opfs/
+
+# Or on GitHub Pages (auto-detected scope):
+https://vanaware.github.io/workerdb/opfs/
 ```
 
-The Service Worker intercepts this fetch request and dynamically renders a visual HTML explorer for your OPFS storage directory, allowing you to browse, download, and inspect files natively stored in the browser's origin sandbox!
+The Service Worker intercepts the request and dynamically renders a visual, dark-mode HTML file explorer directly from the browser's Origin Private File System!
+
+### Pluggable into any Service Worker:
+
+```ts
+import { createOpfsFetchHandler } from "jsr:@vanaware/opfs-explorer";
+
+// Configure with any subfolder name ("files", "arquivos", "opfs"):
+self.addEventListener("fetch", createOpfsFetchHandler("files"));
+// Now accessible at /files/ or /{repo-name}/files/
+```
 
 ## 📜 License
 

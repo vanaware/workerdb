@@ -34,49 +34,78 @@ import { db, opfs } from "jsr:@vanaware/workerdb/swfake";
 
 ---
 
-## 🛠️ Usage Example (Main Thread)
+## 🛠️ Usage Example (Main Thread - BDD Standard)
 
-Here is a complete example of how you can write unit tests for your database schemas and OPFS logic using Deno's native test runner.
+All tests in WorkerDB are written using Deno's native BDD standard (`@std/testing/bdd`) and assertions (`@std/assert`).
 
 ```typescript
+import { describe, it, beforeEach } from "jsr:@std/testing/bdd";
 import { assertEquals, assert } from "jsr:@std/assert";
 
 // 1. Import from the /fake endpoint FIRST to bootstrap the environment
 import { db, opfs, ls } from "jsr:@vanaware/workerdb/fake";
 
-Deno.test("Should correctly execute heavy array methods natively", async () => {
-  // Create a scoped database collection
+describe("WorkerDB BDD Test Suite", () => {
   const store = db("APP_DB", "users", "USR_");
-  
-  // Clear the in-memory fake database
-  await store.clear();
 
-  // Populate data
-  await store.set("1", { name: "Alice", active: true });
-  await store.set("2", { name: "Bob", active: false });
+  beforeEach(async () => {
+    // Clean state before each test
+    await store.clear();
+  });
 
-  // Test the Worker Engine!
-  // This will successfully execute the closure using the fake engine.
-  const activeUsers = await store.getSome((items) => 
-    items.filter(i => i.active === true)
-  );
+  it("should execute queries and heavy array transformations in worker", async () => {
+    await store.set("1", { name: "Alice", active: true });
+    await store.set("2", { name: "Bob", active: false });
 
-  assertEquals(activeUsers.length, 1);
-  assertEquals(activeUsers[0].name, "Alice");
+    const activeUsers = await store.getSome((items) =>
+      items.filter((i) => i.active === true)
+    );
+
+    assertEquals(activeUsers.length, 1);
+    assertEquals(activeUsers[0].name, "Alice");
+  });
+
+  it("should simulate OPFS filesystem interactions in memory", async () => {
+    const fileStore = opfs("APP_DB", "files", "USR_");
+    const blob = new Blob(["Hello OPFS!"], { type: "text/plain" });
+
+    await fileStore.addFile("documents", blob, "hello.txt");
+    const retrieved = await fileStore.getFile("documents", "hello.txt");
+    const text = await retrieved.text();
+
+    assertEquals(text, "Hello OPFS!");
+  });
 });
+```
 
-Deno.test("Should correctly simulate OPFS filesystem interactions", async () => {
-  const fileStore = opfs("APP_DB", "files", "USR_");
+---
 
-  const blob = new Blob(["Hello OPFS!"], { type: "text/plain" });
-  
-  // The fake OPFS engine handles paths, streams, and File instances in memory!
-  await fileStore.addFile("documents", blob, "hello.txt");
+## 📂 Testing OPFS Explorer (`@vanaware/opfs-explorer`)
 
-  const retrieved = await fileStore.getFile("documents", "hello.txt");
-  const text = await retrieved.text();
-  
-  assertEquals(text, "Hello OPFS!");
+Unit tests for `@vanaware/opfs-explorer` are located in `packages/service-worker/tests/` and test routing, options normalization, MIME detection, and HTML rendering without requiring a live Service Worker:
+
+```typescript
+import { describe, it } from "jsr:@std/testing/bdd";
+import { assertEquals } from "jsr:@std/assert";
+import {
+  resolveRoutePrefix,
+  normalizeOptions,
+  getMimeType,
+} from "jsr:@vanaware/opfs-explorer";
+
+describe("OPFS Explorer Utilities", () => {
+  it("resolves route prefix with custom subfolder and scope", () => {
+    const prefix = resolveRoutePrefix({
+      scopePath: "/my-app/",
+      subfolder: "arquivos",
+    });
+    assertEquals(prefix, "/my-app/arquivos");
+  });
+
+  it("correctly identifies MIME types", () => {
+    assertEquals(getMimeType("data.json"), "application/json; charset=utf-8");
+    assertEquals(getMimeType("photo.png"), "image/png");
+  });
 });
 ```
 

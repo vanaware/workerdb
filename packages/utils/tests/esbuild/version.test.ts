@@ -19,13 +19,13 @@ describe("parseVersion", () => {
       { input: "0.0.0", expected: { major: 0, minor: 0, patch: 0, }, },
       { input: "99.99.99", expected: { major: 99, minor: 99, patch: 99, }, },
       {
-        input: "0.2.148-msv0okam",
+        input: "0.2.148#msv0okam",
         expected: { major: 0, minor: 2, patch: 148, },
       },
-      { input: "1.0.0-alpha", expected: { major: 1, minor: 0, patch: 0, }, },
-      { input: "2.0.0-beta.1", expected: { major: 2, minor: 0, patch: 0, }, },
+      { input: "1.0.0#alpha", expected: { major: 1, minor: 0, patch: 0, }, },
+      { input: "2.0.0#beta.1", expected: { major: 2, minor: 0, patch: 0, }, },
       {
-        input: "1.0.0-alpha-beta-1",
+        input: "1.0.0#alpha-beta-1",
         expected: { major: 1, minor: 0, patch: 0, },
       },
     ];
@@ -43,7 +43,7 @@ describe("parseVersion", () => {
       { input: "a.b.c", desc: "letras", },
       { input: "1.abc.3", desc: "parte não numérica", },
       { input: "v1.2.3", desc: "prefixo v", },
-      { input: "1.2.3-", desc: "hífen sem hash", },
+      { input: "1.2.3#", desc: "cardinal sem hash", },
       { input: " 1.2.3", desc: "espaço antes", },
       { input: "1.2.3 ", desc: "espaço depois", },
     ];
@@ -57,13 +57,13 @@ describe("parseVersion", () => {
 
 describe("formatVersion", () => {
   it("formata com hash fornecido", () => {
-    assertEquals(formatVersion(1, 2, 3, "abc",), "1.2.3-abc",);
+    assertEquals(formatVersion(1, 2, 3, "abc",), "1.2.3#abc",);
   });
   it("gera hash automático quando não fornecido", () => {
     const result = formatVersion(0, 2, 149,);
-    assertStringIncludes(result, "0.2.149-",);
+    assertStringIncludes(result, "0.2.149#",);
     // Hash deve ter pelo menos alguns caracteres
-    const hash = result.split("-",)[1];
+    const hash = result.split("#",)[1];
     // 🔥 CORREÇÃO: Tratamento explícito de undefined (noUncheckedIndexedAccess)
     assertEquals(hash !== undefined && hash.length > 0, true,);
   });
@@ -75,7 +75,7 @@ describe("formatVersion", () => {
     );
   });
   it("lida com números grandes", () => {
-    assertEquals(formatVersion(999, 999, 999, "x",), "999.999.999-x",);
+    assertEquals(formatVersion(999, 999, 999, "x",), "999.999.999#x",);
   });
 });
 
@@ -179,9 +179,9 @@ describe("incrementVersion (integração)", () => {
     const { path, cleanup, } = await withTempDenoJsonc("1.2.3",);
     try {
       const newVersion = await incrementVersion("1.2.3", path, "testhash",);
-      assertEquals(newVersion, "1.2.4-testhash",);
+      assertEquals(newVersion, "1.2.4#testhash",);
       const content = await Deno.readTextFile(path,);
-      assertStringIncludes(content, `"version": "1.2.4-testhash"`,);
+      assertStringIncludes(content, `"version": "1.2.4#testhash"`,);
     } finally {
       await cleanup();
     }
@@ -204,11 +204,11 @@ describe("incrementVersion (integração)", () => {
     const { path, cleanup, } = await withTempDenoJsonc("1.0.0",);
     try {
       const v1 = await incrementVersion("1.0.0", path, "h1",);
-      assertEquals(v1, "1.0.1-h1",);
+      assertEquals(v1, "1.0.1#h1",);
       const v2 = await incrementVersion(v1, path, "h2",);
-      assertEquals(v2, "1.0.2-h2",);
+      assertEquals(v2, "1.0.2#h2",);
       const v3 = await incrementVersion(v2, path, "h3",);
-      assertEquals(v3, "1.0.3-h3",);
+      assertEquals(v3, "1.0.3#h3",);
     } finally {
       await cleanup();
     }

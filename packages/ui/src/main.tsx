@@ -10,14 +10,19 @@ import {
 } from "./stores/app.ts";
 
 if ("serviceWorker" in navigator) {
-  const swUrl = "./sw.js";
+  // Dynamically resolve base path from current location (e.g. "/" for root, or "/repo-name/" for GitHub Pages)
+  // Ensures any repository name or subfolder deployment works automatically without hardcoding.
+  const basePath = new URL("./", globalThis.location.href,).pathname;
+  const swUrl = `${basePath}sw.js`;
+  const swScope = basePath;
 
   const registerSW = async () => {
     try {
       const reg = await navigator.serviceWorker.register(swUrl, {
         type: "module",
-      });
-      console.log("🚀 Service Worker registrado com sucesso:", reg);
+        scope: swScope,
+      },);
+      console.log("🚀 Service Worker registrado com sucesso com escopo:", reg.scope,);
     } catch (err) {
       const errStr = String(err);
       if (errStr.includes("redirect") || errStr.includes("SecurityError")) {
@@ -84,7 +89,11 @@ const file = await myOpfs.getFile("doc-id", "report.pdf");`}
         <button type="button" class="primary" onClick={runTest}>
           Run OPFS Test
         </button>
-        <a href="./opfs/" target="_blank" class="button transparent">
+        <a
+          href={`${new URL("./", globalThis.location.href,).pathname}opfs/`}
+          target="_blank"
+          class="button transparent"
+        >
           <i>
             open_in_new
           </i>{" "}

@@ -18,21 +18,13 @@ sw.addEventListener("activate", (event,) => {
   event.waitUntil(sw.clients.claim(),);
 },);
 
-// Intercept fetch requests for the OPFS Explorer route (/opfs)
-sw.addEventListener("fetch", (event) => {
-  const url = new URL(event.request.url);
-  if (url.pathname === "/opfs" || url.pathname.startsWith("/opfs/")) {
-    event.respondWith(
-      (async () => {
-        const opfsResult = await handleOpfsRequest(event.request, {
-          routePrefix: "/opfs",
-          title: "OPFS Explorer",
-        });
-        return opfsResult.response || new Response("Not Found", { status: 404 });
-      })(),
-    );
-  }
-});
+// Intercept fetch requests for the OPFS Explorer route (relative to Service Worker scope).
+// Developers can pass any custom subfolder name (e.g. "files", "arquivos", "opfs")
+// or an options object to customize route prefix, title, and root directory.
+sw.addEventListener(
+  "fetch",
+  createOpfsFetchHandler("opfs",),
+);
 
 // Demo Message IPC handler
 sw.addEventListener("message", async (event,) => {

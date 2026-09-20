@@ -112,12 +112,35 @@ self.addEventListener("sync", async (event) => {
 
 ---
 
-## 🧪 5. Quick Summary of API Exports
+## 📂 5. Adding the Visual OPFS Explorer to your Service Worker
 
-WorkerDB provides three main namespaces:
+You can expose a visual web interface to browse, inspect, and download files directly from OPFS by installing the companion package `jsr:@vanaware/opfs-explorer`:
+
+```typescript
+// File: sw.ts (Your Service Worker)
+import { createOpfsFetchHandler } from "jsr:@vanaware/opfs-explorer";
+
+// Route explorer to /files/ (or custom name like "arquivos" or "opfs"):
+self.addEventListener("fetch", createOpfsFetchHandler("files"));
+```
+
+- **Zero configuration:** Automatically detects your Service Worker scope (whether running at `http://localhost:3000/` or on GitHub Pages `https://vanaware.github.io/my-repo/`).
+- Navigate in your browser to `http://localhost:3000/files/` to see your OPFS files in real time.
+
+---
+
+## 🧪 6. Quick Summary of API Exports
+
+WorkerDB provides three main namespaces in `@vanaware/workerdb`:
 
 1. `db`: The **IndexedDB** wrapper. Async. Persists complex JSON objects and handles heavy array queries using the Web Worker engine.
 2. `opfs`: The **Origin Private File System** wrapper. Async. Manages heavy binary data (Files, Blobs) and handles zip compression securely in the background.
 3. `ls`: The **LocalStorage** wrapper. Sync. Use only for tiny configurations like theme preferences, as it runs synchronously on the main thread.
 
+And the companion package `@vanaware/opfs-explorer`:
+- `createOpfsFetchHandler`: 1-line fetch event listener for visual directory browsing.
+- `handleOpfsRequest`: Custom request routing and file inspection.
+- `listOpfsFiles` & `getFileFromOpfs`: Standalone file utilities.
+
 For deep documentation on what functions these namespaces provide, see the [API Reference](./api.md).
+

@@ -39,24 +39,19 @@ npx jsr add @vanaware/opfs-explorer
 
 ### 1. In your Service Worker (`sw.ts`)
 
-#### Option A: Handling via `handleOpfsRequest` (Recommended)
+#### Option A: One-liner with custom subfolder name (e.g. `"files"`, `"arquivos"`, or `"opfs"`)
 
 ```typescript
-import { handleOpfsRequest, } from "@vanaware/opfs-explorer";
+import { createOpfsFetchHandler, } from "@vanaware/opfs-explorer";
 
-self.addEventListener("fetch", async (event: FetchEvent,) => {
-  const { matched, response, } = await handleOpfsRequest(event.request, {
-    routePrefix: "/opfs",
-    title: "App File Explorer",
-  },);
+// Serves the explorer under /files/ or /{repo}/files/
+self.addEventListener("fetch", createOpfsFetchHandler("files",),);
 
-  if (matched && response) {
-    event.respondWith(response,);
-  }
-},);
+// Or in Portuguese: /arquivos/ or /{repo}/arquivos/
+// self.addEventListener("fetch", createOpfsFetchHandler("arquivos"));
 ```
 
-#### Option B: Automated Event Listener with `createOpfsFetchHandler`
+#### Option B: Automated Event Listener with Options Object
 
 ```typescript
 import { createOpfsFetchHandler, } from "@vanaware/opfs-explorer";
@@ -64,18 +59,37 @@ import { createOpfsFetchHandler, } from "@vanaware/opfs-explorer";
 self.addEventListener(
   "fetch",
   createOpfsFetchHandler({
-    routePrefix: "/opfs",
-    title: "OPFS Storage",
+    subfolder: "arquivos", // Accessible at /arquivos/ or /{repo}/arquivos/
+    title: "Meus Arquivos OPFS",
   },),
 );
 ```
 
+#### Option C: Manual handling via `handleOpfsRequest`
+
+```typescript
+import { handleOpfsRequest, } from "@vanaware/opfs-explorer";
+
+self.addEventListener("fetch", async (event: FetchEvent,) => {
+  const { matched, response, } = await handleOpfsRequest(
+    event.request,
+    "files",
+  );
+
+  if (matched && response) {
+    event.respondWith(response,);
+  }
+},);
+```
+
 ### 2. Accessing the Explorer
 
-Open your browser and navigate to:
+Open your browser and navigate to your chosen subfolder:
 
 ```
-https://your-app.example.com/opfs/
+https://your-app.example.com/files/
+# or on GitHub Pages / subfolder deployments:
+https://username.github.io/my-repo/files/
 ```
 
 You can now navigate directory hierarchies, download files, and view file contents directly.
@@ -113,14 +127,27 @@ console.log(getMimeType("document.pdf",),); // "application/pdf"
 ```typescript
 export interface OpfsExplorerOptions {
   /**
-   * The base URL path prefix that routes to the OPFS explorer.
-   * Defaults to "/opfs".
+   * The subfolder name or route prefix (relative to the service worker scope, or absolute).
+   * Can be any custom name such as "files", "arquivos", or "opfs".
+   */
+  subfolder?: string;
+
+  /**
+   * The base URL path prefix (relative to the service worker scope, or absolute) that routes to the OPFS explorer.
+   * Defaults to "opfs".
    */
   routePrefix?: string;
 
   /**
+   * Base scope path for the service worker.
+   * Defaults to self.registration.scope pathname (or "/" if not in a service worker).
+   * Automatically handles any GitHub Pages repo or subfolder deployment (e.g. "/my-repo/").
+   */
+  scopePath?: string;
+
+  /**
    * Custom title displayed in the HTML explorer header and page <title>.
-   * Defaults to "OPFS Explorer".
+   * Defaults to "{subfolder} Explorer" (e.g. "Files Explorer", "Arquivos Explorer") or "OPFS Explorer".
    */
   title?: string;
 
@@ -134,8 +161,62 @@ export interface OpfsExplorerOptions {
    * Defaults to OPFS root (navigator.storage.getDirectory()).
    */
   rootDir?: FileSystemDirectoryHandle;
+
+  /**
+   * Optional specific subfolder inside OPFS to restrict directory listing and exploration to.
+   * When specified, only files within this OPFS folder will be explored and served.
+   * Example: "docs", "uploads", or "backups".
+   */
+  opfsDir?: string;
 }
 ```
+
+### GitHub Pages & Subfolder Deployments
+
+When deployed under a repository subfolder (e.g. `https://username.github.io/my-repo/`), register the Service Worker with `scope: "/my-repo/"` (or `scope: "./"`).
+
+`@vanaware/opfs-explorer` automatically detects the active Service Worker scope and mounts your chosen subfolder at:
+
+```
+https://username.github.io/my-repo/files/
+# or
+https://username.github.io/my-repo/arquivos/
+# or
+https://username.github.io/my-repo/opfs/
+```
+
+No hardcoded paths are required—it resolves routes dynamically across localhost, custom domains, or GitHub Pages.
+
+---
+
+## API Reference
+
+### Service Worker Handlers
+
+| Function | Description |
+| :--- | :--- |
+| `createOpfsFetchHandler(options?)` | Creates a `(event: FetchEvent) => void` listener to plug into `self.addEventListener("fetch", ...)`. Accepts a subfolder name (e.g. `"files"`, `"arquivos"`) or `OpfsExplorerOptions`. |
+| `handleOpfsRequest(request, options?)` | Manually processes a `Request`. Returns `Promise<OpfsExplorerResponse>` (`{ matched: boolean, response?: Response }`). |
+
+### Core File & Path Utilities
+
+| Function | Description |
+| :--- | :--- |
+| `listOpfsFiles(dirHandle?, path?)` | Recursively traverses OPFS and returns an array of relative file paths. |
+| `getFileFromOpfs(filePath, rootDir?)` | Retrieves a native `File` object from OPFS by its path. |
+| `getMimeType(path)` | Detects and returns the MIME `Content-Type` for common file extensions. |
+| `resolveRoutePrefix(options?)` | Resolves the combined URL pathname prefix from the SW scope and configured subfolder. |
+| `getScopePath(customScope?)` | Normalizes or auto-detects the Service Worker registration scope. |
+| `getEffectiveRootDir(options?)` | Resolves the target directory handle (OPFS root or subfolder via `opfsDir`). |
+| `renderDirectoryHtml(currentPath, allFiles, options?)` | Generates the HTML interface for folder navigation. |
+
+---
+
+## Browser Compatibility
+
+Requires modern browser support for:
+- [Origin Private File System (OPFS)](https://caniuse.com/native-filesystem-api) (Chrome 86+, Edge 86+, Firefox 111+, Safari 15.2+)
+- [Service Worker API](https://caniuse.com/serviceworkers) (Standard in all modern browsers)
 
 ---
 

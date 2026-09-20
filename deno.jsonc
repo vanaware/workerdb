@@ -11,7 +11,11 @@
   // ⚙️ Configurações Rigorosas do Compilador TypeScript (FASE 4)
   "compilerOptions": {
     "lib": [
-      "deno.window"
+      "deno.window",
+      "dom",
+      "dom.iterable",
+      "dom.asynciterable",
+      "esnext"
     ],
     "strict": true,
     "noImplicitAny": true,
@@ -34,7 +38,7 @@
   "allowScripts": ["npm:esbuild@0.28.2"],
   // 🛠️ Scripts de Automação
   "tasks": {
-    "test": "deno test --unstable-bundle -P",
+    "test": "deno test --no-check --unstable-bundle -P",
     "lint": "deno lint",
     "fmt": "deno fmt",
     "check": "deno task --recursive check && deno check build.ts esbuild.ts export.ts tests/**/*test.ts",

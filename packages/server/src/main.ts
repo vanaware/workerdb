@@ -24,13 +24,15 @@ Deno.serve({ port, hostname: "0.0.0.0", }, async (req,) => {
     staticResponse.headers.set("Expires", "0",);
 
     // Permitir escopo global para Service Worker
-    if (url.pathname === "/sw.js") {
+    if (url.pathname === "/sw.js" || url.pathname.endsWith("/sw.js",)) {
       staticResponse.headers.set("Service-Worker-Allowed", "/",);
     }
 
-    // Fallback gracioso para /opfs/ caso o Service Worker não esteja registrado (ex: ambiente iframe com redirect)
+    // Fallback gracioso para rotas opfs caso o Service Worker não esteja registrado (ex: preview iframe)
     if (
-      (url.pathname === "/opfs" || url.pathname.startsWith("/opfs/",)) &&
+      (url.pathname.endsWith("/opfs",) ||
+        url.pathname.includes("/opfs/",) ||
+        url.pathname === "/opfs") &&
       staticResponse.status === 404
     ) {
       const html = `<!DOCTYPE html>

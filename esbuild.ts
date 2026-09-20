@@ -29,6 +29,11 @@ const buildWithDenoPlugin = (options: any,): Promise<any> => {
 // ============================================================================
 // 📦 CONFIGURAÇÃO DECLARATIVA DE BUILDS (específica do WorkerDB)
 // ============================================================================
+const BANNER_JS = `/*!
+ * WorkerDB v__APP_VERSION__
+ * (c) 2026 Vanaware - MIT License
+ */\n`;
+
 const CONFIG: GlobalTargetConfig = {
   // ------------------------------------------------------------------
   // 🎯 ALVOS DE BUILD (rodam por padrão)
@@ -53,11 +58,11 @@ const CONFIG: GlobalTargetConfig = {
     jsxImportSource: "preact",
     metafile: true,
     write: true,
-    legalComments: "none",
+    legalComments: "eof",
     keepNames: true,
     splitting: false,
     banner: {
-      js: `/* WorkerDB v__APP_VERSION__ */\n`,
+      js: BANNER_JS,
     },
   },
   workerdb: {
@@ -76,11 +81,11 @@ const CONFIG: GlobalTargetConfig = {
     conditions: ["worker",],
     metafile: true,
     write: true,
-    legalComments: "none",
+    legalComments: "eof",
     keepNames: true,
     splitting: false,
     banner: {
-      js: `/* WorkerDB v__APP_VERSION__ */\n`,
+      js: BANNER_JS,
     },
   },
   sw: {
@@ -99,11 +104,11 @@ const CONFIG: GlobalTargetConfig = {
     conditions: ["worker",],
     metafile: true,
     write: true,
-    legalComments: "none",
+    legalComments: "eof",
     keepNames: true,
     splitting: false,
     banner: {
-      js: `/* WorkerDB v__APP_VERSION__ */\n`,
+      js: BANNER_JS,
     },
   },
   dist: {
@@ -127,7 +132,7 @@ const CONFIG: GlobalTargetConfig = {
     keepNames: true,
     splitting: false,
     banner: {
-      js: `/* WorkerDB v__APP_VERSION__ */\n`,
+      js: BANNER_JS,
     },
   },
   // ------------------------------------------------------------------
@@ -150,11 +155,11 @@ const CONFIG: GlobalTargetConfig = {
     jsx: "automatic",
     jsxImportSource: "preact",
     write: true,
-    legalComments: "none",
+    legalComments: "eof",
     // 🔥 CORREÇÃO: outfile agora é RELATIVO ao distdir
     outfile: "app.js",
     banner: {
-      js: `/* WorkerDB v__APP_VERSION__ */\n`,
+      js: BANNER_JS,
     },
   },
 };

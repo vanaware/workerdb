@@ -6,7 +6,10 @@ Welcome to the WorkerDB project! This file (`AGENTS.md`) is automatically inject
 - **Deno Only**: This project runs entirely on Deno. 
 - **NO Node.js or Local NPM**: Do NOT use `npm install`, do NOT create a `node_modules` directory locally, and do NOT rely on Node.js specific APIs.
 - **Dependency Management**: All dependencies are managed exclusively via `deno.json` using `npm:` and `jsr:` specifiers (e.g., `npm:preact`, `jsr:@std/testing`).
-- **JSR Publication**: The core library resides in `packages/worker-db/` and is published to JSR as `@vanaware/workerdb`.
+- **JSR Publication**: The repository publishes multiple libraries to JSR:
+  - `@vanaware/workerdb` (in `packages/worker-db/`): The core non-blocking persistence engine.
+  - `@vanaware/opfs-explorer` (in `packages/service-worker/`): The pluggable Service Worker OPFS explorer.
+  - Publishing is automated via GitHub Actions in `.github/workflows/jsr-publish.yml`. All published packages MUST strictly follow the guidelines in `docs/publish-jsr-rules.md` (complete JSDoc, valid `deno doc --lint`, descriptive README with executable examples).
 - **Bundling**: We use Deno's native (and unstable) bundler via the `esbuild.ts` script or esbuild (`deno task esbuild`). This script parses typescript and generates the final output exclusively in the `packages/server/build/dist/` directory.
 
 ## 2. Framework & State Management
@@ -29,7 +32,10 @@ Welcome to the WorkerDB project! This file (`AGENTS.md`) is automatically inject
 - **Command**: Run tests using `deno task test` or `deno task check-all`.
 
 ## 5. Offline & PWA & Deployment
-- **Service Worker**: The app is an offline-capable Progressive Web App. Changes to caching logic should be made in `packages/service-worker/src/sw.ts`.
+- **Service Worker & OPFS Explorer**: The app is an offline-capable Progressive Web App with `@vanaware/opfs-explorer` integrated in `packages/service-worker/src/sw.ts`.
+- **Dynamic Routing & Zero Hardcoding**:
+  - **No Hardcoded Base Paths**: Never hardcode repository names or paths like `/workerdb/`. In the UI (`packages/ui/src/main.tsx`), always derive paths dynamically using `new URL("./", globalThis.location.href).pathname`.
+  - **Configurable OPFS Explorer Subfolders**: The OPFS explorer route is not hardcoded to `/opfs/`. Developers can configure custom subfolders (e.g., `createOpfsFetchHandler("files")`, `createOpfsFetchHandler("arquivos")`, or `OpfsExplorerOptions`). The explorer dynamically adapts to any Service Worker scope (local `/`, GitHub Pages `/{repo-name}/`, etc.).
 - **Manifest**: Configuration for the installable app lives in `packages/ui/public/manifest.json`.
 - Assets in `public/` are automatically copied to the distribution folder during the build process.
 - **Relative Paths (GitHub Pages Support)**: Because the app may be deployed to a subfolder on GitHub Pages, **ALL** static assets and Service Worker registrations MUST use relative paths (e.g., `./manifest.json` and `navigator.serviceWorker.register("./service-worker.js")`) instead of absolute root paths (`/`).

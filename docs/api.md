@@ -264,3 +264,86 @@ const isValid = validarId(id); // true
 type UserDocument = WithId<{ name: string; email: string }>;
 ```
 
+---
+
+## 📂 OPFS Explorer API (`@vanaware/opfs-explorer`)
+
+The companion library `jsr:@vanaware/opfs-explorer` provides a zero-dependency, pluggable Service Worker handler and visual UI for browsing and downloading files in the Origin Private File System.
+
+### Quick Import
+```typescript
+import {
+  createOpfsFetchHandler,
+  handleOpfsRequest,
+  listOpfsFiles,
+  getFileFromOpfs,
+  getMimeType,
+  resolveRoutePrefix,
+  type OpfsExplorerOptions,
+  type OpfsExplorerResponse,
+} from "jsr:@vanaware/opfs-explorer";
+```
+
+### 1. `createOpfsFetchHandler(options?: string | OpfsExplorerOptions)`
+Creates a standard `(event: FetchEvent) => void` listener to plug directly into `self.addEventListener("fetch", ...)`.
+- Accepts either a custom subfolder name string (`"files"`, `"arquivos"`, `"opfs"`) or a configuration object.
+- Automatically handles canonical redirects (e.g. `/files` -> `/files/`), directory index generation, and binary file streaming.
+
+```typescript
+// 1-liner with custom subfolder (auto-resolves scope on GitHub Pages or localhost):
+self.addEventListener("fetch", createOpfsFetchHandler("files"));
+
+// With options object:
+self.addEventListener("fetch", createOpfsFetchHandler({
+  subfolder: "arquivos",
+  title: "Meus Arquivos Locais",
+  opfsDir: "backups", // Restrict explorer to a specific subfolder inside OPFS
+}));
+```
+
+### 2. `handleOpfsRequest(request: Request, options?: string | OpfsExplorerOptions): Promise<OpfsExplorerResponse>`
+Low-level request handler for custom Service Worker routing pipelines:
+
+```typescript
+self.addEventListener("fetch", async (event) => {
+  const { matched, response } = await handleOpfsRequest(event.request, "files");
+  if (matched && response) {
+    event.respondWith(response);
+  }
+});
+```
+
+### 3. `OpfsExplorerOptions`
+
+```typescript
+interface OpfsExplorerOptions {
+  /** Subfolder name to mount the explorer under (e.g. "files", "arquivos", "opfs"). */
+  subfolder?: string;
+  /** Explicit route prefix override (e.g. "/files" or "/my-repo/files"). */
+  routePrefix?: string;
+  /** Base scope path override (defaults to self.registration.scope pathname). */
+  scopePath?: string;
+  /** Custom title for HTML header and page <title>. */
+  title?: string;
+  /** Custom CSS styles to inject into the explorer interface. */
+  customStyles?: string;
+  /** Custom root directory handle (defaults to OPFS root). */
+  rootDir?: FileSystemDirectoryHandle;
+  /** Name of a specific OPFS subdirectory to restrict exploration to. */
+  opfsDir?: string;
+}
+```
+
+### 4. Direct File & Path Utilities
+These functions can be imported and executed standalone in any modern browser context (UI, Web Worker, or Service Worker):
+
+- **`listOpfsFiles(dirHandle?: FileSystemDirectoryHandle, path?: string): Promise<string[]>`**
+  Recursively traverses the OPFS directory tree and returns an array of relative file paths (e.g. `["backups/db.json", "photos/cover.png"]`).
+- **`getFileFromOpfs(filePath: string, rootDir?: FileSystemDirectoryHandle): Promise<File>`**
+  Resolves a relative path and returns the native `File` object from OPFS.
+- **`getMimeType(path: string): string`**
+  Resolves the Content-Type MIME header for a file extension (e.g. `"image/png"`, `"application/json"`).
+- **`resolveRoutePrefix(options?: string | OpfsExplorerOptions): string`**
+  Computes the canonical path prefix combining the active Service Worker scope and configured subfolder (e.g. `"/my-repo/files"`).
+
+

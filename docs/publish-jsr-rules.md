@@ -245,7 +245,29 @@ Em um **workspace Deno** (definido por `workspace` no `deno.json` raiz), o coman
 
 Para **excluir um membro interno** (pacotes utilitários compartilhados, ferramentas de build, etc.), defina `"publish": false` no `deno.json` desse membro.
 
-### Estrutura de Exemplo
+### Estrutura Real no WorkerDB
+
+No monorepo do WorkerDB, temos múltiplos pacotes publicados e pacotes de aplicação/infraestrutura interna:
+
+```
+/
+├── deno.jsonc                 # workspace raiz
+├── packages/
+│   ├── worker-db/             # publicado no JSR como @vanaware/workerdb
+│   │   └── deno.jsonc
+│   ├── service-worker/        # publicado no JSR como @vanaware/opfs-explorer
+│   │   └── deno.jsonc
+│   ├── ui/                    # app frontend (publish: false)
+│   │   └── deno.jsonc
+│   ├── server/                # dev/prod server Deno (publish: false)
+│   │   └── deno.jsonc
+│   └── utils/                 # scripts de bundling/build (publish: false)
+│       └── deno.jsonc
+```
+
+O workflow de CI/CD em `.github/workflows/jsr-publish.yml` executa a matriz de publicação automatizada para `packages/worker-db` e `packages/service-worker`.
+
+### Estrutura de Exemplo Genérica
 
 ```
 /

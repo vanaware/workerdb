@@ -1,8 +1,8 @@
 # Arquivo `CURRENT.md`
 
-## Status Atual: Fase 1 Concluída com Sucesso
+## Status Atual: Fase 1 Concluída & Pacote OPFS Explorer Publicável
 
-Todas as capacidades da **Fase 1: Performance & Advanced Data Capabilities** foram implementadas, testadas e integradas:
+Todas as capacidades da **Fase 1: Performance & Advanced Data Capabilities** e a infraestrutura dos pacotes JSR foram implementadas, testadas e integradas com sucesso:
 
 1. **Native IndexedDB Indexes & Index Operations**:
    - Criação declarativa de índices via `indexes: string[]` em `db()` e `db.ts`.
@@ -22,30 +22,34 @@ Todas as capacidades da **Fase 1: Performance & Advanced Data Capabilities** for
 3. **In-Worker Schema Validation**:
    - Validador síncrono no Web Worker (`validator: (item) => boolean`) protegendo `set`, `setMany` e `patch`.
 
-4. **Service Worker Integration & OPFS Explorer**:
-   - `RUN_SW_DEMO` IPC channel via `MessageChannel` for Service Worker communication.
-   - Built-in OPFS file system HTML explorer served directly by Service Worker (`/opfs/`).
-   - Interactive UI Tab in Preact app with real-time Service Worker test console and direct link to OPFS explorer.
+4. **Pacote Independente `@vanaware/opfs-explorer` & Service Worker**:
+   - Pacote dedicado em `packages/service-worker/` configurado para publicação no JSR como `@vanaware/opfs-explorer`.
+   - **Subfolder Configurável**: O handler não possui mais rota hardcoded. Desenvolvedores podem passar nomes personalizados como string (`"files"`, `"arquivos"`, `"opfs"`) ou via objeto de opções `OpfsExplorerOptions`.
+   - **Roteamento e Escopo Dinâmicos**: `resolveRoutePrefix` combina o escopo ativo do Service Worker (`/`, `/meu-repo/`) com o subfolder escolhido sem caminhos fixos.
+   - `createOpfsFetchHandler`: helper de 1 linha para `self.addEventListener("fetch", createOpfsFetchHandler("files"))`.
+   - `handleOpfsRequest`: handler manual com suporte a redirecionamento canônico 301.
+   - Utilitários exportados: `listOpfsFiles`, `getFileFromOpfs`, `getEffectiveRootDir`, `getScopePath`, `normalizeOptions`.
 
-5. **PWA & CI/CD Deployment**:
-   - `manifest.json` configured with relative paths (`./index.html`) for PWA installability.
-   - GitHub Actions workflow (`.github/workflows/gh-pages.yml`) for automated building and subfolder deployment on GitHub Pages.
-   - Cache-busting headers (`Cache-Control: no-store`) in `packages/server/src/main.ts` and automated SW unregistration recovery in `packages/ui/src/main.tsx`.
+5. **Localização Dinâmica na UI (GitHub Pages Ready)**:
+   - `packages/ui/src/main.tsx` utiliza `new URL("./", globalThis.location.href).pathname` para resolver dinamicamente o caminho base, escopo do SW e links da UI, eliminando referências fixas a `/workerdb/`.
+   - `packages/server/src/main.ts` limpo de fallbacks hardcoded.
 
-6. **Documentação & Testes**:
-   - BDD unit tests em `packages/worker-db/tests/db_phase1_features_test.ts` (100% aprovados).
-   - Documentação atualizada em `README.md`, `AGENTS.md` e `docs/api.md`.
+6. **Publicação no JSR Automatizada**:
+   - Workflow `.github/workflows/jsr-publish.yml` configurado com matriz de publicação para ambos os pacotes: `@vanaware/workerdb` e `@vanaware/opfs-explorer`.
+   - Conformidade estrita com as diretrizes do JSR: JSDoc 100% documentado (`deno doc --lint` sem erros), `README.md` completo com exemplos em TypeScript e tabelas de referência de API.
 
-7. **Melhorias Técnicas & Refatoração (Pós-Fase 1)**:
-   - **Deno-Native Architecture**: Migração completa para Deno, removendo dependências Node.js locais e `node_modules`.
-   - **Preact Signals**: Refatoração total da UI (`packages/ui/src/main.tsx`) para utilizar `@preact/signals` em vez de `useState`/`useEffect`, centralizando o estado em `packages/ui/src/stores/app.ts`.
-   - **Cleanup de Dependências**: Consolidação de imports no `deno.jsonc` raiz e pacotes específicos, mantendo apenas dependências ativas e otimizadas (via `esm.sh` com suporte a Deno 2.x).
-   - **Otimização de Utils**: Limpeza de funções utilitárias não utilizadas e migração de `id-utils` para `worker-db` com suite de testes dedicada.
-   - **Internalização do `idb-keyval`**: Implementação nativa e enxuta em `packages/worker-db/src/utils/idb-keyval.ts` com tipagens completas, eliminando a dependência externa `npm:idb-keyval` e cobrindo todas as operações com testes BDD em `packages/worker-db/tests/idb-keyval.test.ts` (100% aprovados).
+7. **PWA & CI/CD Deployment**:
+   - `manifest.json` com caminhos relativos (`./index.html`) para instalação PWA em qualquer subpasta.
+   - GitHub Actions workflow (`.github/workflows/gh-pages.yml`) para build e deploy automatizado no GitHub Pages.
+   - Headers anti-cache no dev-server e tratamento gracioso de redirecionamentos na inicialização do SW.
+
+8. **Qualidade, Linter & BDD Test Suite**:
+   - 64 testes BDD passando (269 steps) com 100% de sucesso (`deno task test`).
+   - Linter (`deno lint`) 100% aprovado em todos os 38 arquivos do workspace.
 
 ## Próximos Passos (Fase 2 - Planejamento)
 
-*Aguardando definições de requisitos para a Fase 2.* Sugestões:
-- Replicação Sincronizada (Sync engine básica).
-- Suporte a CouchDB/PouchDB protocol.
-- Interface Visual para gerenciamento de Coleções.
+- **Live Queries / Subscriptions (Observe API)**: Implementação de listeners reativos (`db.subscribe(key, cb)` ou `db.watchQuery()`).
+- **Bindings para Preact Signals**: Utilitários reativos para sincronizar coleções do WorkerDB diretamente com signals da UI.
+- **Sincronização & Cloud**: Replicação de estado e ponte com File System Access API (`showDirectoryPicker`).
+
