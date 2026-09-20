@@ -28,17 +28,19 @@ export function resolveOpfsFileName(
   return parts.join("_");
 }
 
-async function getBackupDir() {
-  const root = await navigator.storage.getDirectory();
-  return await root.getDirectoryHandle("backup", { create: true });
+async function getOpfsRootDir(): Promise<FileSystemDirectoryHandle> {
+  return await navigator.storage.getDirectory();
 }
 
-// Navigates and creates (if needed) the full path based on slash-delimited strings
+// Navigates and creates (if needed) the full path based on slash-delimited strings from OPFS root
 async function resolvePath(filePath: string, create = false) {
-  const backupDir = await getBackupDir();
-  const parts = filePath.split("/");
-  const fileName = parts.pop()!;
-  let curr = backupDir;
+  const rootDir = await getOpfsRootDir();
+  const parts = filePath.split("/").filter(Boolean);
+  const fileName = parts.pop();
+  if (!fileName) {
+    throw new Error(`Invalid file path: ${filePath}`);
+  }
+  let curr = rootDir;
   for (const p of parts) {
     curr = await curr.getDirectoryHandle(p, { create });
   }
@@ -47,6 +49,10 @@ async function resolvePath(filePath: string, create = false) {
 
 /**
  * Writes JSON data to an OPFS file path.
+ *
+ * @param filePath Relative path from OPFS root.
+ * @param data JSON-serializable data.
+ * @returns The resolved file path.
  */
 export async function writeJsonToOpfs(
   filePath: string,
@@ -62,6 +68,10 @@ export async function writeJsonToOpfs(
 
 /**
  * Writes a ReadableStream of bytes to an OPFS file path.
+ *
+ * @param filePath Relative path from OPFS root.
+ * @param stream Readable byte stream.
+ * @returns The resolved file path.
  */
 export async function writeStreamToOpfs(
   filePath: string,
@@ -88,6 +98,9 @@ export async function writeStreamToOpfs(
 
 /**
  * Reads and parses JSON data from an OPFS file.
+ *
+ * @param filePath Relative path from OPFS root.
+ * @returns Parsed JSON content.
  */
 export async function readJsonFromOpfs(filePath: string): Promise<unknown> {
   const { dir, fileName } = await resolvePath(filePath, false);
@@ -99,6 +112,8 @@ export async function readJsonFromOpfs(filePath: string): Promise<unknown> {
 
 /**
  * Deletes a file from OPFS.
+ *
+ * @param filePath Relative path from OPFS root.
  */
 export async function deleteFromOpfs(filePath: string): Promise<void> {
   const { dir, fileName } = await resolvePath(filePath, false);
@@ -107,6 +122,9 @@ export async function deleteFromOpfs(filePath: string): Promise<void> {
 
 /**
  * Gets a File handle from an OPFS file path.
+ *
+ * @param filePath Relative path from OPFS root.
+ * @returns The File object.
  */
 export async function getFileFromOpfs(filePath: string): Promise<File> {
   const { dir, fileName } = await resolvePath(filePath, false);
@@ -116,6 +134,9 @@ export async function getFileFromOpfs(filePath: string): Promise<File> {
 
 /**
  * Gets a byte ReadableStream from an OPFS file.
+ *
+ * @param filePath Relative path from OPFS root.
+ * @returns A byte ReadableStream.
  */
 export async function getFileStreamFromOpfs(
   filePath: string,
@@ -127,13 +148,17 @@ export async function getFileStreamFromOpfs(
 }
 
 /**
- * Recursively lists files preserving relative paths (e.g., "MY_KEY/backup.json").
+ * Recursively lists files preserving relative paths (e.g., "backup/MY_KEY/backup.json" or "demo/FS_test-file/hello.txt").
+ *
+ * @param dirHandle Optional directory handle to start listing from (defaults to OPFS root).
+ * @param path Current relative path prefix.
+ * @returns Array of relative file paths.
  */
 export async function listOpfsFiles(
   dirHandle?: FileSystemDirectoryHandle,
   path = "",
 ): Promise<string[]> {
-  const dir = dirHandle || await getBackupDir();
+  const dir = dirHandle || await getOpfsRootDir();
   let files: string[] = [];
   // @ts-ignore: async iterator support
   for await (const [name, handle] of dir.entries()) {

@@ -24,11 +24,14 @@ if ! command -v zip >/dev/null 2>&1 || ! command -v unzip >/dev/null 2>&1; then
 fi
 
 echo "🦕 Checking Deno installation..."
+export PATH="/root/.deno/bin:$HOME/.deno/bin:/usr/local/bin:$PATH"
+
 if ! command -v deno >/dev/null 2>&1; then
   echo "Installing Deno unattended (-y)..."
   curl -fsSL https://deno.land/install.sh | sh -s -- -y
-  ln -sf /root/.deno/bin/deno /usr/local/bin/deno
-  ln -sf /root/.deno/bin/deno /usr/bin/deno
+  mkdir -p /usr/local/bin
+  ln -sf /root/.deno/bin/deno /usr/local/bin/deno || true
+  ln -sf /root/.deno/bin/deno /usr/bin/deno || true
 fi
 
 echo "✅ Deno ready: $(deno --version | head -n 1)"

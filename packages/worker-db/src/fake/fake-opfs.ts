@@ -53,6 +53,7 @@ export class FakeOPFSFileHandle {
 }
 
 export class FakeOPFSDirectory {
+  public kind: "file" | "directory" = "directory";
   private static sharedStorage = new Map<string, Uint8Array>();
 
   constructor(private path: string = "",) {}
@@ -72,48 +73,90 @@ export class FakeOPFSDirectory {
   removeEntry(name: string,) {
     const fullPath = this.path ? `${this.path}/${name}` : name;
     FakeOPFSDirectory.sharedStorage.delete(fullPath,);
+    for (const key of Array.from(FakeOPFSDirectory.sharedStorage.keys())) {
+      if (key === fullPath || key.startsWith(`${fullPath}/`,)) {
+        FakeOPFSDirectory.sharedStorage.delete(key,);
+      }
+    }
   }
 
   async *keys() {
+    const yieldedDirs = new Set<string>();
     for (const key of FakeOPFSDirectory.sharedStorage.keys()) {
       if (this.path && key.startsWith(`${this.path}/`,)) {
-        const localName = key.slice(this.path.length + 1,);
-        if (!localName.includes("/",)) yield localName;
-      } else if (!this.path && !key.includes("/",)) {
-        yield key;
+        const localPath = key.slice(this.path.length + 1,);
+        const slashIdx = localPath.indexOf("/",);
+        if (slashIdx === -1) {
+          yield localPath;
+        } else {
+          const dirName = localPath.slice(0, slashIdx,);
+          if (!yieldedDirs.has(dirName,)) {
+            yieldedDirs.add(dirName,);
+            yield dirName;
+          }
+        }
+      } else if (!this.path) {
+        const slashIdx = key.indexOf("/",);
+        if (slashIdx === -1) {
+          yield key;
+        } else {
+          const dirName = key.slice(0, slashIdx,);
+          if (!yieldedDirs.has(dirName,)) {
+            yieldedDirs.add(dirName,);
+            yield dirName;
+          }
+        }
       }
     }
   }
 
   async *entries() {
+    const yieldedDirs = new Set<string>();
     for (const key of FakeOPFSDirectory.sharedStorage.keys()) {
       if (this.path && key.startsWith(`${this.path}/`,)) {
-        const localName = key.slice(this.path.length + 1,);
-        if (!localName.includes("/",)) {
+        const localPath = key.slice(this.path.length + 1,);
+        const slashIdx = localPath.indexOf("/",);
+        if (slashIdx === -1) {
           yield [
-            localName,
+            localPath,
             new FakeOPFSFileHandle(key, FakeOPFSDirectory.sharedStorage,),
           ] as const;
+        } else {
+          const dirName = localPath.slice(0, slashIdx,);
+          if (!yieldedDirs.has(dirName,)) {
+            yieldedDirs.add(dirName,);
+            yield [
+              dirName,
+              new FakeOPFSDirectory(
+                this.path ? `${this.path}/${dirName}` : dirName,
+              ),
+            ] as const;
+          }
         }
-      } else if (!this.path && !key.includes("/",)) {
-        yield [
-          key,
-          new FakeOPFSFileHandle(key, FakeOPFSDirectory.sharedStorage,),
-        ] as const;
+      } else if (!this.path) {
+        const slashIdx = key.indexOf("/",);
+        if (slashIdx === -1) {
+          yield [
+            key,
+            new FakeOPFSFileHandle(key, FakeOPFSDirectory.sharedStorage,),
+          ] as const;
+        } else {
+          const dirName = key.slice(0, slashIdx,);
+          if (!yieldedDirs.has(dirName,)) {
+            yieldedDirs.add(dirName,);
+            yield [
+              dirName,
+              new FakeOPFSDirectory(dirName,),
+            ] as const;
+          }
+        }
       }
     }
   }
 
   async *values() {
-    for (const key of FakeOPFSDirectory.sharedStorage.keys()) {
-      if (this.path && key.startsWith(`${this.path}/`,)) {
-        const localName = key.slice(this.path.length + 1,);
-        if (!localName.includes("/",)) {
-          yield new FakeOPFSFileHandle(key, FakeOPFSDirectory.sharedStorage,);
-        }
-      } else if (!this.path && !key.includes("/",)) {
-        yield new FakeOPFSFileHandle(key, FakeOPFSDirectory.sharedStorage,);
-      }
+    for await (const [, handle,] of this.entries()) {
+      yield handle;
     }
   }
 

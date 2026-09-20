@@ -1,16 +1,24 @@
 {
-  "name": "@workerdb/service-worker",
-  "publish": false,
+  "name": "@vanaware/opfs-explorer",
+  "version": "0.2.21-mu9aevzy",
+  "description": "Lightweight Service Worker middleware and UI Explorer for the Origin Private File System (OPFS).",
+  "author": "Vanaware",
+  "license": "MIT",
   "compilerOptions": {
     "lib": [
       "webworker",
+      "dom",
+      "dom.iterable",
+      "dom.asynciterable",
       "esnext"
     ],
     "strict": true,
     "noImplicitAny": true,
     "noUncheckedIndexedAccess": true
   },
-  "imports": {},
+  "imports": {
+    "@vanaware/workerdb/sw": "../worker-db/src/mod-sw.ts"
+  },
   "tasks": {
     "test": "deno test --allow-env --allow-net --allow-read --allow-write tests/",
     "check": "deno check src/**/*.{ts,tsx} tests/**/*.ts",
@@ -18,10 +26,16 @@
   },
   "exports": {
     ".": "./src/mod.ts",
-    "./utils": "./src/utils/mod.ts",
-    "./handshakes/contato": "./src/handshakes/hand-contato.ts",
-    "./handshakes/sdp": "./src/handshakes/hand-sdp.ts",
-    "./handshakes/profile": "./src/handshakes/hand-profile.ts",
-    "./handshakes/mensagem": "./src/handshakes/hand-mensagem.ts"
+    "./sw": "./src/sw.ts"
+  },
+  "publish": {
+    "include": [
+      "src/**/*.ts",
+      "README.md",
+      "deno.jsonc"
+    ],
+    "exclude": [
+      "tests"
+    ]
   }
 }

@@ -12,45 +12,30 @@ import {
 if ("serviceWorker" in navigator) {
   const swUrl = "./sw.js";
 
-  // Pre-check for redirects (common in AI Studio/Proxy environments)
-  const checkAndRegister = async () => {
+  const registerSW = async () => {
     try {
-      const response = await fetch(swUrl, { method: "HEAD", },);
-      if (response.redirected) {
-        console.warn(
-          `⚠️ Registro do Service Worker abortado: Redirecionamento detectado para ${response.url}. 
-          Isso geralmente acontece no ambiente de preview do AI Studio. 
-          O app continuará funcionando em modo online.`,
-        );
-        return;
-      }
-
-      const registrations = await navigator.serviceWorker.getRegistrations();
-      let unregisteredAny = false;
-
-      for (const reg of registrations) {
-        console.log(
-          "Limpando Service Worker antigo para evitar loop de cache...",
-        );
-        unregisteredAny = true;
-        await reg.unregister();
-      }
-
-      if (unregisteredAny) {
-        console.log("Service Workers removidos. Recarregando para limpar...");
-        globalThis.location.reload();
-      } else {
-        const reg = await navigator.serviceWorker.register(swUrl, {
-          type: "module",
-        },);
-        console.log("🚀 Service Worker registrado com sucesso:", reg,);
-      }
+      const reg = await navigator.serviceWorker.register(swUrl, {
+        type: "module",
+      });
+      console.log("🚀 Service Worker registrado com sucesso:", reg);
     } catch (err) {
-      console.warn("Falha silenciosa ao verificar/registrar SW:", err,);
+      const errStr = String(err);
+      if (errStr.includes("redirect") || errStr.includes("SecurityError")) {
+        console.warn(
+          "⚠️ Registro do Service Worker suspenso: O ambiente de preview/proxy iframe respondeu com redirecionamento ao carregar 'sw.js'. A especificação do navegador proíbe registro de Service Worker sob redirects. Abra o app em uma nova aba para habilitar o Service Worker e o OPFS Explorer.",
+          err,
+        );
+        addLog(
+          swLog,
+          "⚠️ Notice: Service Worker registration was blocked by the browser because 'sw.js' was fetched via a proxy redirect in the preview iframe.\n\nTo enable full Service Worker & OPFS Explorer support, open the app in a new browser tab or deploy to production (e.g. GitHub Pages).",
+        );
+      } else {
+        console.warn("Falha ao registrar SW:", err);
+      }
     }
   };
 
-  checkAndRegister();
+  registerSW();
 }
 
 const OPFSDemo = () => {

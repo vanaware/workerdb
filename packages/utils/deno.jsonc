@@ -19,6 +19,5 @@
     "./interfaces": "./src/interfaces/mod.ts",
     "./build": "./src/esbuild/mod.ts",
     "./export": "./src/export/mod.ts"
-  },
-  "unstable": ["bundle"]
+  }
 }
