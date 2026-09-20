@@ -1,5 +1,5 @@
 {
-  "version": "0.3.0#mua6j68d",
+  "version": "0.3.0#mua9rvo8",
   "description": "Asynchronous database layer for Web Workers, IndexedDB, and OPFS.",
   "workspace": [
     "./packages/worker-db",
@@ -12,9 +12,6 @@
   "compilerOptions": {
     "lib": [
       "deno.window",
-      "dom",
-      "dom.iterable",
-      "dom.asynciterable",
       "esnext"
     ],
     "strict": true,
