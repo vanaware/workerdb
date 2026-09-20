@@ -1,6 +1,6 @@
 {
   "name": "@vanaware/workerdb",
-  "version": "0.2.21-mu9aevzy",
+  "version": "0.2.23-mu9smtrf",
   "description": "Indexeddb wrapper on Web Worker, with a simple API and a powerful query engine.",
   "author": "Vanaware",
   "license": "MIT",

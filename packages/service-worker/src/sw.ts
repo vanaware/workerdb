@@ -19,16 +19,20 @@ sw.addEventListener("activate", (event,) => {
 },);
 
 // Intercept fetch requests for the OPFS Explorer route (/opfs)
-sw.addEventListener("fetch", async (event,) => {
-  const opfsResult = await handleOpfsRequest(event.request, {
-    routePrefix: "/opfs",
-    title: "OPFS Explorer",
-  },);
-
-  if (opfsResult.matched && opfsResult.response) {
-    event.respondWith(opfsResult.response,);
+sw.addEventListener("fetch", (event) => {
+  const url = new URL(event.request.url);
+  if (url.pathname === "/opfs" || url.pathname.startsWith("/opfs/")) {
+    event.respondWith(
+      (async () => {
+        const opfsResult = await handleOpfsRequest(event.request, {
+          routePrefix: "/opfs",
+          title: "OPFS Explorer",
+        });
+        return opfsResult.response || new Response("Not Found", { status: 404 });
+      })(),
+    );
   }
-},);
+});
 
 // Demo Message IPC handler
 sw.addEventListener("message", async (event,) => {
