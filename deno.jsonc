@@ -1,5 +1,5 @@
 {
-  "version": "0.3.0#mua9rvo8",
+  "version": "0.4.1#mujy03ud",
   "description": "Asynchronous database layer for Web Workers, IndexedDB, and OPFS.",
   "workspace": [
     "./packages/worker-db",
@@ -26,8 +26,7 @@
     "@std/jsonc": "jsr:@std/jsonc@^1.0.2",
     "@std/assert": "jsr:@std/assert@^1.0.19",
     "@std/testing": "jsr:@std/testing@^1.0.20",
-    "esbuild": "catalog:",
-    "@deno/esbuild-plugin": "jsr:@deno/esbuild-plugin@^1.2.1"
+    "@vanaware/buildit": "jsr:@vanaware/buildit@^0.3.44"
   },
   "catalog": {
     "esbuild": "^0.28.2"
@@ -47,8 +46,11 @@
     "start": "deno task --cwd packages/server start",
     "export": "deno run --allow-read --allow-write ./export.ts",
     "build": "deno run -A ./esbuild.ts",
-    "build:deno": "deno run --unstable-bundle -A ./build.ts",
-    "bump": "deno install --frozen=false && deno task build dist noversion && sh ./tag-version.sh"
+    "build:deno": "deno run --unstable-bundle -A ./denobuild.ts",
+    "watch": "deno run -A ./watch.ts",
+    "sanitize-version": "deno run -A ./sanitize-version.ts",
+    "tag-version": "deno run -A ./tag-version.ts",
+    "bump": "deno install --frozen=false && deno task build dist noversion && deno run -A ./tag-version.ts"
   },
   "nodeModulesDir": "none",
   "vendor": true,

@@ -1,0 +1,67 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "type": "deno",
+      "command": "fmt",
+      "problemMatcher": ["$deno"],
+      "label": "Deno: Format"
+    },
+    {
+      "type": "deno",
+      "command": "lint",
+      "problemMatcher": ["$deno-lint"],
+      "label": "Deno: Lint"
+    },
+    {
+      "type": "deno",
+      "command": "test",
+      "args": ["-P"],
+      "problemMatcher": ["$deno"],
+      "label": "Deno: Test",
+      "group": {
+        "kind": "test",
+        "isDefault": true
+        }
+    },
+    {
+      "label": "Deno: Check All",
+      "dependsOrder": "sequence",   // executa em ordem (padrão: paralelo)
+      "dependsOn": [
+        "Deno: Format",
+        "Deno: Lint",
+        "Deno: Test"
+      ],
+      "problemMatcher": []
+    },
+    {
+    "type": "deno",
+    "command": "run",
+    "args": ["--allow-env","--allow-read", "--allow-write", "--allow-run","--allow-net", "esbuild.ts"],
+    "problemMatcher": ["$deno"],
+    "label": "Deno: EsBuild",
+    "group": {
+        "kind": "build",
+        "isDefault": true
+        }
+    },
+    {
+    "type": "deno",
+    "command": "run",
+    "args": ["--allow-env","--allow-read", "--allow-write","--allow-net", "denobuild.ts"],
+    "problemMatcher": ["$deno"],
+    "label": "Deno: DenoBuild",
+    "group": {
+        "kind": "build",
+        "isDefault": false
+        }
+    },
+    {
+    "type": "deno",
+    "command": "run",
+    "args": ["--allow-env","--allow-read", "--allow-write", "export.ts"],
+    "problemMatcher": ["$deno"],
+    "label": "Deno: Export"
+    }
+  ]
+}

@@ -3,8 +3,7 @@
   "publish": false,
   "compilerOptions": {
     "lib": [
-      "deno.window",
-      "deno.unstable"
+      "deno.window"
     ]
   },
   "imports": {},
@@ -14,10 +13,6 @@
     "tests": "deno task check && deno task test"
   },
   "exports": {
-    ".": "./src/mod.ts",
-    "./config": "./src/config/mod.ts",
-    "./interfaces": "./src/interfaces/mod.ts",
-    "./build": "./src/esbuild/mod.ts",
-    "./export": "./src/export/mod.ts"
+    ".": "./src/mod.ts"
   }
 }

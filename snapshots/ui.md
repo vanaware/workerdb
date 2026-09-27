@@ -1,14 +1,63 @@
 > **INSTRUÇÃO PARA A IA:** 
 > O texto abaixo contém os arquivos de CÓDIGO FONTE principais da aplicação exemplo (UI).
-> O projeto é o **WorkerDB [v0.3.0#mua9rvo8] ** estruturado em blocos. 
 > Cada arquivo começa com um título indicando seu caminho relativo exato (ex: `## Arquivo: src/main.ts`).
 > Sempre que sugerir alterações, indique claramente qual arquivo deve ser modificado com base nesses caminhos e forneça o novo código completo do arquivo.
 
 ---
 
-# Contexto Exportado do Projeto WorkerDB [v0.3.0#mua9rvo8] - Modo: UI
+# Contexto Exportado do Projeto WorkerDB [v0.4.1#mujy03ud] - Modo: UI
 
-Gerado automaticamente em: 9/20/2026, 5:30:36 PM
+Gerado automaticamente em: 2026-09-27T14:57:48.229Z
+
+---
+
+## Arquivo: `packages/ui/deno.jsonc`
+
+```json
+{
+  "name": "@workerdb/ui",
+  "publish": false,
+
+  // ----------------------------------------------------------------------
+  // 🔧 Compiler Options — AJUSTADO PARA DENO 2.x
+  // ----------------------------------------------------------------------
+  "compilerOptions": {
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "dom.asynciterable",
+      "esnext"
+    ],
+    "jsx": "react-jsx",
+    "jsxImportSource": "preact"
+  },
+
+  // 📦 Gerenciamento de Dependências
+  "imports": {
+    // Preact Core — versão fixa e canônica
+    "preact": "https://esm.sh/preact@10.29.8",
+    "preact/": "https://esm.sh/preact@10.29.8/",
+    "preact/jsx-runtime": "https://esm.sh/preact@10.29.8/jsx-runtime",
+
+    // Signals — mapeados explicitamente para evitar npm
+    "@preact/signals": "https://esm.sh/@preact/signals@2.11.2?deps=preact@10.29.8",
+    "@preact/signals-core": "https://esm.sh/@preact/signals-core@1.14.4"
+  },
+
+  // 🛠️ Scripts de Automação
+  "tasks": {
+    "test": "deno test --allow-env --allow-net tests/",
+    "check": "deno check src/**/*.{ts,tsx} tests/**/*.ts",
+    "tests": "deno task check && deno task test"
+  },
+  "exclude": ["public/"],
+  "exports": {
+    ".": "./src/mod.ts",
+    "./utils": "./src/utils/mod.ts"
+  }
+}
+
+```
 
 ---
 
@@ -113,33 +162,6 @@ Gerado automaticamente em: 9/20/2026, 5:30:36 PM
     <script type="module" src="./main.js?v=3"></script>
   </body>
 </html>
-
-```
-
----
-
-## Arquivo: `packages/ui/src/stores/app.ts`
-
-```ts
-import { signal, } from "@preact/signals";
-
-export const activeTab = signal("opfs",);
-
-export const opfsLog = signal("",);
-export const indexLog = signal("",);
-export const paginationLog = signal("",);
-export const swLog = signal("",);
-
-export const addLog = (
-  logSignal: { value: string },
-  msg: string,
-) => {
-  logSignal.value += msg + "\n";
-};
-
-export const clearLog = (logSignal: { value: string },) => {
-  logSignal.value = "";
-};
 
 ```
 
@@ -540,51 +562,28 @@ render(<App />, document.getElementById("app",)!,);
 
 ---
 
-## Arquivo: `packages/ui/deno.jsonc`
+## Arquivo: `packages/ui/src/stores/app.ts`
 
-```json
-{
-  "name": "@workerdb/ui",
-  "publish": false,
+```ts
+import { signal, } from "@preact/signals";
 
-  // ----------------------------------------------------------------------
-  // 🔧 Compiler Options — AJUSTADO PARA DENO 2.x
-  // ----------------------------------------------------------------------
-  "compilerOptions": {
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "dom.asynciterable",
-      "esnext"
-    ],
-    "jsx": "react-jsx",
-    "jsxImportSource": "preact"
-  },
+export const activeTab = signal("opfs",);
 
-  // 📦 Gerenciamento de Dependências
-  "imports": {
-    // Preact Core — versão fixa e canônica
-    "preact": "https://esm.sh/preact@10.29.8",
-    "preact/": "https://esm.sh/preact@10.29.8/",
-    "preact/jsx-runtime": "https://esm.sh/preact@10.29.8/jsx-runtime",
+export const opfsLog = signal("",);
+export const indexLog = signal("",);
+export const paginationLog = signal("",);
+export const swLog = signal("",);
 
-    // Signals — mapeados explicitamente para evitar npm
-    "@preact/signals": "https://esm.sh/@preact/signals@2.11.2?deps=preact@10.29.8",
-    "@preact/signals-core": "https://esm.sh/@preact/signals-core@1.14.4"
-  },
+export const addLog = (
+  logSignal: { value: string },
+  msg: string,
+) => {
+  logSignal.value += msg + "\n";
+};
 
-  // 🛠️ Scripts de Automação
-  "tasks": {
-    "test": "deno test --allow-env --allow-net tests/",
-    "check": "deno check src/**/*.{ts,tsx} tests/**/*.ts",
-    "tests": "deno task check && deno task test"
-  },
-  "exclude": ["public/"],
-  "exports": {
-    ".": "./src/mod.ts",
-    "./utils": "./src/utils/mod.ts"
-  }
-}
+export const clearLog = (logSignal: { value: string },) => {
+  logSignal.value = "";
+};
 
 ```
 

@@ -1,6 +1,8 @@
 // packages/service-worker/src/sw.ts
 /// <reference lib="webworker" />
 
+// Conteúdo de GENERATED_ASSETS: __GENERATED_ASSETS__
+
 import { db, } from "@vanaware/workerdb/sw";
 import {
   createOpfsFetchHandler,
@@ -8,7 +10,16 @@ import {
   listOpfsFiles,
 } from "./explorer.ts";
 
+declare const __GENERATED_ASSETS__: string[];
+
+import { APP_VERSION } from "./version.ts";
+
+const CACHE_NAME = `workerdb-cache-v${APP_VERSION}`;
+const ASSETS_TO_CACHE: string[] = typeof __GENERATED_ASSETS__ !== "undefined" ? __GENERATED_ASSETS__ : [];
+
+
 const sw = self as unknown as ServiceWorkerGlobalScope;
+
 
 sw.addEventListener("install", () => {
   sw.skipWaiting();

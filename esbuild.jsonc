@@ -1,0 +1,126 @@
+{
+  "$schema": "https://vanaware.github.io/buildit/schema/esbuild.json",
+  "versionPaths": [
+    "packages/worker-db/src/utils/version.ts",
+    "packages/service-worker/src/version.ts"
+  ],
+  "forcepackagesversion": true,
+  "targets": {
+    "ui": {
+      "default": true,
+      "srcdir": "packages/ui/src",
+      "distdir": "packages/server/build/dist",
+      "copyFiles": [
+        {
+          "basedir": "packages/ui/public"
+        },
+        {
+          "basedir": "packages/ui/src",
+          "includes": [
+            "index.html"
+          ]
+        }
+      ],
+      "clean": {
+        "includes": [
+          "*"
+        ]
+      },
+      "entryPoints": [
+        "main.tsx"
+      ],
+      "platform": "browser",
+      "format": "esm",
+      "bundle": true,
+      "minify": false,
+      "sourcemap": "linked",
+      "conditions": [
+        "browser"
+      ],
+      "drop": [
+        "debugger"
+      ],
+      "jsx": "automatic",
+      "jsxImportSource": "preact",
+      "metafile": true,
+      "write": true,
+      "legalComments": "eof",
+      "keepNames": true,
+      "splitting": false,
+      "banner": {
+        "js": "/*!\n * WorkerDB v__APP_VERSION__\n * (c) 2026 Vanaware - MIT License\n */\n"
+      }
+    },
+    "workerdb": {
+      "default": true,
+      "srcdir": "packages/worker-db/src",
+      "distdir": "packages/server/build/dist",
+      "clean": {
+        "includes": ["worker.js", "worker.js.map"]
+      },
+      "entryPoints": ["worker.ts"],
+      "platform": "browser",
+      "format": "esm",
+      "bundle": true,
+      "minify": false,
+      "sourcemap": "linked",
+      "drop": ["debugger"],
+      "conditions": ["worker"],
+      "metafile": true,
+      "write": true,
+      "legalComments": "eof",
+      "keepNames": true,
+      "splitting": false,
+      "banner": {
+        "js": "/*!\n * WorkerDB v__APP_VERSION__\n * (c) 2026 Vanaware - MIT License\n */\n"
+      }
+    },
+    "sw": {
+      "default": true,
+      "defineAssetsString": "__GENERATED_ASSETS__",
+      "srcdir": "packages/service-worker/src",
+      "distdir": "packages/server/build/dist",
+      "clean": ["sw.js", "sw.js.map"],
+      "entryPoints": ["sw.ts"],
+      "platform": "browser",
+      "format": "esm",
+      "bundle": true,
+      "minify": false,
+      "sourcemap": "linked",
+      "drop": ["debugger"],
+      "conditions": ["worker"],
+      "metafile": true,
+      "write": true,
+      "legalComments": "eof",
+      "keepNames": true,
+      "splitting": false,
+      "banner": {
+        "js": "/*!\n * WorkerDB v__APP_VERSION__\n * (c) 2026 Vanaware - MIT License\n */\n"
+      }
+    },
+    "dist": {
+      "default": true,
+      "srcdir": "packages/worker-db/src",
+      "distdir": "packages/worker-db/dist",
+      "clean": ["*"],
+      "entryPoints": ["worker.ts",],
+      "outfile": "workerdb.min.js",
+      "platform": "browser",
+      "format": "esm",
+      "bundle": true,
+      "minify": true,
+      "sourcemap": "external",
+      "drop": ["debugger"],
+      "conditions": ["worker"],
+      "metafile": false,
+      "write": true,
+      "legalComments": "eof",
+      "keepNames": true,
+      "splitting": false,
+      "banner": {
+        "js": "/*!\n * WorkerDB v__APP_VERSION__\n * (c) 2026 Vanaware - MIT License\n */\n"
+      }
+    }
+  }
+}
+

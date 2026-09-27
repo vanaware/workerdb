@@ -6,17 +6,12 @@ set -eu
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 find_tool_versions() {
-  dir="$1"
-  while [ -n "$dir" ] && [ "$dir" != "/" ]; do
-    if [ -f "$dir/.tool-versions" ]; then
-      printf '%s\n' "$dir/.tool-versions"
-      return 0
-    fi
-    dir="$(dirname "$dir")"
-  done
-  # Último recurso: diretório atual
-  if [ -f ".tool-versions" ]; then
-    printf '%s\n' ".tool-versions"
+  if [ -f "$SCRIPT_DIR/.tool-versions" ]; then
+    printf '%s\n' "$SCRIPT_DIR/.tool-versions"
+    return 0
+  fi
+  if [ -f "./.tool-versions" ]; then
+    printf '%s\n' "./.tool-versions"
     return 0
   fi
   return 1
@@ -69,13 +64,14 @@ if [ -n "$DENO_VERSION" ]; then
     else
       echo "📥 Instalando Deno $DENO_VERSION (unattended)..."
     fi
-    curl -fsSL https://deno.land/install.sh \
-      | sh -s -- -y -f "v$DENO_VERSION"
+    (curl -fsSL https://deno.land/install.sh || curl -fsSL https://github.com/denoland/deno_install/raw/master/install.sh) \
+      | sh -s -- -y "v$DENO_VERSION"
   fi
 else
   if [ -z "$INSTALLED_VERSION" ]; then
     echo "📥 Instalando Deno (versão mais recente)..."
-    curl -fsSL https://deno.land/install.sh | sh -s -- -y
+    (curl -fsSL https://deno.land/install.sh || curl -fsSL https://github.com/denoland/deno_install/raw/master/install.sh) \
+      | sh -s -- -y
   fi
 fi
 

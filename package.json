@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "bash ./install-script.sh && deno task build noversion && deno task dev",
     "build": "bash ./install-script.sh && deno task build",
+    "start": "bash ./install-script.sh && deno task start",
     "lint": "bash ./install-script.sh && deno task lint",
     "test": "bash ./install-script.sh && deno task tests"
   }

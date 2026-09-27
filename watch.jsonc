@@ -1,0 +1,40 @@
+{
+  "$schema": "https://vanaware.github.io/buildit/schema/watch.json",
+  "targets": {
+    "ui": {
+      "default": true,
+      "srcdir": "packages/ui/src",
+      "distdir": "packages/server/build/dist",
+      "copyFiles": [
+        {
+          "basedir": "packages/ui/public"
+        },
+        {
+          "basedir": "packages/ui/src",
+          "includes": [
+            "index.html"
+          ]
+        }
+      ],
+      "entryPoints": [
+        "main.tsx"
+      ],
+      "platform": "browser",
+      "format": "esm",
+      "bundle": true,
+      "minify": false,
+      "sourcemap": "inline",
+      "conditions": [
+        "browser"
+      ],
+      "jsx": "automatic",
+      "jsxImportSource": "preact",
+      "write": true,
+      "legalComments": "eof",
+      "outfile": "main.js",
+      "banner": {
+        "js": "/*!\n * WorkerDB v__APP_VERSION__ [DEV WATCH]\n * (c) 2026 Vanaware - MIT License\n */\n"
+      }
+    }
+  }
+}

@@ -1,9 +1,25 @@
 /// <reference lib="deno.ns" />
 
 import { serveDir, } from "@std/http/file-server";
+import { fromFileUrl, } from "@std/path";
 
 const rawPort = Deno.env.get("PORT",);
 const port = rawPort ? Number(rawPort,) : 3000;
+
+const fsRoot = (() => {
+  const distUrl = fromFileUrl(new URL("../build/dist", import.meta.url,),);
+  try {
+    Deno.statSync(distUrl,);
+    return distUrl;
+  } catch {
+    try {
+      Deno.statSync("./build/dist",);
+      return "./build/dist";
+    } catch {
+      return "./packages/server/build/dist";
+    }
+  }
+})();
 
 Deno.serve({ port, hostname: "0.0.0.0", }, async (req,) => {
   try {
@@ -11,7 +27,7 @@ Deno.serve({ port, hostname: "0.0.0.0", }, async (req,) => {
     console.log(`[REQ] ${req.method} ${url.pathname}`,);
 
     const staticResponse = await serveDir(req, {
-      fsRoot: "./build/dist",
+      fsRoot,
       showDirListing: false,
       quiet: true,
     },);
