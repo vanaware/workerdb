@@ -29,7 +29,7 @@
     "jsr:@std/streams@^1.1.2": "1.1.2",
     "jsr:@std/testing@^1.0.20": "1.0.20",
     "jsr:@std/text@^1.0.19": "1.1.0",
-    "jsr:@vanaware/buildit@~0.3.44": "0.3.45",
+    "jsr:@vanaware/buildit@~0.4.1": "0.4.1",
     "npm:esbuild@~0.25.5": "0.25.12",
     "npm:esbuild@~0.28.2": "0.28.2",
     "npm:fake-indexeddb@^6.2.5": "6.2.5",
@@ -162,8 +162,8 @@
     "@std/text@1.1.0": {
       "integrity": "3db511996317f63e35b76fe18fe35249723ae0ff6f8305398c78dd64ffa809a7"
     },
-    "@vanaware/buildit@0.3.45": {
-      "integrity": "7fa1140f9e37c0e1d45c8d4fc82d64e96b6ffb75bdfaba67a8c2fe68fdc400c3",
+    "@vanaware/buildit@0.4.1": {
+      "integrity": "732b1c537fbd4666c141435794d9bc94a080ff899d4ab83106c96bb5d029bf1a",
       "dependencies": [
         "jsr:@cliffy/command",
         "jsr:@deno/esbuild-plugin",
@@ -530,7 +530,7 @@
       "jsr:@std/jsonc@^1.0.2",
       "jsr:@std/path@^1.1.6",
       "jsr:@std/testing@^1.0.20",
-      "jsr:@vanaware/buildit@~0.3.44"
+      "jsr:@vanaware/buildit@~0.4.1"
     ],
     "members": {
       "packages/server": {
