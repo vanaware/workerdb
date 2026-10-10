@@ -31,8 +31,18 @@ jobs:
       - name: Install dependencies
         run: deno ci
 
+      - name: Verify code integrity
+        run: deno task tests
+
       - name: Build Application
-        run: deno task build noversion
+        run: deno task esbuild noversion
+
+      - name: Prepare static assets for GitHub Pages
+        run: |
+          # Disable Jekyll processing on GitHub Pages
+          touch ./packages/server/build/dist/.nojekyll
+          # Copy index.html to 404.html for SPA subfolder route fallback
+          cp ./packages/server/build/dist/index.html ./packages/server/build/dist/404.html
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

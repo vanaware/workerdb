@@ -37,7 +37,7 @@
     {
     "type": "deno",
     "command": "run",
-    "args": ["--allow-env","--allow-read", "--allow-write", "--allow-run","--allow-net", "esbuild.ts"],
+    "args": ["--allow-env","--allow-read", "--allow-write", "--allow-run","--allow-net", "scripts/esbuild.ts"],
     "problemMatcher": ["$deno"],
     "label": "Deno: EsBuild",
     "group": {
@@ -45,10 +45,21 @@
         "isDefault": true
         }
     },
+  {
+    "type": "deno",
+    "command": "run",
+    "args": ["--allow-env","--allow-read", "--allow-write", "--allow-run","--allow-net", "scripts/esbuild.ts", "--no-version"],
+    "problemMatcher": ["$deno"],
+    "label": "Deno: Build noversion",
+    "group": {
+        "kind": "build",
+        "isDefault": false
+        }
+    },
     {
     "type": "deno",
     "command": "run",
-    "args": ["--allow-env","--allow-read", "--allow-write","--allow-net", "denobuild.ts"],
+    "args": ["--allow-env","--allow-read", "--allow-write","--allow-net", "scripts/denobuild.ts"],
     "problemMatcher": ["$deno"],
     "label": "Deno: DenoBuild",
     "group": {
@@ -59,9 +70,33 @@
     {
     "type": "deno",
     "command": "run",
-    "args": ["--allow-env","--allow-read", "--allow-write", "export.ts"],
+    "args": ["--allow-env","--allow-read", "--allow-write", "scripts/export.ts"],
     "problemMatcher": ["$deno"],
     "label": "Deno: Export"
+    },
+    {
+    "type": "deno",
+    "command": "run",
+    "args": ["--allow-env","--allow-read", "--allow-write", "--allow-run", "--allow-net", "scripts/watch.ts"],
+    "problemMatcher": ["$deno"],
+    "label": "Deno: Watch"
+    },
+    {
+    "type": "deno",
+    "command": "run",
+    "args": ["--allow-env","--allow-read", "--allow-write", "--allow-run", "--allow-net", "scripts/tag-version.ts"],
+    "problemMatcher": ["$deno"],
+    "label": "Deno: Tag Version"
+    },
+    {
+      "label": "Deno: Bump",
+      "dependsOrder": "sequence",   // executa em ordem (padrão: paralelo)
+      "dependsOn": [
+        "Deno: Check All",
+        "Deno: Build noversion",
+        "Deno: Tag Version"
+      ],
+      "problemMatcher": []
     }
   ]
 }

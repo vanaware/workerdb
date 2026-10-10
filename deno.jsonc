@@ -1,6 +1,12 @@
 {
   "version": "0.4.2#mujywa6a",
   "description": "Asynchronous database layer for Web Workers, IndexedDB, and OPFS.",
+  "license": "MIT",
+  "author": "Vanaware",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vanaware/workerdb"
+  },
   "workspace": [
     "./packages/worker-db",
     "./packages/server",
@@ -21,12 +27,9 @@
   // 📦 Gerenciamento de Dependências
   "minimumDependencyAge": 5,
   "imports": {
-    "@std/fs": "jsr:@std/fs@^1.0.24",
-    "@std/path": "jsr:@std/path@^1.1.6",
-    "@std/jsonc": "jsr:@std/jsonc@^1.0.2",
     "@std/assert": "jsr:@std/assert@^1.0.19",
     "@std/testing": "jsr:@std/testing@^1.0.20",
-    "@vanaware/buildit": "jsr:@vanaware/buildit@^0.4.1"
+    "@vanaware/buildit": "jsr:@vanaware/buildit@^0.4.22"
   },
   "catalog": {
     "esbuild": "^0.28.2"
@@ -34,23 +37,23 @@
   "allowScripts": ["npm:esbuild@0.28.2"],
   // 🛠️ Scripts de Automação
   "tasks": {
-    "test": "deno test --no-check --unstable-bundle -P",
+    "test": "deno test --no-check -P",
     "lint": "deno lint",
     "fmt": "deno fmt",
-    "check": "deno task --recursive check && deno check build.ts esbuild.ts export.ts tests/**/*test.ts",
+    "check": "deno task --recursive check && deno check scripts/**/*.ts",
     "fmt:check": "deno fmt --check",
     "lint:fix": "deno lint --fix",
     "lint:doc": "deno task --recursive lint:doc",
-    "tests": "deno task check && deno task lint && deno task fmt:check && deno task test",
+    "tests": "deno task check && deno task lint && deno task fmt:check && deno task lint:doc && deno task test",
     "dev": "deno task --cwd packages/server dev",
     "start": "deno task --cwd packages/server start",
-    "export": "deno run --allow-read --allow-write ./export.ts",
-    "build": "deno run -A ./esbuild.ts",
-    "build:deno": "deno run --unstable-bundle -A ./denobuild.ts",
-    "watch": "deno run -A ./watch.ts",
-    "sanitize-version": "deno run -A ./sanitize-version.ts",
-    "tag-version": "deno run -A ./tag-version.ts",
-    "bump": "deno install --frozen=false && deno task build dist noversion && deno run -A ./tag-version.ts"
+    "export": "deno run --allow-read --allow-write ./scripts/export.ts",
+    "esbuild": "deno run -A ./scripts/esbuild.ts",
+    "denobuild": "deno run --unstable-bundle -A ./scripts/denobuild.ts",
+    "watch": "deno run -A ./scripts/watch.ts",
+    "sanitize-version": "deno run -A ./scripts/sanitize-version.ts",
+    "tag-version": "deno run -A ./scripts/tag-version.ts",
+    "bump": "deno install --frozen=false && deno task esbuild dist noversion && deno task tag-version"
   },
   "nodeModulesDir": "none",
   "vendor": true,
@@ -61,13 +64,10 @@
       "exclude": ["no-unused-vars"]
     },
     "include": [
-      "build.ts",
-      "esbuild.ts",
-      "export.ts",
-      "examples/**/*.{ts,tsx}",
+      "scripts/**/*.ts",
       "packages/**/src/**/*.{ts,tsx}",
-      "tests/**/*test.ts",
-      "packages/**/tests/**/*test.ts"
+      "packages/**/tests/**/*test.ts",
+      "packages/worker-db/example/**/*.{ts,tsx}"
     ]
   },
   "test": {
@@ -82,15 +82,11 @@
       "import": true
     },
     "include": [
-      "tests/**/*test.ts",
       "packages/**/tests/**/*test.ts"
     ],
     "exclude": [
       "packages/server/build/",
-      "build.ts",
-      "esbuild.ts",
-      "export.ts",
-      "examples/**/*.{ts,tsx}",
+      "scripts/**/*.{ts,tsx}",
       "packages/**/src/**/*.{ts,tsx}"
     ]
   },
@@ -109,27 +105,26 @@
     "jsx.multiLineParens": "always",
     "newLineKind": "lf",
     "include": [
-      "build.ts",
-      "esbuild.ts",
-      "export.ts",
-      "examples/**/*.{ts,tsx}",
+      "scripts/**/*.ts",
       "packages/**/src/**/*.{ts,tsx}",
-      "tests/**/*test.ts",
-      "packages/**/tests/**/*test.ts"
+      "packages/**/tests/**/*test.ts",
+      "packages/worker-db/example/**/*.{ts,tsx}"
     ],
     "exclude": [
       "packages/server/build/",
-      "packages/worker-db/build/"
+      "packages/worker-db/dist/"
     ]
   },
   "unstable": ["bundle"],
   "exclude": [
     ".qwen/",
     ".vscode/",
+    ".github/",
     "packages/server/build/",
     "vendor",
     "node_modules",
     "snapshots",
-    "docs"
+    "docs",
+    "scripts"
   ]
 }

@@ -61,7 +61,9 @@
       "defineAssetsString": "__GENERATED_ASSETS__",
       "srcdir": "packages/service-worker/src",
       "distdir": "packages/server/build/dist",
-      "clean": ["sw.js", "sw.js.map"],
+      "clean": {
+        "includes": ["sw.js", "sw.js.map"]
+      },
       "entryPoints": ["sw.ts"],
       "platform": "browser",
       "format": "esm",
@@ -76,8 +78,12 @@
       "default": true,
       "srcdir": "packages/worker-db/src",
       "distdir": "packages/worker-db/dist",
-      "clean": ["*"],
-      "entryPoints": ["worker.ts",],
+      "clean": {
+        "includes": [
+          "*"
+        ]
+      },
+      "entryPoints": ["worker.ts"],
       "outfile": "workerdb.min.js",
       "platform": "browser",
       "format": "esm",

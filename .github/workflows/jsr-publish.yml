@@ -26,10 +26,13 @@ jobs:
       - name: Install dependencies
         run: deno ci
 
+      - name: Verify code integrity
+        run: deno task tests
+
       - name: Sanitize Version
         run: |
-          deno run -A ./sanitize-version.ts ./packages/worker-db/deno.jsonc
-          deno run -A ./sanitize-version.ts ./packages/service-worker/deno.jsonc
+          deno task sanitize-version ./packages/worker-db/deno.jsonc
+          deno task sanitize-version ./packages/service-worker/deno.jsonc
 
       - name: Publish WorkerDB to JSR
         run: |

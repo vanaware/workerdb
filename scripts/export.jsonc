@@ -1,9 +1,9 @@
 {
   "$schema": "https://vanaware.github.io/buildit/schema/export.json",
-  "projeto": "WorkerDB",
-  "modos": {
+  "project": "WorkerDB",
+  "modes": {
     "ui": {
-      "arquivoSaida": "snapshots/ui.md",
+      "outputFile": "snapshots/ui.md",
       "includes": [
         "packages/ui/{src,public,tests,docs}/**/*.{tsx,jsx,js,ts,css,html,manifest,json,jsonc,md}",
         "packages/ui/{deno.json,deno.jsonc,README.md}"
@@ -12,12 +12,12 @@
         "**/node_modules/**",
         "**/.git/**"
       ],
-      "incluiVersao": true,
-      "instrucaoCustomizada": "O texto abaixo contém os arquivos de CÓDIGO FONTE principais da aplicação exemplo (UI).",
+      "includeVersion": true,
+      "customInstruction": "O texto abaixo contém os arquivos de CÓDIGO FONTE principais da aplicação exemplo (UI).",
       "default": true
     },
     "docs": {
-      "arquivoSaida": "snapshots/docs.md",
+      "outputFile": "snapshots/docs.md",
       "includes": [
         "docs/**/*.{md,txt}",
         "{README.md,LICENSE,.tool-versions}"
@@ -26,12 +26,12 @@
         "**/node_modules/**",
         "**/.git/**"
       ],
-      "incluiVersao": false,
-      "instrucaoCustomizada": "O texto abaixo contém a DOCUMENTAÇÃO e diretrizes arquiteturais do projeto.",
+      "includeVersion": false,
+      "customInstruction": "O texto abaixo contém a DOCUMENTAÇÃO e diretrizes arquiteturais do projeto.",
       "default": true
     },
     "server": {
-      "arquivoSaida": "snapshots/server.md",
+      "outputFile": "snapshots/server.md",
       "includes": [
         "packages/server/{src,tests,docs}/**/*.{tsx,jsx,js,ts,css,html,json,jsonc,yaml,yml,md}",
         "packages/server/{deno.json,deno.jsonc,README.md,.env.example}",
@@ -41,12 +41,12 @@
         "**/node_modules/**",
         "**/.git/**"
       ],
-      "incluiVersao": true,
-      "instrucaoCustomizada": "O texto abaixo contém os arquivos de configuração e execução do SERVIDOR @workerdb/server e CI/CD.",
+      "includeVersion": true,
+      "customInstruction": "O texto abaixo contém os arquivos de configuração e execução do SERVIDOR @workerdb/server e CI/CD.",
       "default": true
     },
     "utils": {
-      "arquivoSaida": "snapshots/utils.md",
+      "outputFile": "snapshots/utils.md",
       "includes": [
         "packages/utils/{src,tests,docs}/**/*.{tsx,jsx,js,ts,json,jsonc,md}",
         "packages/utils/{deno.json,deno.jsonc,README.md}",
@@ -60,12 +60,12 @@
         "**/node_modules/**",
         "**/.git/**"
       ],
-      "incluiVersao": false,
-      "instrucaoCustomizada": "O texto abaixo contém o código e testes da biblioteca @workerdb/utils",
+      "includeVersion": false,
+      "customInstruction": "O texto abaixo contém o código e testes da biblioteca @workerdb/utils",
       "default": true
     },
     "sw":{
-      "arquivoSaida": "snapshots/sw.md",
+      "outputFile": "snapshots/sw.md",
       "includes": [
         "packages/service-worker/{src,tests,docs}/**/*.{tsx,jsx,js,ts,json,jsonc,md}",
         "packages/service-worker/{deno.json,deno.jsonc,README.md}"
@@ -74,12 +74,12 @@
         "**/node_modules/**",
         "**/.git/**"
       ],
-      "incluiVersao": true,
-      "instrucaoCustomizada": "O texto abaixo contém experimentos e código da área de @workerDB/service-worker",
+      "includeVersion": true,
+      "customInstruction": "O texto abaixo contém experimentos e código da área de @workerDB/service-worker",
       "default": true
     },
     "workerdb":{
-      "arquivoSaida": "snapshots/worker-db.md",
+      "outputFile": "snapshots/worker-db.md",
       "includes": [
         "packages/worker-db/{src,tests,docs,example,dist}/**/*.{min.js*,tsx,jsx,js,ts,json,jsonc,md}",
         "packages/worker-db/{deno.json,deno.jsonc,README.md}"
@@ -88,8 +88,8 @@
         "**/node_modules/**",
         "**/.git/**"
       ],
-      "incluiVersao": true,
-      "instrucaoCustomizada": "O texto abaixo contém experimentos e código da área de @vanaware/workerdb",
+      "includeVersion": true,
+      "customInstruction": "O texto abaixo contém experimentos e código da área de @vanaware/workerdb",
       "default": true
     }
   }
