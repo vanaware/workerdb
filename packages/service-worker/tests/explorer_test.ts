@@ -130,7 +130,7 @@ describe("@vanaware/opfs-explorer", () => {
       assertEquals(getScopePath("workerdb",), "/workerdb/",);
       assertEquals(getScopePath("/workerdb",), "/workerdb/",);
       assertEquals(getScopePath("/workerdb/",), "/workerdb/",);
-      assertEquals(getScopePath(" /workerdb/ "), "/workerdb/",);
+      assertEquals(getScopePath(" /workerdb/ ",), "/workerdb/",);
     });
 
     it("resolveRoutePrefix combines scope and route prefix correctly", () => {
@@ -247,7 +247,9 @@ describe("@vanaware/opfs-explorer", () => {
     it("createOpfsFetchHandler handles requests under scope /workerdb/", async () => {
       FakeOPFSDirectory.clear();
       const fakeRoot = new FakeOPFSDirectory("",);
-      const fileHandle = fakeRoot.getFileHandle("data.json", { create: true, },);
+      const fileHandle = fakeRoot.getFileHandle("data.json", {
+        create: true,
+      },);
       const writable = fileHandle.createWritable();
       await writable.write(JSON.stringify({ deployed: true, },),);
       writable.close();
@@ -299,7 +301,10 @@ describe("@vanaware/opfs-explorer", () => {
     it("resolveRoutePrefix handles custom subfolder strings and options", () => {
       assertEquals(resolveRoutePrefix("files",), "/files",);
       assertEquals(resolveRoutePrefix("arquivos",), "/arquivos",);
-      assertEquals(resolveRoutePrefix({ subfolder: "arquivos", },), "/arquivos",);
+      assertEquals(
+        resolveRoutePrefix({ subfolder: "arquivos", },),
+        "/arquivos",
+      );
       assertEquals(
         resolveRoutePrefix({ scopePath: "/my-app/", subfolder: "files", },),
         "/my-app/files",

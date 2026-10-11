@@ -11,7 +11,11 @@
     "lib": [
       "webworker",
       "webworker.asynciterable",
-      "webworker.iterable"
+      "webworker.iterable",
+      "dom",
+      "dom.iterable",
+      "dom.asynciterable",
+      "esnext"
     ]
   },
   "imports": {},

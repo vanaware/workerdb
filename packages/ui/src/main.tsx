@@ -22,10 +22,13 @@ if ("serviceWorker" in navigator) {
         type: "module",
         scope: swScope,
       },);
-      console.log("🚀 Service Worker registrado com sucesso com escopo:", reg.scope,);
+      console.log(
+        "🚀 Service Worker registrado com sucesso com escopo:",
+        reg.scope,
+      );
     } catch (err) {
-      const errStr = String(err);
-      if (errStr.includes("redirect") || errStr.includes("SecurityError")) {
+      const errStr = String(err,);
+      if (errStr.includes("redirect",) || errStr.includes("SecurityError",)) {
         console.warn(
           "⚠️ Registro do Service Worker suspenso: O ambiente de preview/proxy iframe respondeu com redirecionamento ao carregar 'sw.js'. A especificação do navegador proíbe registro de Service Worker sob redirects. Abra o app em uma nova aba para habilitar o Service Worker e o OPFS Explorer.",
           err,
@@ -35,7 +38,7 @@ if ("serviceWorker" in navigator) {
           "⚠️ Notice: Service Worker registration was blocked by the browser because 'sw.js' was fetched via a proxy redirect in the preview iframe.\n\nTo enable full Service Worker & OPFS Explorer support, open the app in a new browser tab or deploy to production (e.g. GitHub Pages).",
         );
       } else {
-        console.warn("Falha ao registrar SW:", err);
+        console.warn("Falha ao registrar SW:", err,);
       }
     }
   };
@@ -92,8 +95,7 @@ const file = await myOpfs.getFile("doc-id", "report.pdf");`}
         <a
           href={`${new URL("./", globalThis.location.href,).pathname}opfs/`}
           target="_blank"
-          class="button transparent"
-        >
+          class="button transparent">
           <i>
             open_in_new
           </i>{" "}

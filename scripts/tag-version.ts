@@ -6,7 +6,7 @@
  * Gera tags no formato vMAJOR.MINOR e publica no repositório remoto.
  */
 
-import { tagVersionCli, }  from "@vanaware/buildit/cli/tag-version";
+import { tagVersionCli, } from "@vanaware/buildit/cli/tag-version";
 
 if (import.meta.main) {
   const cli = tagVersionCli();

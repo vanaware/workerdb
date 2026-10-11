@@ -18,6 +18,9 @@
   "compilerOptions": {
     "lib": [
       "deno.window",
+      "dom",
+      "dom.iterable",
+      "dom.asynciterable",
       "esnext"
     ],
     "strict": true,
