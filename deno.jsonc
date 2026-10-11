@@ -40,11 +40,11 @@
     "test": "deno test --no-check -P",
     "lint": "deno lint",
     "fmt": "deno fmt",
-    "check": "deno task --recursive check && deno check scripts/**/*.ts",
+    "check:all": "deno task --members check && deno check scripts/**/*.ts",
     "fmt:check": "deno fmt --check",
     "lint:fix": "deno lint --fix",
-    "lint:doc": "deno task --recursive lint:doc",
-    "tests": "deno task check && deno task lint && deno task fmt:check && deno task lint:doc && deno task test",
+    "lint:doc:all": "deno task --members lint:doc",
+    "tests": "deno task check:all && deno task lint && deno task fmt:check && deno task lint:doc:all && deno task test",
     "dev": "deno task --cwd packages/server dev",
     "start": "deno task --cwd packages/server start",
     "export": "deno run --allow-read --allow-write ./scripts/export.ts",
@@ -124,7 +124,6 @@
     "vendor",
     "node_modules",
     "snapshots",
-    "docs",
-    "scripts"
+    "docs"
   ]
 }
