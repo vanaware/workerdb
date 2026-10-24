@@ -1,7 +1,7 @@
 // packages/service-worker/src/sw.ts
 /// <reference lib="webworker" />
 
-// Conteúdo de GENERATED_ASSETS: __GENERATED_ASSETS__
+// GENERATED_ASSETS content: __GENERATED_ASSETS__
 
 import { db, } from "@vanaware/workerdb/sw";
 import {
@@ -46,7 +46,7 @@ sw.addEventListener("message", async (event,) => {
       const insertedId = await msgStore.set("auto", {
         senderId: "system_sw",
         recipientId: "all",
-        content: "Mensagem gravada diretamente pelo Service Worker!",
+        content: "Message written directly by the Service Worker!",
         status: "delivered",
         priority: 99,
         timestamp: Date.now(),
@@ -54,7 +54,7 @@ sw.addEventListener("message", async (event,) => {
 
       const allMessages = await msgStore.values();
 
-      // Utilizando o padrão Record-Key ("auto_backups") dentro da pasta física global /backup
+      // Using the Record-Key pattern ("auto_backups") inside the global /backup physical folder
       const backupName = await msgStore.backupToOpfs(
         "auto_backups",
         "sw_auto_backup.json",

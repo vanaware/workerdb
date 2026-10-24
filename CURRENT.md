@@ -1,55 +1,54 @@
-# Arquivo `CURRENT.md`
+# `CURRENT.md`
 
-## Status Atual: Fase 1 Concluída & Pacote OPFS Explorer Publicável
+## Current Status: Phase 1 Complete & Publishable OPFS Explorer Package
 
-Todas as capacidades da **Fase 1: Performance & Advanced Data Capabilities** e a infraestrutura dos pacotes JSR foram implementadas, testadas e integradas com sucesso:
+All capabilities of **Phase 1: Performance & Advanced Data Capabilities** and the JSR package infrastructure have been successfully implemented, tested, and integrated:
 
 1. **Native IndexedDB Indexes & Index Operations**:
-   - Criação declarativa de índices via `indexes: string[]` em `db()` e `db.ts`.
-   - `getByIndex(indexName, query)`: busca indexada $O(\log N)$.
-   - `getManyByIndex(indexName, queries)`: busca em lote para múltiplos valores de índice.
-   - `getSomeByIndex(indexName, query, filterFn, context)`: filtra apenas o subconjunto indexado, sem carregar a base inteira em memória.
-   - `queryByIndex(indexName, query, fn, context)`: agrega/transforma o subconjunto indexado dentro do Web Worker.
-   - `deleteByIndex(indexName, query)`: remove todos os registros que casam com o índice em $O(\log N)$ sem ler payloads para a memória.
-   - `deleteManyByIndex(indexName, queries)`: remove múltiplos grupos indexados em lote.
-   - `delSomeByIndex(indexName, query, filterFn, context)`: filtra e remove registros do subconjunto indexado.
-   - `setSomeByIndex(indexName, query, selectFn, updateFn, context)`: filtra e atualiza registros do subconjunto indexado com validação de esquema.
+   - Declarative index creation via `indexes: string[]` in `db()` and `db.ts`.
+   - `getByIndex(indexName, query)`: indexed $O(\log N)$ lookup.
+   - `getManyByIndex(indexName, queries)`: batch lookup for multiple index values.
+   - `getSomeByIndex(indexName, query, filterFn, context)`: filters only the indexed subset without loading the entire collection into memory.
+   - `queryByIndex(indexName, query, fn, context)`: aggregates/transforms the indexed subset inside the Web Worker.
+   - `deleteByIndex(indexName, query)`: removes all records matching the index in $O(\log N)$ without reading payloads into memory.
+   - `deleteManyByIndex(indexName, queries)`: removes multiple indexed groups in batch.
+   - `delSomeByIndex(indexName, query, filterFn, context)`: filters and removes records from the indexed subset.
+   - `setSomeByIndex(indexName, query, selectFn, updateFn, context)`: filters and updates records in the indexed subset with schema validation.
 
 2. **Streaming OPFS API**:
-   - `addFileStream(key, fileName, stream)`: gravação de arquivos grandes via `ReadableStream<Uint8Array>`.
-   - `getFileStream(key, fileName)`: leitura com streaming transferível via RPC.
+   - `addFileStream(key, fileName, stream)`: large file writes via `ReadableStream<Uint8Array>`.
+   - `getFileStream(key, fileName)`: readable via transferable streaming over RPC.
 
 3. **In-Worker Schema Validation**:
-   - Validador síncrono no Web Worker (`validator: (item) => boolean`) protegendo `set`, `setMany` e `patch`.
+   - Synchronous validator inside the Web Worker (`validator: (item) => boolean`) protecting `set`, `setMany`, and `patch`.
 
-4. **Pacote Independente `@vanaware/opfs-explorer` & Service Worker**:
-   - Pacote dedicado em `packages/service-worker/` configurado para publicação no JSR como `@vanaware/opfs-explorer`.
-   - **Subfolder Configurável**: O handler não possui mais rota hardcoded. Desenvolvedores podem passar nomes personalizados como string (`"files"`, `"arquivos"`, `"opfs"`) ou via objeto de opções `OpfsExplorerOptions`.
-   - **Roteamento e Escopo Dinâmicos**: `resolveRoutePrefix` combina o escopo ativo do Service Worker (`/`, `/meu-repo/`) com o subfolder escolhido sem caminhos fixos.
-   - `createOpfsFetchHandler`: helper de 1 linha para `self.addEventListener("fetch", createOpfsFetchHandler("files"))`.
-   - `handleOpfsRequest`: handler manual com suporte a redirecionamento canônico 301.
-   - Utilitários exportados: `listOpfsFiles`, `getFileFromOpfs`, `getEffectiveRootDir`, `getScopePath`, `normalizeOptions`.
+4. **Standalone `@vanaware/opfs-explorer` Package & Service Worker**:
+   - Dedicated package under `packages/service-worker/` configured for JSR publication as `@vanaware/opfs-explorer`.
+   - **Configurable Subfolder**: The handler no longer has a hardcoded route. Developers can pass custom names as a string (`"files"`, `"arquivos"`, `"opfs"`) or via an `OpfsExplorerOptions` configuration object.
+   - **Dynamic Routing and Scope**: `resolveRoutePrefix` combines the active Service Worker scope (`/`, `/my-repo/`) with the chosen subfolder without any fixed paths.
+   - `createOpfsFetchHandler`: 1-line helper for `self.addEventListener("fetch", createOpfsFetchHandler("files"))`.
+   - `handleOpfsRequest`: manual handler with support for canonical 301 redirects.
+   - Exported utilities: `listOpfsFiles`, `getFileFromOpfs`, `getEffectiveRootDir`, `getScopePath`, `normalizeOptions`.
 
-5. **Localização Dinâmica na UI (GitHub Pages Ready)**:
-   - `packages/ui/src/main.tsx` utiliza `new URL("./", globalThis.location.href).pathname` para resolver dinamicamente o caminho base, escopo do SW e links da UI, eliminando referências fixas a `/workerdb/`.
-   - `packages/server/src/main.ts` limpo de fallbacks hardcoded.
+5. **Dynamic UI Path Resolution (GitHub Pages Ready)**:
+   - `packages/ui/src/main.tsx` uses `new URL("./", globalThis.location.href).pathname` to dynamically resolve the base path, SW scope, and UI links — eliminating any fixed references to `/workerdb/`.
+   - `packages/server/src/main.ts` cleaned of hardcoded fallbacks.
 
-6. **Publicação no JSR Automatizada**:
-   - Workflow `.github/workflows/jsr-publish.yml` configurado com matriz de publicação para ambos os pacotes: `@vanaware/workerdb` e `@vanaware/opfs-explorer`.
-   - Conformidade estrita com as diretrizes do JSR: JSDoc 100% documentado (`deno doc --lint` sem erros), `README.md` completo com exemplos em TypeScript e tabelas de referência de API.
+6. **Automated JSR Publication**:
+   - `.github/workflows/jsr-publish.yml` configured with a publish matrix for both packages: `@vanaware/workerdb` and `@vanaware/opfs-explorer`.
+   - Strict JSR compliance: 100% JSDoc coverage (`deno doc --lint` clean), complete `README.md` with TypeScript examples and API reference tables.
 
 7. **PWA & CI/CD Deployment**:
-   - `manifest.json` com caminhos relativos (`./index.html`) para instalação PWA em qualquer subpasta.
-   - GitHub Actions workflow (`.github/workflows/gh-pages.yml`) para build e deploy automatizado no GitHub Pages.
-   - Headers anti-cache no dev-server e tratamento gracioso de redirecionamentos na inicialização do SW.
+   - `manifest.json` uses relative paths (`./index.html`) to enable PWA installation under any subfolder.
+   - GitHub Actions workflow (`.github/workflows/gh-pages.yml`) for automated build and deploy to GitHub Pages.
+   - Anti-cache headers on the dev server and graceful handling of redirects during Service Worker initialization.
 
-8. **Qualidade, Linter & BDD Test Suite**:
-   - 64 testes BDD passando (269 steps) com 100% de sucesso (`deno task test`).
-   - Linter (`deno lint`) 100% aprovado em todos os 38 arquivos do workspace.
+8. **Quality, Linter & BDD Test Suite**:
+   - 64 BDD tests passing (269 steps) with a 100% success rate (`deno task test`).
+   - Linter (`deno lint`) 100% clean across all 38 workspace files.
 
-## Próximos Passos (Fase 2 - Planejamento)
+## Next Steps (Phase 2 — Planning)
 
-- **Live Queries / Subscriptions (Observe API)**: Implementação de listeners reativos (`db.subscribe(key, cb)` ou `db.watchQuery()`).
-- **Bindings para Preact Signals**: Utilitários reativos para sincronizar coleções do WorkerDB diretamente com signals da UI.
-- **Sincronização & Cloud**: Replicação de estado e ponte com File System Access API (`showDirectoryPicker`).
-
+- **Live Queries / Subscriptions (Observe API)**: Implement reactive listeners (`db.subscribe(key, cb)` or `db.watchQuery()`).
+- **Preact Signals Bindings**: Reactive utilities that sync WorkerDB collections directly with UI signals.
+- **Sync & Cloud**: State replication and a bridge to the File System Access API (`showDirectoryPicker`).

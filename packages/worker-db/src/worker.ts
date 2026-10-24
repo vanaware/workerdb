@@ -5,7 +5,7 @@
  */
 
 import { internalAPI } from "./db.ts";
-import type { DbStoreOptions, OpfsStoreOptions } from "./db.ts";
+import type { DbStoreOptions, OpfsStoreOptions } from "./db-types.ts";
 
 import { APP_VERSION } from "./utils/version.ts";
 

@@ -1,12 +1,11 @@
-// ## Arquivo: monorepo/worker-db/tests/opfs_and_isolation_test.ts
+// packages/worker-db/tests/opfs_and_isolation_test.ts
 import { assert, assertEquals, } from "@std/assert";
 
 import { db, ls, } from "../src/fake/fake-mod.ts";
 import { FakeOPFSDirectory, } from "../src/fake/fake-opfs.ts";
 
 Deno.test({
-  name:
-    "ISOLATION - LS: Garantir que instâncias com prefixos diferentes não colidam",
+  name: "ISOLATION - LS: Instances with different prefixes must not collide",
   sanitizeOps: false,
   sanitizeResources: false,
   fn() {
@@ -33,7 +32,7 @@ db.init(new URL("../build/worker-db.js", import.meta.url,),);
 
 Deno.test({
   name:
-    "ISOLATION - DB: Garantir que instâncias no mesmo Store, com prefixos diferentes, são isoladas",
+    "ISOLATION - DB: Instances in the same Store with different prefixes are isolated",
   sanitizeOps: false,
   sanitizeResources: false,
   async fn() {
@@ -64,8 +63,7 @@ Deno.test({
 },);
 
 Deno.test({
-  name:
-    "OPFS - Fluxo completo de Backup e Restore (INDEXED-DB) usando record-keys",
+  name: "OPFS - Full Backup and Restore flow (INDEXED-DB) using record-keys",
   sanitizeOps: false,
   sanitizeResources: false,
   async fn() {
@@ -76,21 +74,21 @@ Deno.test({
     await store.set("k1", { text: "Hello OPFS DB", },);
     await store.set("k2", { text: "WorkerDB PWA", },);
 
-    const recordKey = "meus_snapshots_db";
+    const recordKey = "my_db_snapshots";
     const fileNamePath = await store.backupToOpfs(
       recordKey,
-      "meu_backup_db.json",
+      "my_db_backup.json",
     );
 
     assert(fileNamePath.includes("BACKUP_",),);
     assert(fileNamePath.includes(recordKey,),);
-    assert(fileNamePath.includes("meu_backup_db.json",),);
+    assert(fileNamePath.includes("my_db_backup.json",),);
 
     await store.clear();
     assertEquals((await store.keys()).length, 0,);
 
-    // Restore indicando a recordKey isolada
-    await store.restoreFromOpfs(recordKey, "meu_backup_db.json",);
+    // Restore pointing to the isolated recordKey
+    await store.restoreFromOpfs(recordKey, "my_db_backup.json",);
     const restored = await store.values<unknown>();
     assertEquals(restored.length, 2,);
 
@@ -103,7 +101,7 @@ Deno.test({
 
 Deno.test({
   name:
-    "OPFS - Fluxo completo de Backup e Restore (LOCAL-STORAGE) usando record-keys e proxy opfs()",
+    "OPFS - Full Backup and Restore flow (LOCAL-STORAGE) using record-keys and the opfs() proxy",
   sanitizeOps: false,
   sanitizeResources: false,
   async fn() {
@@ -111,27 +109,27 @@ Deno.test({
     const store = ls("LS_BKP_SYS_",);
     store.clear();
 
-    // 1. Popula o LocalStorage de forma síncrona
+    // 1. Populate LocalStorage synchronously
     store.set("config", { theme: "dark", notifications: true, },);
-    store.set("perfil", { alias: "Satoshi", status: "online", },);
+    store.set("profile", { alias: "Satoshi", status: "online", },);
     assertEquals(store.keys().length, 2,);
 
-    // 2. Realiza o backup assíncrono delegando para o Worker-DB via opfs()
+    // 2. Perform the asynchronous backup by delegating to Worker-DB via opfs()
     const recordKey = "ls_snapshots";
     const fileNamePath = await store.backupToOpfs(recordKey, "ls_backup.json",);
 
-    // Verifica se a rota de retorno seguiu a padronização das keys
+    // Verify the returned path follows the key naming convention
     assert(fileNamePath.includes(recordKey,),);
     assert(fileNamePath.includes("ls_backup.json",),);
 
-    // 3. Limpa o LocalStorage simulando uma perda de dados local ou troca de dispositivo
+    // 3. Clear LocalStorage to simulate local data loss or a device swap
     store.clear();
     assertEquals(store.keys().length, 0,);
 
-    // 4. Executa o Restore assíncrono puxando o binário via Worker e regravando no LS
+    // 4. Run the asynchronous restore by pulling the binary via the Worker and rewriting it into LS
     await store.restoreFromOpfs(recordKey, "ls_backup.json", true,);
 
-    // 5. Valida a integridade dos dados resgatados
+    // 5. Validate the integrity of the recovered data
     const restoredKeys = store.keys();
     assertEquals(restoredKeys.length, 2,);
 
@@ -139,8 +137,8 @@ Deno.test({
     assertEquals(config?.theme, "dark",);
     assertEquals(config?.notifications, true,);
 
-    const perfil = store.get<unknown>("perfil",) as Record<string, unknown>;
-    assertEquals(perfil?.alias, "Satoshi",);
+    const profile = store.get<unknown>("profile",) as Record<string, unknown>;
+    assertEquals(profile?.alias, "Satoshi",);
 
     FakeOPFSDirectory.clear();
   },

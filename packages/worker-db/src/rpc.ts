@@ -1,5 +1,9 @@
-// ## Arquivo: monorepo/worker-db/src/rpc.ts
-import { gerarId, gerarIdComPrefixo, type WithId, } from "./utils/id.ts";
+// packages/worker-db/src/rpc.ts
+import {
+  generateId,
+  generateIdWithPrefix,
+  type WithId,
+} from "./utils/id.ts";
 import type {
   DbStoreOptions,
   IndexQuery,
@@ -7,7 +11,7 @@ import type {
   OpfsStoreOptions,
   WorkerDbAPI,
   WorkerOpfsAPI,
-} from "./db.ts";
+} from "./db-types.ts";
 
 let workerInstance: Worker | null = null;
 let currentWorkerPath: string | URL = "./worker.js";
@@ -74,7 +78,7 @@ function exec<T>(
   transfer: Transferable[] = [],
 ): Promise<T> {
   return new Promise<T>((resolve, reject,) => {
-    const requestId = gerarId();
+    const requestId = generateId();
     pendingRequests.set(requestId, {
       resolve: resolve as (value: unknown,) => void,
       reject,
@@ -402,9 +406,9 @@ const globalDbAPI: WorkerDbAPI<unknown> = {
   },
   restart: () => restartWorker(),
   terminate: () => terminateWorker(),
-  gerarId: (): string => gerarId(),
-  gerarIdComPrefixo: (prefix?: string): string =>
-    gerarIdComPrefixo(prefix || ""),
+  generateId: (): string => generateId(),
+  generateIdWithPrefix: (prefix?: string): string =>
+    generateIdWithPrefix(prefix || ""),
 };
 
 function createScopedDb<TDefault = unknown>(
@@ -553,9 +557,9 @@ function createScopedDb<TDefault = unknown>(
     init: (workerPath?: string | URL) => globalDbAPI.init(workerPath),
     restart: () => globalDbAPI.restart(),
     terminate: () => globalDbAPI.terminate(),
-    gerarId: () => globalDbAPI.gerarId(),
-    gerarIdComPrefixo: () =>
-      opts.prefix ? globalDbAPI.gerarIdComPrefixo(opts.prefix) : globalDbAPI.gerarId(),
+    generateId: () => globalDbAPI.generateId(),
+    generateIdWithPrefix: () =>
+      opts.prefix ? globalDbAPI.generateIdWithPrefix(opts.prefix) : globalDbAPI.generateId(),
   };
 }
 
@@ -701,9 +705,9 @@ const globalOpfsAPI: WorkerOpfsAPI<unknown> = {
   init: (workerPath?: string | URL) => globalDbAPI.init(workerPath),
   restart: () => globalDbAPI.restart(),
   terminate: () => globalDbAPI.terminate(),
-  gerarId: (): string => gerarId(),
-  gerarIdComPrefixo: (prefix?: string): string =>
-    gerarIdComPrefixo(prefix || ""),
+  generateId: (): string => generateId(),
+  generateIdWithPrefix: (prefix?: string): string =>
+    generateIdWithPrefix(prefix || ""),
 };
 
 function createScopedOpfs<TDefault = unknown>(

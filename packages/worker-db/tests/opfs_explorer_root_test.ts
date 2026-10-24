@@ -15,7 +15,7 @@ describe("OPFS Root & Explorer", () => {
   it("lists all files and directories starting from the OPFS root", async () => {
     FakeOPFSDirectory.clear();
 
-    // Simula arquivos criados em múltiplos subdiretórios (ex: demo/ e backup/)
+    // Simulate files created across multiple subdirectories (e.g. demo/ and backup/)
     await writeJsonToOpfs("demo/FS_test-file/hello.txt", {
       message: "Hello OPFS",
     },);
@@ -27,13 +27,13 @@ describe("OPFS Root & Explorer", () => {
 
     const files = await listOpfsFiles();
 
-    // Deve listar todos os arquivos preservando caminhos relativos a partir da raiz
+    // Must list every file preserving relative paths from the root
     assertEquals(files.length, 3,);
     assert(files.includes("demo/FS_test-file/hello.txt",),);
     assert(files.includes("backup/MSG_auto_backups/sw_auto_backup.json",),);
     assert(files.includes("media/images/avatar.png",),);
 
-    // Lê os arquivos a partir dos caminhos relativos da raiz
+    // Read files using relative paths from the root
     const backupContent = await readJsonFromOpfs(
       "backup/MSG_auto_backups/sw_auto_backup.json",
     ) as { backup: boolean };
@@ -42,7 +42,7 @@ describe("OPFS Root & Explorer", () => {
     const file = await getFileFromOpfs("demo/FS_test-file/hello.txt",);
     assertEquals(file.name, "hello.txt",);
 
-    // Deleta arquivo da raiz e revalida
+    // Delete a file from the root and re-validate
     await deleteFromOpfs("media/images/avatar.png",);
     const updatedFiles = await listOpfsFiles();
     assertEquals(updatedFiles.length, 2,);

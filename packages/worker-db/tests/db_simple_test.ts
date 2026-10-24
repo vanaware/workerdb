@@ -3,17 +3,17 @@ import { assert, assertEquals, assertNotEquals, } from "@std/assert";
 import { db, } from "../src/fake/fake-mod.ts";
 
 Deno.test({
-  name: "DB Simple - Tratamento de _id ('auto', '0990', com prefixo)",
+  name: "DB Simple - Handling of _id ('auto', '0990', with prefix)",
   sanitizeOps: false,
   sanitizeResources: false,
   async fn() {
-    // CORREÇÃO: Utilizando um nome de banco isolado para o teste para evitar choque de instâncias no IndexedDB fake
-    const store = db("LOJA_TEST_1", "clientes", "CLI_",);
+    // Use an isolated database name for this test to avoid instance collisions in the fake IndexedDB
+    const store = db("STORE_TEST_1", "customers", "CUST_",);
     await store.clear();
 
     // 1. _id: "auto"
     const keyAuto = await store.set({ _id: "auto", name: "Alice", level: 1, },);
-    assert(keyAuto.startsWith("CLI_",),);
+    assert(keyAuto.startsWith("CUST_",),);
     const itemAuto = await store.get<unknown>(keyAuto,) as Record<
       string,
       unknown
@@ -24,7 +24,7 @@ Deno.test({
 
     // 2. _id: "0990"
     const key0990 = await store.set({ _id: "0990", name: "Bob", level: 2, },);
-    assertEquals(key0990, "CLI_0990",);
+    assertEquals(key0990, "CUST_0990",);
     const item0990 = await store.get<unknown>("0990",) as Record<
       string,
       unknown
@@ -32,28 +32,28 @@ Deno.test({
     assertEquals(item0990?._id, "0990",);
     assertEquals(item0990?.name, "Bob",);
 
-    // 3. _id: "CLI_0990" (com prefixo pré-existente)
+    // 3. _id: "CUST_0990" (already carrying the prefix)
     const keyPref = await store.set({
-      _id: "CLI_0990",
-      name: "Bob Atualizado",
+      _id: "CUST_0990",
+      name: "Bob Updated",
       level: 3,
     },);
-    assertEquals(keyPref, "CLI_0990",);
+    assertEquals(keyPref, "CUST_0990",);
     const itemPref = await store.get<unknown>("0990",) as Record<
       string,
       unknown
     >;
-    assertEquals(itemPref?.name, "Bob Atualizado",);
+    assertEquals(itemPref?.name, "Bob Updated",);
   },
 },);
 
 Deno.test({
-  name: "DB Simple - CRUD, Patch e Métodos de Coleção",
+  name: "DB Simple - CRUD, patch and collection methods",
   sanitizeOps: false,
   sanitizeResources: false,
   async fn() {
-    // CORREÇÃO: Isolando o banco para não colidir com o teste anterior
-    const store = db("LOJA_TEST_2", "produtos", "PROD_",);
+    // Isolate the database so it does not collide with the previous test
+    const store = db("STORE_TEST_2", "products", "PROD_",);
     await store.clear();
 
     await store.set("p1", { name: "Notebook", price: 3000, },);
@@ -67,7 +67,7 @@ Deno.test({
 
     await store.setMany([
       ["p2", { name: "Mouse", price: 80, },],
-      ["p3", { name: "Teclado", price: 200, },],
+      ["p3", { name: "Keyboard", price: 200, },],
     ],);
 
     const items = await store.getMany<unknown>(["p1", "p2", "p3",],);
@@ -85,17 +85,17 @@ Deno.test({
 },);
 
 Deno.test({
-  name: "DB Simple - ImportDB e ExportDB com Respeito ao Escopo/Prefixo",
+  name: "DB Simple - importDB and exportDB respecting scope/prefix",
   sanitizeOps: false,
   sanitizeResources: false,
   async fn() {
-    // CORREÇÃO: Isolando o banco de dados
-    const store = db("LOJA_TEST_3", "estoque", "EST_",);
+    // Isolate the database
+    const store = db("STORE_TEST_3", "inventory", "INV_",);
     await store.clear();
 
     const mockData = {
-      EST_e1: { item: "Parafuso", qty: 100, },
-      EST_e2: { item: "Porca", qty: 200, },
+      INV_e1: { item: "Screw", qty: 100, },
+      INV_e2: { item: "Nut", qty: 200, },
     };
 
     await store.importDB(mockData, true,);

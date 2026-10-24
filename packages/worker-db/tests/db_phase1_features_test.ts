@@ -22,7 +22,7 @@ describe("WorkerDB Phase 1 - Schema Validation", () => {
     },
   },);
 
-  it("permite inserir registro que passa na validação", async () => {
+  it("allows inserting a record that passes validation", async () => {
     await validatedDb.clear();
     const id = await validatedDb.set("u1", {
       username: "Alice",
@@ -34,12 +34,12 @@ describe("WorkerDB Phase 1 - Schema Validation", () => {
     assertEquals(item?.age, 25,);
   });
 
-  it("rejeita inserção de registro inválido pelo validador", async () => {
+  it("rejects inserting a record that fails the validator", async () => {
     await assertRejects(
       async () => {
         await validatedDb.set("u2", {
           username: "Bob",
-          age: 16, // inválido (< 18)
+          age: 16, // invalid (< 18)
         },);
       },
       Error,
@@ -47,7 +47,7 @@ describe("WorkerDB Phase 1 - Schema Validation", () => {
     );
   });
 
-  it("rejeita patch que torna o registro inválido", async () => {
+  it("rejects a patch that would make the record invalid", async () => {
     await assertRejects(
       async () => {
         await validatedDb.patch("u1", { age: 10, },);
@@ -72,7 +72,7 @@ describe("WorkerDB Phase 1 - Indexed Queries (getByIndex)", () => {
     indexes: ["category",],
   },);
 
-  it("recupera registros filtrando pelo índice", async () => {
+  it("retrieves records filtered by index", async () => {
     await productStore.clear();
     await productStore.set("p1", {
       title: "Laptop",
@@ -106,7 +106,7 @@ describe("WorkerDB Phase 1 - Indexed Queries (getByIndex)", () => {
     assertEquals(furniture[0]?.title, "Cadeira",);
   });
 
-  it("recupera múltiplos valores de índice em lote com getManyByIndex", async () => {
+  it("retrieves multiple index values in batch with getManyByIndex", async () => {
     await productStore.set("p4", {
       title: "Livro",
       category: "books",
@@ -123,8 +123,8 @@ describe("WorkerDB Phase 1 - Indexed Queries (getByIndex)", () => {
     assert(multi.some((p,) => p.title === "Livro"),);
   });
 
-  it("filtra subconjunto indexado com getSomeByIndex sem escanear o banco inteiro", async () => {
-    // Filtra eletrônicos com preço > 500
+  it("filters an indexed subset with getSomeByIndex without scanning the whole store", async () => {
+    // Filter electronics with price > 500
     const expensiveElectronics = await productStore.getSomeByIndex<Product>(
       "category",
       "electronics",
@@ -134,8 +134,8 @@ describe("WorkerDB Phase 1 - Indexed Queries (getByIndex)", () => {
     assertEquals(expensiveElectronics[0]?.title, "Laptop",);
   });
 
-  it("calcula agregações sobre o subconjunto indexado com queryByIndex", async () => {
-    // Calcula o total gasto em eletrônicos
+  it("computes aggregations over the indexed subset with queryByIndex", async () => {
+    // Compute the total amount spent on electronics
     const totalElectronicsPrice = await productStore.queryByIndex<
       Product,
       number
@@ -147,8 +147,8 @@ describe("WorkerDB Phase 1 - Indexed Queries (getByIndex)", () => {
     assertEquals(totalElectronicsPrice, 1300,);
   });
 
-  it("atualiza apenas registros do índice selecionados com setSomeByIndex", async () => {
-    // Aplica desconto de 10% apenas em eletrônicos com preço >= 1000
+  it("updates only the records selected from the index with setSomeByIndex", async () => {
+    // Apply a 10% discount only to electronics priced >= 1000
     await productStore.setSomeByIndex<Product>(
       "category",
       "electronics",
@@ -160,11 +160,11 @@ describe("WorkerDB Phase 1 - Indexed Queries (getByIndex)", () => {
     assertEquals(laptop?.price, 1080,);
 
     const keyboard = await productStore.get<Product>("p2",);
-    assertEquals(keyboard?.price, 100,); // Não foi alterado
+    assertEquals(keyboard?.price, 100,); // not modified
   });
 
-  it("remove itens selecionados do subconjunto indexado com delSomeByIndex", async () => {
-    // Deleta eletrônicos com preço <= 150
+  it("removes selected items from the indexed subset with delSomeByIndex", async () => {
+    // Delete electronics priced <= 150
     await productStore.delSomeByIndex<Product>(
       "category",
       "electronics",
@@ -178,7 +178,7 @@ describe("WorkerDB Phase 1 - Indexed Queries (getByIndex)", () => {
     assert(laptop !== undefined,);
   });
 
-  it("remove todos os registros de um valor de índice com deleteByIndex", async () => {
+  it("removes every record matching an index value with deleteByIndex", async () => {
     await productStore.deleteByIndex("category", "furniture",);
 
     const furniture = await productStore.getByIndex<Product>(
@@ -191,7 +191,7 @@ describe("WorkerDB Phase 1 - Indexed Queries (getByIndex)", () => {
     assertEquals(cadeira, undefined,);
   });
 
-  it("remove múltiplos grupos de índice com deleteManyByIndex", async () => {
+  it("removes multiple index groups with deleteManyByIndex", async () => {
     await productStore.set("p5", {
       title: "Mesa",
       category: "furniture",
@@ -223,7 +223,7 @@ describe("WorkerDB Phase 1 - OPFS Streams (addFileStream & getFileStream)", () =
     prefix: "MED_",
   },);
 
-  it("grava e lê arquivo via ReadableStream", async () => {
+  it("writes and reads a file via ReadableStream", async () => {
     FakeOPFSDirectory.clear();
     await streamDrive.clear();
 

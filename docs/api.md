@@ -249,16 +249,16 @@ preferences.set("theme", "dark");
 WorkerDB exports cryptographic identifier utilities for client-side key generation and validation:
 
 ```typescript
-import { gerarId, gerarIdComPrefixo, validarId, type WithId } from "jsr:@vanaware/workerdb";
+import { generateId, generateIdWithPrefix, validateId, type WithId } from "jsr:@vanaware/workerdb";
 
 // Generate a 12-character cryptographically random ID
-const id = gerarId(); // e.g. "4f8a91b2c3d4"
+const id = generateId(); // e.g. "4f8a91b2c3d4"
 
 // Generate an ID with a domain prefix
-const userId = gerarIdComPrefixo("usr_"); // e.g. "usr_4f8a91b2c3d4"
+const userId = generateIdWithPrefix("usr_"); // e.g. "usr_4f8a91b2c3d4"
 
 // Validate ID string format and length (1-24 chars)
-const isValid = validarId(id); // true
+const isValid = validateId(id); // true
 
 // Generic helper type for documents with an _id field
 type UserDocument = WithId<{ name: string; email: string }>;

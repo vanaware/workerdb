@@ -7,14 +7,14 @@ import {
 import { db, } from "../src/fake/fake-mod.ts";
 import { type WithId, } from "../src/utils/id.ts";
 
-interface Fatura {
+interface Invoice {
   tag: string;
   amount: number;
   status: string;
   code: string;
 }
 
-interface Funcionario {
+interface Employee {
   _id: string;
   name: string;
   department: string;
@@ -23,38 +23,39 @@ interface Funcionario {
 }
 
 Deno.test({
-  name: "DB Advanced - Execução de Métodos de Array no Worker (query, getSome)",
+  name:
+    "DB Advanced - Array method execution inside the Worker (query, getSome)",
   sanitizeOps: false,
   sanitizeResources: false,
   async fn() {
-    const store = db("FINANCAS", "faturas", "FAT_",);
+    const store = db("FINANCES", "invoices", "INV_",);
     await store.clear();
 
     await store.importDB({
-      FAT_f1: { tag: "work", amount: 150, status: "paid", code: "x", },
-      FAT_f2: { tag: "personal", amount: 300, status: "pending", code: "y", },
-      FAT_f3: { tag: "work", amount: 500, status: "paid", code: "z", },
-      FAT_f4: { tag: "home", amount: 80, status: "pending", code: "w", },
-      FAT_f5: { tag: "work", amount: 200, status: "paid", code: "k", },
+      INV_f1: { tag: "work", amount: 150, status: "paid", code: "x", },
+      INV_f2: { tag: "personal", amount: 300, status: "pending", code: "y", },
+      INV_f3: { tag: "work", amount: 500, status: "paid", code: "z", },
+      INV_f4: { tag: "home", amount: 80, status: "pending", code: "w", },
+      INV_f5: { tag: "work", amount: 200, status: "paid", code: "k", },
     },);
 
-    // Valida execução de funções avançadas dentro do Worker de Banco de Dados
-    const result = await store.query((items: Fatura[],) => {
+    // Validate advanced function execution inside the Database Worker
+    const result = await store.query((items: Invoice[],) => {
       return {
         count: items.length, // length
-        total: items.reduce((acc: number, i: Fatura,) => acc + i.amount, 0,), // reduce
-        firstWork: items.find((i: Fatura,) => i.tag === "work"), // find
-        lastWork: items.findLast((i: Fatura,) => i.tag === "work"), // findLast
+        total: items.reduce((acc: number, i: Invoice,) => acc + i.amount, 0,), // reduce
+        firstWork: items.find((i: Invoice,) => i.tag === "work"), // find
+        lastWork: items.findLast((i: Invoice,) => i.tag === "work"), // findLast
         lastItem: items.at(-1,), // at
-        hasPending: items.some((i: Fatura,) => i.status === "pending"), // some
-        allPositive: items.every((i: Fatura,) => i.amount > 0), // every
-        tagsHaveHome: items.map((i: Fatura,) => i.tag).includes("home",), // map e includes
-        idxPersonal: items.findIndex((i: Fatura,) => i.tag === "personal"), // findIndex
-        lastIdxWork: items.findLastIndex((i: Fatura,) => i.tag === "work"), // findLastIndex
-        indexOfZ: items.map((i: Fatura,) => i.code).indexOf("z",), // indexOf
-        paidItems: items.filter((i: Fatura,) => i.status === "paid"), // filter
+        hasPending: items.some((i: Invoice,) => i.status === "pending"), // some
+        allPositive: items.every((i: Invoice,) => i.amount > 0), // every
+        tagsHaveHome: items.map((i: Invoice,) => i.tag).includes("home",), // map and includes
+        idxPersonal: items.findIndex((i: Invoice,) => i.tag === "personal"), // findIndex
+        lastIdxWork: items.findLastIndex((i: Invoice,) => i.tag === "work"), // findLastIndex
+        indexOfZ: items.map((i: Invoice,) => i.code).indexOf("z",), // indexOf
+        paidItems: items.filter((i: Invoice,) => i.status === "paid"), // filter
         sliced: items.slice(1, 4,), // slice
-        sortedByAmount: items.toSorted((a: Fatura, b: Fatura,) =>
+        sortedByAmount: items.toSorted((a: Invoice, b: Invoice,) =>
           a.amount - b.amount
         ), // toSorted
         reversed: items.toReversed(), // toReversed
@@ -64,9 +65,9 @@ Deno.test({
 
     assertEquals(result.count, 5,);
     assertEquals(result.total, 1230,);
-    assertEquals((result.firstWork as Fatura).amount, 150,);
-    assertEquals((result.lastWork as Fatura).amount, 200,);
-    assertEquals((result.lastItem as Fatura).code, "k",);
+    assertEquals((result.firstWork as Invoice).amount, 150,);
+    assertEquals((result.lastWork as Invoice).amount, 200,);
+    assertEquals((result.lastItem as Invoice).code, "k",);
     assert(result.hasPending,);
     assert(result.allPositive,);
     assert(result.tagsHaveHome,);
@@ -75,19 +76,19 @@ Deno.test({
     assertEquals(result.indexOfZ, 2,);
     assertEquals(result.paidItems.length, 3,);
     assertEquals(result.sliced.length, 3,);
-    assertEquals((result.sortedByAmount[0] as Fatura).amount, 80,);
-    assertEquals((result.reversed[0] as Fatura).code, "k",);
+    assertEquals((result.sortedByAmount[0] as Invoice).amount, 80,);
+    assertEquals((result.reversed[0] as Invoice).code, "k",);
     assertEquals(result.spliced.length, 3,);
   },
 },);
 
 Deno.test({
   name:
-    "DB Advanced - Erros em tempo de execução no Worker (Retornos Inválidos)",
+    "DB Advanced - Runtime errors inside the Worker (invalid return values)",
   sanitizeOps: false,
   sanitizeResources: false,
   async fn() {
-    const store = db("ERROS_WORKER", "testes", "ERR_",);
+    const store = db("WORKER_ERRORS", "tests", "ERR_",);
     await store.clear();
     await store.set("1", { valid: true, },);
 
@@ -122,70 +123,68 @@ Deno.test({
 
 Deno.test({
   name:
-    "DB Advanced - Transformações de Tipo, UPPERCASE e Exclusão Segura no Worker",
+    "DB Advanced - Type transformations, UPPERCASE and safe deletion in the Worker",
   sanitizeOps: false,
   sanitizeResources: false,
   async fn() {
-    const store = db("EMPRESA", "funcionarios", "EMP_",);
+    const store = db("COMPANY", "employees", "EMP_",);
     await store.clear();
 
     await store.importDB({
       EMP_e10: {
         name: "joão silva",
-        department: "tecnologia",
+        department: "technology",
         level: 2,
         active: true,
       },
       EMP_e20: {
         name: "maria souza",
-        department: "rh",
+        department: "hr",
         level: 3,
         active: true,
       },
       EMP_e30: {
         name: "pedro alves",
-        department: "vendas",
+        department: "sales",
         level: 1,
         active: false,
       },
     },);
 
-    // Atualiza nome para UPPERCASE e converte 'level' (number) para string
+    // Uppercase the name and convert `level` from number to string
     await store.setSome(
-      (items: Funcionario[],) =>
-        items.filter((item: Funcionario,) =>
-          item.active === true
-        ) as Funcionario[],
-      (item: Funcionario,) => ({
+      (items: Employee[],) =>
+        items.filter((item: Employee,) => item.active === true) as Employee[],
+      (item: Employee,) => ({
         ...item,
         name: item.name.toUpperCase(),
         department: item.department.toUpperCase(),
-        level: String(item.level,), // Mutação de tipo!
+        level: String(item.level,), // type mutation!
       }),
     );
 
-    const e10 = await store.get<Funcionario>("e10",);
+    const e10 = await store.get<Employee>("e10",);
     assertEquals(e10?.name, "JOÃO SILVA",);
-    assertEquals(e10?.department, "TECNOLOGIA",);
+    assertEquals(e10?.department, "TECHNOLOGY",);
     assertEquals(typeof e10?.level, "string",);
     assertEquals(e10?.level, "2",);
 
-    const e30 = await store.get<Funcionario>("e30",);
-    assertEquals(e30?.department, "vendas",); // Permanece em lowercase
-    assertEquals(typeof e30?.level, "number",); // Permanece tipo número
+    const e30 = await store.get<Employee>("e30",);
+    assertEquals(e30?.department, "sales",); // stays lowercase
+    assertEquals(typeof e30?.level, "number",); // stays a number
 
-    // Exclui funcionários inativos via delSome
-    await store.delSome((items: Funcionario[],) =>
-      items.filter((i: Funcionario,) => i.active === false)
+    // Delete inactive employees via delSome
+    await store.delSome((items: Employee[],) =>
+      items.filter((i: Employee,) => i.active === false)
     );
 
-    // Checa deleção correta
+    // Verify correct deletion
     assertEquals(await store.get("e30",), undefined,);
     const remainingKeys = await store.keys();
     assertEquals(remainingKeys.length, 2,);
 
-    // Assegura integridade dos que ficaram
-    const remaining = await store.values<Funcionario>();
+    // Ensure integrity of remaining records
+    const remaining = await store.values<Employee>();
     assertNotEquals(remaining[0]?.name, "pedro alves",);
   },
 },);

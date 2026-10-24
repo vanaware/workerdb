@@ -10,12 +10,12 @@ type DbItem = {
 };
 
 Deno.test({
-  name: "LS Simple - Gestão de _id ('auto', '0990', com prefixo)",
+  name: "LS Simple - Handling of _id ('auto', '0990', with prefix)",
   fn() {
     const store = ls("LS_PRE_",);
     store.clear();
 
-    // 1. Geração automática com _id: "auto"
+    // 1. Automatic generation with _id: "auto"
     const autoKey = store.set({
       _id: "auto",
       name: "Item Auto",
@@ -23,45 +23,45 @@ Deno.test({
     },);
     assert(
       autoKey.startsWith("LS_PRE_",),
-      "A chave gerada automaticamente deve conter o prefixo do banco",
+      "The automatically generated key must contain the store prefix",
     );
 
-    // O _id retornado no objeto deve ter o prefixo removido pelo formatDbItem
+    // The _id returned on the object must have the prefix stripped by formatDbItem
     const fetchedAuto = store.get(autoKey,) as DbItem;
     assert(fetchedAuto !== undefined,);
     assertNotEquals(
       fetchedAuto._id,
       "auto",
-      "O _id 'auto' deve ter sido substituído por um UUID ou Hash",
+      "The _id 'auto' must have been replaced by a UUID or hash",
     );
     assertEquals(autoKey, `LS_PRE_${fetchedAuto._id}`,);
     assertEquals(fetchedAuto.name, "Item Auto",);
 
-    // 2. Definindo chave customizada via parâmetro direto
-    const customKey = store.set("0990", { name: "Item Fixo", type: "user", },);
+    // 2. Setting a custom key via a direct parameter
+    const customKey = store.set("0990", { name: "Fixed Item", type: "user", },);
     assertEquals(customKey, "LS_PRE_0990",);
 
-    // A busca aceita tanto a chave simples quanto a formatada (resolveKey cuida disso)
+    // Lookup accepts both the bare and the prefixed key (resolveKey handles it)
     const fetchedCustom = store.get("0990",) as DbItem;
     assertEquals(fetchedCustom._id, "0990",);
-    assertEquals(fetchedCustom.name, "Item Fixo",);
+    assertEquals(fetchedCustom.name, "Fixed Item",);
 
-    // 3. Salvando passando um objeto que já possui o prefixo no _id
+    // 3. Saving an object whose _id already carries the prefix
     const keyPref = store.set({
       _id: "LS_PRE_0991",
-      name: "Item Fixo 2",
+      name: "Fixed Item 2",
       type: "user",
     },);
     assertEquals(keyPref, "LS_PRE_0991",);
     const fetchedPref = store.get("0991",) as DbItem;
-    assertEquals(fetchedPref.name, "Item Fixo 2",);
+    assertEquals(fetchedPref.name, "Fixed Item 2",);
 
     store.clear();
   },
 },);
 
 Deno.test({
-  name: "LS Simple - CRUD Básico, Patch e Iteradores (keys, values, entries)",
+  name: "LS Simple - Basic CRUD, patch and iterators (keys, values, entries)",
   fn() {
     const store = ls("LS_CRUD_",);
     store.clear();
@@ -71,14 +71,14 @@ Deno.test({
     let user = store.get("user1",) as DbItem;
     assertEquals(user.name, "Carlos",);
 
-    // Update Parcial (Patch)
+    // Partial update (patch)
     const patchedUser = store.patch("user1", { age: 31, },);
     assertEquals(patchedUser.age, 31,);
 
     user = store.get("user1",) as DbItem;
     assertEquals(user.age, 31,);
 
-    // Operações em Lote (setMany, getMany)
+    // Batch operations (setMany, getMany)
     store.setMany([
       ["user2", { name: "Ana", },],
       ["user3", { name: "Beatriz", },],
@@ -88,14 +88,14 @@ Deno.test({
     assertEquals(users.length, 3,);
     assertEquals(users[1]?.name, "Ana",);
 
-    // Testando Iteradores (keys, values, entries)
+    // Testing iterators (keys, values, entries)
     const allKeys = store.keys();
     assertEquals(allKeys.length, 3,);
     assert(allKeys.includes("LS_CRUD_user1",),);
 
     const allValues = store.values() as DbItem[];
     assertEquals(allValues.length, 3,);
-    assert(allValues.some((v,) => v._id === "user2" && v.name === "Ana"),); // Valida se formatDbItem agiu nos values
+    assert(allValues.some((v,) => v._id === "user2" && v.name === "Ana"),); // Verify formatDbItem ran over values
 
     const allEntries = store.entries() as [string, DbItem,][];
     assertEquals(allEntries.length, 3,);
@@ -116,7 +116,7 @@ Deno.test({
 },);
 
 Deno.test({
-  name: "LS Simple - Import e Export com Respeito ao Escopo/Prefixo",
+  name: "LS Simple - Import and export respecting scope/prefix",
   fn() {
     const store = ls("LS_EXP_",);
     store.clear();

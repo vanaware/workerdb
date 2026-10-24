@@ -14,11 +14,11 @@ export type WithId<T> = T & { _id: string };
  *
  * @example
  * ```ts
- * const id = gerarId();
+ * const id = generateId();
  * console.log(id); // "a1b2c3d4e5f6"
  * ```
  */
-export function gerarId(): string {
+export function generateId(): string {
   if (typeof crypto !== "undefined" && crypto.getRandomValues) {
     const array = new Uint8Array(12);
     crypto.getRandomValues(array);
@@ -28,7 +28,7 @@ export function gerarId(): string {
         12,
       );
   }
-  return gerarIdFallback();
+  return generateIdFallback();
 }
 
 /**
@@ -37,7 +37,7 @@ export function gerarId(): string {
  *
  * @returns {string} Temporary ID.
  */
-export function gerarIdFallback(): string {
+export function generateIdFallback(): string {
   return Date.now().toString(36) +
     Math.random().toString(36).substring(2, 8);
 }
@@ -48,7 +48,7 @@ export function gerarIdFallback(): string {
  * @param {string} id The ID to validate.
  * @returns {boolean} True if the ID is valid (non-empty string up to 24 characters).
  */
-export function validarId(id: string): boolean {
+export function validateId(id: string): boolean {
   return typeof id === "string" && id.length > 0 && id.length <= 24;
 }
 
@@ -58,8 +58,8 @@ export function validarId(id: string): boolean {
  * @param {string} prefix The prefix to prepend to the ID.
  * @returns {string} The prefixed ID.
  */
-export function gerarIdComPrefixo(prefix: string): string {
-  return `${prefix}${gerarId()}`;
+export function generateIdWithPrefix(prefix: string): string {
+  return `${prefix}${generateId()}`;
 }
 
 /**
@@ -105,11 +105,11 @@ export function prepareForSave(
     : undefined;
 
   if (rawId === "auto") {
-    rawId = gerarId();
+    rawId = generateId();
   }
 
   // Intercept key provided as "auto" via direct parameter or setMany tuple
-  const processKey = key === "auto" ? gerarId() : key;
+  const processKey = key === "auto" ? generateId() : key;
 
   let finalKey = processKey || "";
 

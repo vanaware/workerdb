@@ -1,165 +1,165 @@
-# Diretrizes de Documentação e Publicação no JSR
+# JSR Documentation and Publication Guidelines
 
-> **Nota para Agentes de IA:** Este documento define os padrões obrigatórios para documentação (README.md e JSDoc) e as regras de configuração do `deno.json` para publicação no JSR. Siga estas diretrizes rigorosamente ao gerar ou refatorar código neste repositório.
-
----
-
-## 📌 Sumário
-
-1. [Visão Geral](#-visão-geral)
-2. [Padrões para o README.md](#-padrões-para-o-readmemd)
-3. [Padrões para Comentários JSDoc](#-padrões-para-comentários-jsdoc)
-4. [Recomendações de Uso e Qualidade](#-recomendações-de-uso-e-qualidade)
-5. [Configuração de `publish: false` em Workspaces](#-configuração-de-publish-false-em-workspaces)
-6. [Configuração de `publish.include` e `publish.exclude`](#-configuração-de-publishinclude-e-publishexclude)
-7. [Checklist Antes de Publicar](#-checklist-antes-de-publicar)
+> **Note for AI Agents:** This document defines the mandatory standards for documentation (`README.md` and JSDoc) and the `deno.json` configuration rules required for JSR publication. Follow these guidelines strictly when generating or refactoring code in this repository.
 
 ---
 
-## 🎯 Visão Geral
+## 📌 Table of Contents
 
-Todo pacote publicado no JSR deve ter **duas camadas de documentação**:
+1. [Overview](#-overview)
+2. [README.md Standards](#-readmemd-standards)
+3. [JSDoc Comment Standards](#-jsdoc-comment-standards)
+4. [Usage and Quality Recommendations](#-usage-and-quality-recommendations)
+5. [Configuring `publish: false` in Workspaces](#-configuring-publish-false-in-workspaces)
+6. [Configuring `publish.include` and `publish.exclude`](#-configuring-publishinclude-and-publishexclude)
+7. [Pre-Publication Checklist](#-pre-publication-checklist)
 
-| Camada | Arquivo/Local | Propósito | Público-Alvo |
+---
+
+## 🎯 Overview
+
+Every package published on JSR must have **two documentation layers**:
+
+| Layer | File/Location | Purpose | Target Audience |
 | :--- | :--- | :--- | :--- |
-| **Guia Rápido** | `README.md` na raiz | Explicar *por que* usar o pacote e como começar. | Desenvolvedores avaliando adotar o pacote. |
-| **Referência da API** | Comentários JSDoc no código | Documentar *como* usar cada símbolo exportado. | Desenvolvedores que já usam o pacote. |
+| **Quick Guide** | `README.md` at the package root | Explain *why* to use the package and how to get started. | Developers evaluating whether to adopt the package. |
+| **API Reference** | JSDoc comments in the source | Document *how* to use each exported symbol. | Developers already using the package. |
 
-Ambas as camadas impactam diretamente a **pontuação de qualidade do JSR** e a experiência do usuário final (incluindo autocompletar no editor).
+Both layers directly affect the **JSR quality score** and the end-user experience (including editor autocomplete).
 
 ---
 
-## 📝 Padrões para o README.md
+## 📝 README.md Standards
 
-### Localização e Formato
-- **Arquivo:** `README.md` 
-- **Localização:** Obrigatório, na raiz do pacote, não é o mesmo README da raiz do worspace, cada pacote a ser publicado precisa de seu próprio README.
-- **Sintaxe:** Markdown padrão (GFM - GitHub Flavored Markdown).
-- **Idioma:** Inglês (mantenha consistência e use o mesmo idioma em toda a documentação a ser publicada).
+### Location and Format
+- **File:** `README.md`
+- **Location:** Mandatory at the package root. This is not the same as the workspace-root README — every package to be published must have its own `README.md`.
+- **Syntax:** Standard Markdown (GFM — GitHub Flavored Markdown).
+- **Language:** English (maintain consistency and use the same language across all documentation to be published).
 
-### Estrutura Obrigatória
+### Mandatory Structure
 
-O README **deve** conter, no mínimo, as seguintes seções nesta ordem:
+The README **must** contain, at minimum, the following sections in this order:
 
-1. **Título** (`# Nome do Pacote`) — usar o nome real do pacote, sem o escopo.
-2. **Descrição curta** — uma ou duas frases explicando o que o pacote faz.
-3. **Instalação** — bloco de código com o comando `deno add`.
-4. **Uso Básico** — **obrigatório** um bloco de código funcional mostrando import + uso real.
-5. **Documentação** — link para a página do pacote no JSR (referência da API).
+1. **Title** (`# Package Name`) — use the real package name, without the scope.
+2. **Short description** — one or two sentences explaining what the package does.
+3. **Installation** — a code block with the `deno add` command.
+4. **Basic Usage** — a functional code block showing a real `import` + usage is **mandatory**.
+5. **Documentation** — a link to the package page on JSR (API reference).
 
-### Estrutura Recomendada (Adicional)
+### Recommended Additional Structure
 
-- **Features** — lista de bullets com os principais recursos.
-- **API Overview** — tabela ou lista dos principais exports.
-- **Exemplos Avançados** — casos de uso além do "hello world".
+- **Features** — a bulleted list of the main capabilities.
+- **API Overview** — a table or list of the primary exports.
+- **Advanced Examples** — use cases beyond the "hello world".
 
-### Exemplo de Template
+### Template Example
 
 ````markdown
-# nome-do-pacote
+# package-name
 
-Uma breve descrição de uma ou duas frases sobre o que este pacote faz.
+A brief one or two sentence description of what this package does.
 
-## Instalação
+## Installation
 
 ```bash
-deno add jsr:@seu-escopo/nome-do-pacote
+deno add jsr:@your-scope/package-name
 ```
 
-## Uso
+## Usage
 
 ```ts
-import { funcaoPrincipal } from "jsr:@seu-escopo/nome-do-pacote";
+import { mainFunction } from "jsr:@your-scope/package-name";
 
-const resultado = funcaoPrincipal({ opcao: "valor" });
-console.log(resultado);
+const result = mainFunction({ option: "value" });
+console.log(result);
 ```
 
 ## Features
 
-- ✅ Recurso A
-- ✅ Recurso B
-- ✅ Recurso C
+- ✅ Feature A
+- ✅ Feature B
+- ✅ Feature C
 
-## Documentação
+## Documentation
 
-Para a referência completa da API, visite a
-[página do pacote no JSR](https://jsr.io/@vanaware/nome-do-pacote).
+For the complete API reference, visit the
+[package page on JSR](https://jsr.io/@vanaware/package-name).
 
 ````
 
-### ⚠️ Regras Críticas
-- **NUNCA** deixe o README vazio ou com apenas o título.
-- **SEMPRE** inclua um bloco de código no README — o JSR usa isso para pontuar o pacote.
-- **NÃO** duplique toda a documentação JSDoc aqui; o README é visão geral, não referência.
+### ⚠️ Critical Rules
+- **NEVER** leave the README empty or with only a title.
+- **ALWAYS** include at least one code block — JSR uses it to score the package.
+- **DO NOT** duplicate the entire JSDoc here; the README is an overview, not a reference.
 
 ---
 
-## 📚 Padrões para Comentários JSDoc
+## 📚 JSDoc Comment Standards
 
-### Regras Gerais
-- **Local:** Imediatamente acima de **cada símbolo exportado** (função, classe, interface, tipo, constante).
-- **Sintaxe:** Bloco `/** ... */` com cada linha interna iniciando por `*`.
-- **Idioma:** Manter o mesmo do README.
-- **Obrigatoriedade:** Todo `export` **deve** ter JSDoc. Sem exceção.
+### General Rules
+- **Location:** Immediately above **every exported symbol** (function, class, interface, type, constant).
+- **Syntax:** `/** ... */` block with each inner line starting with `*`.
+- **Language:** Same as the README (English).
+- **Mandatory:** Every `export` **must** have JSDoc. No exceptions.
 
-### Estrutura do Bloco
+### Block Structure
 
-1. **Resumo** (primeira linha) — frase curta e imperativa. Aparece em tooltips do editor.
-2. **Descrição detalhada** (opcional) — parágrafo(s) adicional(is) com contexto.
-3. **Tags** — na ordem: `@param`, `@returns`, `@throws`, `@example`, `@see`.
-4. **Exemplo** — sempre que a função não for trivial.
+1. **Summary** (first line) — short imperative sentence. Appears in editor tooltips.
+2. **Detailed description** (optional) — additional paragraph(s) providing context.
+3. **Tags** — in this order: `@param`, `@returns`, `@throws`, `@example`, `@see`.
+4. **Example** — always included when the function is not trivial.
 
-### Exemplo Completo — Função
+### Complete Example — Function
 
 ````ts
 /**
- * Busca registros no banco de dados usando a consulta fornecida.
+ * Searches the database using the provided query.
  *
- * Realiza normalização de entrada e aplica limite padrão quando não
- * especificado, evitando sobrecarga em consultas muito amplas.
+ * Performs input normalization and applies a default limit when none is
+ * specified, preventing overload from overly broad queries.
  *
- * @param query - Consulta textual. Deve ter entre 1 e 50 caracteres.
- * @param limit - Número máximo de itens a retornar. Padrão: `20`.
- * @returns Array com os registros encontrados. Vazio se nada corresponder.
- * @throws {Error} Se `query` estiver vazia ou exceder 50 caracteres.
+ * @param query - Textual query. Must be between 1 and 50 characters.
+ * @param limit - Maximum number of items to return. Default: `20`.
+ * @returns Array with the matching records. Empty if nothing matches.
+ * @throws {Error} If `query` is empty or exceeds 50 characters.
  *
  * @example
  * ```ts
- * const resultados = search("Deno");
- * console.log(resultados); // ["Deno", "Deno Deploy"]
+ * const results = search("Deno");
+ * console.log(results); // ["Deno", "Deno Deploy"]
  * ```
  *
- * @see {@link normalizeQuery} para detalhes da normalização.
+ * @see {@link normalizeQuery} for details on the normalization logic.
  */
 export function search(query: string, limit: number = 20): string[] {
   // ...
 }
 ````
 
-### Exemplo Completo — Interface / Tipo
+### Complete Example — Interface / Type
 
 ````ts
 /**
- * Opções aceitas pelo cliente HTTP.
+ * Options accepted by the HTTP client.
  */
 export interface ClientOptions {
-  /** URL base para todas as requisições. */
+  /** Base URL for every request. */
   baseUrl: string;
 
-  /** Tempo limite em milissegundos. Padrão: `5000`. */
+  /** Timeout in milliseconds. Default: `5000`. */
   timeout?: number;
 
-  /** Cabeçalhos adicionais enviados em cada requisição. */
+  /** Additional headers sent with every request. */
   headers?: Record<string, string>;
 }
 ````
 
-### Exemplo Completo — Classe
+### Complete Example — Class
 
 ````ts
 /**
- * Cliente HTTP leve com suporte a retry automático.
+ * Lightweight HTTP client with automatic retry support.
  *
  * @example
  * ```ts
@@ -169,19 +169,19 @@ export interface ClientOptions {
  */
 export class Client {
   /**
-   * Cria uma nova instância do cliente.
+   * Creates a new client instance.
    *
-   * @param options - Configurações do cliente.
+   * @param options - Client configuration.
    */
   constructor(options: ClientOptions) {
     // ...
   }
 
   /**
-   * Executa uma requisição GET.
+   * Performs a GET request.
    *
-   * @param path - Caminho relativo à `baseUrl`.
-   * @returns Resposta parseada como JSON.
+   * @param path - Path relative to `baseUrl`.
+   * @returns Parsed JSON response.
    */
   async get<T>(path: string): Promise<T> {
     // ...
@@ -189,99 +189,99 @@ export class Client {
 }
 ````
 
-### Tags Suportadas e Quando Usar
+### Supported Tags and When to Use Them
 
-| Tag | Uso |
+| Tag | Usage |
 | :--- | :--- |
-| `@param` | Descrever **cada** parâmetro. Use `-` após o nome. |
-| `@returns` | Descrever o valor de retorno (omita apenas se `void`). |
-| `@throws` | Tipos e condições de erro lançados. |
-| `@example` | Bloco de código executável. Sempre em cercas ` ```ts `. |
-| `@see` | Referência cruzada. Combine com `{@link Symbol}`. |
-| `@deprecated` | Marcar símbolos obsoletos e indicar substituto. |
-| `@since` | Versão em que o símbolo foi introduzido. |
+| `@param` | Describe **every** parameter. Use `-` after the name. |
+| `@returns` | Describe the return value (omit only if `void`). |
+| `@throws` | Types and conditions of errors thrown. |
+| `@example` | Executable code block. Always wrapped in ` ```ts ` fences. |
+| `@see` | Cross-reference. Combine with `{@link Symbol}`. |
+| `@deprecated` | Mark obsolete symbols and indicate the replacement. |
+| `@since` | Version in which the symbol was introduced. |
 
-### Links Internos
-Use `{@link <Símbolo>}` para criar links clicáveis entre símbolos na documentação gerada:
+### Internal Links
+Use `{@link <Symbol>}` to create clickable cross-references in the generated documentation:
 
 ```ts
 /**
- * Atalho para {@link Client.get} com timeout customizado.
+ * Shortcut for {@link Client.get} with a custom timeout.
  */
 export function quickGet(path: string) { /* ... */ }
 ```
 
-### ⚠️ Regras Críticas
-- **NÃO** use JSDoc para comentários internos de linha — use `//`.
-- **NÃO** documente símbolos não exportados (a menos que sejam úteis para contexto).
-- **SEMPRE** coloque o `@example` **após** `@returns`/`@throws`.
-- **NUNCA** escreva "TODO" dentro de JSDoc; use comentários normais.
+### ⚠️ Critical Rules
+- **DO NOT** use JSDoc for internal line comments — use `//`.
+- **DO NOT** document non-exported symbols (unless they are genuinely useful for context).
+- **ALWAYS** place `@example` **after** `@returns`/`@throws`.
+- **NEVER** write "TODO" inside JSDoc; use regular comments instead.
 
 ---
 
-## ✅ Recomendações de Uso e Qualidade
+## ✅ Usage and Quality Recommendations
 
-1. **README e JSDoc são complementares** — nunca um substitui o outro.
-2. **Escreva exemplos reais** — evite `foo`/`bar`; use nomes que reflitam o domínio.
-3. **Mantenha o README curto** — se passar de ~150 linhas, crie uma pasta `docs/` dentro do diretório do pacote.
-4. **Valide antes de commitar:**
+1. **README and JSDoc are complementary** — neither replaces the other.
+2. **Write real examples** — avoid `foo`/`bar`; use names that reflect the domain.
+3. **Keep the README concise** — if it grows beyond ~150 lines, create a `docs/` folder inside the package directory.
+4. **Validate before committing:**
    ```bash
    deno doc --lint mod.ts
    ```
-   Isso aponta exports sem JSDoc e tags malformadas.
-5. **Valide antes de publicar:**
+   This reports exports missing JSDoc and malformed tags.
+5. **Validate before publishing:**
    ```bash
    deno publish --dry-run
    ```
-   Inspecione o output para confirmar que apenas os arquivos desejados serão enviados.
-6. **Atualize o JSDoc ao refatorar** — nunca deixe documentação divergente do código.
-7. **Use `@deprecated`** ao invés de remover símbolos abruptamente — quebre consumidores com aviso.
+   Inspect the output to confirm only the intended files will be uploaded.
+6. **Update JSDoc when refactoring** — never let documentation drift from the code.
+7. **Use `@deprecated`** instead of abruptly removing symbols — warn consumers before breaking them.
 
 ---
 
-## 🏢 Configuração de `publish: false` em Workspaces
+## 🏢 Configuring `publish: false` in Workspaces
 
-Em um **workspace Deno** (definido por `workspace` no `deno.json` raiz), o comando `deno publish` tenta publicar **todos os membros** que possuem `name` e `exports`.
+In a **Deno workspace** (defined by the `workspace` field in the root `deno.json`), `deno publish` attempts to publish **every member** that has both `name` and `exports`.
 
-Para **excluir um membro interno** (pacotes utilitários compartilhados, ferramentas de build, etc.), defina `"publish": false` no `deno.json` desse membro.
+To **exclude an internal member** (shared utilities, build tooling, etc.), set `"publish": false` in that member's `deno.json`.
 
-### Estrutura Real no WorkerDB
+### Real Structure in WorkerDB
 
-No monorepo do WorkerDB, temos múltiplos pacotes publicados e pacotes de aplicação/infraestrutura interna:
+In the WorkerDB monorepo, we have both published and internal application/infrastructure packages:
 
 ```
 /
-├── deno.jsonc                 # workspace raiz
+├── deno.jsonc                 # workspace root
 ├── packages/
-│   ├── worker-db/             # publicado no JSR como @vanaware/workerdb
+│   ├── worker-db/             # published on JSR as @vanaware/workerdb
 │   │   └── deno.jsonc
-│   ├── service-worker/        # publicado no JSR como @vanaware/opfs-explorer
+│   ├── service-worker/        # published on JSR as @vanaware/opfs-explorer
 │   │   └── deno.jsonc
-│   ├── ui/                    # app frontend (publish: false)
+│   ├── ui/                    # frontend app (publish: false)
 │   │   └── deno.jsonc
-│   ├── server/                # dev/prod server Deno (publish: false)
+│   ├── server/                # Deno dev/prod server (publish: false)
 │   │   └── deno.jsonc
-│   └── utils/                 # scripts de bundling/build (publish: false)
+│   └── utils/                 # bundling/build scripts (publish: false)
 │       └── deno.jsonc
 ```
 
-O workflow de CI/CD em `.github/workflows/jsr-publish.yml` executa a matriz de publicação automatizada para `packages/worker-db` e `packages/service-worker`.
+The CI/CD workflow at `.github/workflows/jsr-publish.yml` runs the automated publish matrix for `packages/worker-db` and `packages/service-worker`.
 
-### Estrutura de Exemplo Genérica
+### Generic Example Structure
 
 ```
 /
-├── deno.json              # workspace raiz
+├── deno.json              # workspace root
 ├── packages/
 │   ├── core/
-│   │   └── deno.json      # publicado no JSR
+│   │   └── deno.json      # published on JSR
 │   ├── utils-internal/
-│   │   └── deno.json      # NÃO publicado
+│   │   └── deno.json      # NOT published
 │   └── cli/
-│       └── deno.json      # publicado no JSR
+│       └── deno.json      # published on JSR
 ```
 
-### `deno.json` raiz (workspace)
+### Root `deno.json` (workspace)
 
 ```json
 {
@@ -293,48 +293,48 @@ O workflow de CI/CD em `.github/workflows/jsr-publish.yml` executa a matriz de p
 }
 ```
 
-### `packages/core/deno.json` (publicado)
+### `packages/core/deno.json` (published)
 
 ```json
 {
-  "name": "@seu-escopo/core",
+  "name": "@your-scope/core",
   "version": "1.0.0",
   "exports": "./mod.ts",
   "license": "MIT"
 }
 ```
-> **Importante:** Caso os campos license e version não estejam configurados no deno.jsonc (ou deno.json) do pacote, configure com o mesmo valor encontrado no deno.jsonc raiz do workspace.
+> **Important:** If the `license` and `version` fields are not configured in the package's `deno.jsonc` (or `deno.json`), set them to the same values found in the workspace root `deno.jsonc`.
 
-### `packages/utils-internal/deno.json` (NÃO publicado)
+### `packages/utils-internal/deno.json` (NOT published)
 
 ```json
 {
-  "name": "@seu-escopo/utils-internal",
+  "name": "@your-scope/utils-internal",
   "version": "0.0.0",
   "exports": "./mod.ts",
   "publish": false
 }
 ```
 
-> **Importante:** Mesmo com `publish: false`, o pacote ainda pode ser importado por outros membros do workspace via `jsr:@seu-escopo/utils-internal` durante o desenvolvimento. Ele apenas não será enviado ao registro.
+> **Important:** Even with `publish: false`, the package can still be imported by other workspace members via `jsr:@your-scope/utils-internal` during development. It simply won't be uploaded to the registry.
 
-> **Regra fundamental:** Caso alguma função do pacote que não será publicado esteja em uso por um pacote que será publicado, o desenvolvedor deverá ser alertado e uma documentação de BUG deve ser criada com todas as referidas funções que deverão ser analisadas e devidamente tratadas antes da publicação do pacote.
+> **Fundamental rule:** If a function from a non-published package is used by a package that will be published, the developer must be alerted and a BUG document must be created listing every referenced function, to be analyzed and properly handled before the package is published.
 
 ---
 
-## 🗂️ Configuração de `publish.include` e `publish.exclude`
+## 🗂️ Configuring `publish.include` and `publish.exclude`
 
-### Regras Básicas
-- Os padrões são avaliados **relativos à raiz do pacote** (onde está o `deno.json` do pacote a ser publicado).
-- Use **globs POSIX** com `/` como separador (funciona em Windows também).
-- **`publish.include`** — lista branca. Se definido, **somente** o que casar será publicado.
-- **`publish.exclude`** — lista negra. Aplicada **após** o `include`.
-- Se apenas `exclude` for definido, tudo é incluído por padrão e depois filtrado.
-- **NUNCA** inclua `deno.json` no `exclude` — ele é sempre publicado automaticamente.
+### Basic Rules
+- Patterns are evaluated **relative to the package root** (where the `deno.json` of the package to be published lives).
+- Use **POSIX globs** with `/` as the separator (works on Windows as well).
+- **`publish.include`** — whitelist. If defined, **only** matching files will be published.
+- **`publish.exclude`** — blacklist. Applied **after** `include`.
+- If only `exclude` is defined, everything is included by default and then filtered.
+- **NEVER** list `deno.json` in `exclude` — it is always published automatically.
 
-### Globs Recomendados
+### Recommended Globs
 
-#### Incluir apenas o código-fonte publicável
+#### Include only publishable source code
 
 ```json
 {
@@ -349,7 +349,7 @@ O workflow de CI/CD em `.github/workflows/jsr-publish.yml` executa a matriz de p
 }
 ```
 
-#### Excluir arquivos de desenvolvimento
+#### Exclude development files
 
 ```json
 {
@@ -381,13 +381,13 @@ O workflow de CI/CD em `.github/workflows/jsr-publish.yml` executa a matriz de p
 }
 ```
 
-### Combinação Recomendada (Include + Exclude)
+### Recommended Combination (Include + Exclude)
 
-A abordagem mais segura é **combinar ambos**: um `include` restritivo que define o que é código, e um `exclude` para varrer resíduos.
+The safest approach is to **combine both**: a restrictive `include` that defines what counts as code, and an `exclude` to sweep up any leftovers.
 
 ```json
 {
-  "name": "@seu-escopo/seu-pacote",
+  "name": "@your-scope/your-package",
   "version": "1.0.0",
   "exports": "./mod.ts",
   "license": "MIT",
@@ -416,68 +416,68 @@ A abordagem mais segura é **combinar ambos**: um `include` restritivo que defin
 }
 ```
 
-### Mapa de Decisão: Incluir ou Excluir?
+### Decision Map: Include or Exclude?
 
-| Arquivo/Pasta | Ação | Justificativa |
+| File/Folder | Action | Rationale |
 | :--- | :--- | :--- |
-| `src/**/*.ts` | ✅ Incluir | Código-fonte principal. |
-| `mod.ts` | ✅ Incluir | Ponto de entrada principal. |
-| `README.md` | ✅ Incluir | Exibido no JSR. |
-| `**/*_test.ts` | ❌ Excluir | Testes não vão para o registro. |
-| `tests/`, `test/` | ❌ Excluir | Idem. |
-| `examples/` | ❌ Excluir | Exemplos grandes ou não-API. |
-| `scripts/` | ❌ Excluir | Scripts de build/deploy. |
-| `build.ts`, `bundle.ts`, `deploy.ts` | ❌ Excluir | Ferramentas de dev. |
-| `docs/` | ❌ Excluir o docs da raiz pode incluir o subset do pacote | Documentação estendida da raiz do workspace fica no repo, documentação essencial reduzida do pacote pode incluir. |
-| `planning/` | ❌ Excluir | Planejamento interno. |
-| `AGENTS.md`, `CURRENT.md` | ❌ Excluir | Metadados para agentes de IA. |
-| `CHANGELOG.md` | ⚠️ Excluir | Útil para consumidores, mas aumenta o pacote. |
-| `deno.lock` | ❌ Excluir | Reconstruído pelo consumidor. |
-| `.github/` | ❌ Excluir | CI/CD. |
-| `deno.json` | 🚫 Nunca listar | Sempre publicado automaticamente. |
+| `src/**/*.ts` | ✅ Include | Main source code. |
+| `mod.ts` | ✅ Include | Primary entry point. |
+| `README.md` | ✅ Include | Displayed on JSR. |
+| `**/*_test.ts` | ❌ Exclude | Tests do not go to the registry. |
+| `tests/`, `test/` | ❌ Exclude | Same as above. |
+| `examples/` | ❌ Exclude | Large or non-API examples. |
+| `scripts/` | ❌ Exclude | Build/deploy scripts. |
+| `build.ts`, `bundle.ts`, `deploy.ts` | ❌ Exclude | Dev tooling. |
+| `docs/` | ❌ Exclude the workspace-root docs; may include a package-specific subset | Extended documentation from the workspace root lives in the repo; a minimal essential version of the package's docs may be included. |
+| `planning/` | ❌ Exclude | Internal planning material. |
+| `AGENTS.md`, `CURRENT.md` | ❌ Exclude | AI-agent metadata. |
+| `CHANGELOG.md` | ⚠️ Exclude | Useful to consumers but increases package size. |
+| `deno.lock` | ❌ Exclude | Rebuilt by consumers. |
+| `.github/` | ❌ Exclude | CI/CD. |
+| `deno.json` | 🚫 Never list | Always published automatically. |
 
-### Padrões Glob de Referência
+### Reference Glob Patterns
 
-| Padrão | Casa com |
+| Pattern | Matches |
 | :--- | :--- |
-| `src/**/*.ts` | Todos os `.ts` em `src/` recursivamente. |
-| `**/*_test.ts` | Qualquer arquivo terminando em `_test.ts`. |
-| `**/*.test.ts` | Qualquer arquivo terminando em `.test.ts`. |
-| `test/` | Todo o diretório `test/`. |
-| `**/__mocks__/**` | Qualquer diretório `__mocks__` em qualquer nível. |
-| `scripts/**` | Tudo dentro de `scripts/`. |
-| `*.config.ts` | Arquivos `.config.ts` na raiz. |
+| `src/**/*.ts` | Every `.ts` inside `src/` recursively. |
+| `**/*_test.ts` | Any file ending in `_test.ts`. |
+| `**/*.test.ts` | Any file ending in `.test.ts`. |
+| `test/` | The entire `test/` directory. |
+| `**/__mocks__/**` | Any `__mocks__` directory at any level. |
+| `scripts/**` | Everything inside `scripts/`. |
+| `*.config.ts` | `.config.ts` files at the root. |
 
-### ⚠️ Erros Comuns a Evitar
-- **Não** use `./` no início dos padrões (`"./src/**"` ❌ → `"src/**"` ✅).
-- **Não** use `\` como separador — sempre `/`.
-- **Não** inclua `deno.json` no `exclude` — quebra a publicação.
-- **Não** use `include` e `exclude` contraditórios (ex: incluir `src/**` e excluir `src/`).
-- **Sempre** valide com `deno publish --dry-run` antes de publicar de verdade.
-
----
-
-## ✅ Checklist Antes de Publicar
-
-Execute na ordem:
-
-- [ ] `deno fmt --check` — formatação consistente.
-- [ ] `deno lint` — sem avisos.
-- [ ] `deno check mod.ts` — sem erros de tipo.
-- [ ] `deno test` — todos os testes passando.
-- [ ] `deno doc --lint mod.ts` — sem exports sem JSDoc.
-- [ ] `README.md` revisado e com bloco de código de exemplo.
-- [ ] `deno.jsonc` com `name`, `version`, `exports`, `license` corretos.
-- [ ] `publish.include` e `publish.exclude` revisados.
-- [ ] `deno publish --dry-run` — inspecionar arquivos listados.
-- [ ] Versão incrementada conforme SemVer, temos um script de sanitização a ser executado antes da publicação.
-- [ ] `deno publish` — publicar de fato.
+### ⚠️ Common Mistakes to Avoid
+- Do **not** use `./` at the start of patterns (`"./src/**"` ❌ → `"src/**"` ✅).
+- Do **not** use `\` as the separator — always use `/`.
+- Do **not** include `deno.json` in `exclude` — it breaks publication.
+- Do **not** use contradictory `include`/`exclude` rules (e.g., include `src/**` and exclude `src/`).
+- **Always** validate with `deno publish --dry-run` before actually publishing.
 
 ---
 
-## 📎 Referências
+## ✅ Pre-Publication Checklist
 
-- [Documentação oficial do JSR](https://jsr.io/docs)
-- [Escrevendo documentação para JSR](https://jsr.io/docs/writing-docs)
-- [Configuração `deno.jsonc`](https://docs.deno.com/runtime/fundamentals/configuration/)
-- [Globs no Deno](https://docs.deno.com/runtime/fundamentals/configuration/#glob-patterns)
+Run in order:
+
+- [ ] `deno fmt --check` — consistent formatting.
+- [ ] `deno lint` — no warnings.
+- [ ] `deno check mod.ts` — no type errors.
+- [ ] `deno test` — all tests passing.
+- [ ] `deno doc --lint mod.ts` — no exports missing JSDoc.
+- [ ] `README.md` reviewed and containing an example code block.
+- [ ] `deno.jsonc` has correct `name`, `version`, `exports`, `license`.
+- [ ] `publish.include` and `publish.exclude` reviewed.
+- [ ] `deno publish --dry-run` — inspect the listed files.
+- [ ] Version incremented per SemVer — we have a sanitization script that must be run before publication.
+- [ ] `deno publish` — publish for real.
+
+---
+
+## 📎 References
+
+- [Official JSR documentation](https://jsr.io/docs)
+- [Writing documentation for JSR](https://jsr.io/docs/writing-docs)
+- [`deno.jsonc` configuration](https://docs.deno.com/runtime/fundamentals/configuration/)
+- [Glob patterns in Deno](https://docs.deno.com/runtime/fundamentals/configuration/#glob-patterns)

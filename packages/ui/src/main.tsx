@@ -23,14 +23,14 @@ if ("serviceWorker" in navigator) {
         scope: swScope,
       },);
       console.log(
-        "🚀 Service Worker registrado com sucesso com escopo:",
+        "🚀 Service Worker registered successfully with scope:",
         reg.scope,
       );
     } catch (err) {
       const errStr = String(err,);
       if (errStr.includes("redirect",) || errStr.includes("SecurityError",)) {
         console.warn(
-          "⚠️ Registro do Service Worker suspenso: O ambiente de preview/proxy iframe respondeu com redirecionamento ao carregar 'sw.js'. A especificação do navegador proíbe registro de Service Worker sob redirects. Abra o app em uma nova aba para habilitar o Service Worker e o OPFS Explorer.",
+          "⚠️ Service Worker registration suspended: The preview/proxy iframe environment responded with a redirect when loading 'sw.js'. The browser specification prohibits Service Worker registration under redirects. Open the app in a new tab to enable Service Worker and OPFS Explorer.",
           err,
         );
         addLog(
@@ -38,7 +38,7 @@ if ("serviceWorker" in navigator) {
           "⚠️ Notice: Service Worker registration was blocked by the browser because 'sw.js' was fetched via a proxy redirect in the preview iframe.\n\nTo enable full Service Worker & OPFS Explorer support, open the app in a new browser tab or deploy to production (e.g. GitHub Pages).",
         );
       } else {
-        console.warn("Falha ao registrar SW:", err,);
+        console.warn("Failed to register SW:", err,);
       }
     }
   };

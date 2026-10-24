@@ -5,7 +5,7 @@ const isFake = true;
 
 Deno.test({
   name:
-    "LIFECYCLE - Inicialização, Terminação, Restart e Persistência do Worker",
+    "LIFECYCLE - Worker initialization, termination, restart and persistence",
   sanitizeOps: false,
   sanitizeResources: false,
   async fn() {
@@ -22,12 +22,12 @@ Deno.test({
     result = await store.get<unknown>("status",) as Record<string, unknown>;
     assertEquals(result?.phase, "healed",);
 
-    // O restart vai recriar o Worker utilizando o último caminho válido
-    // (que é o fake-db.ts garantido pelo nosso fake-mod.ts)
+    // restart() will recreate the Worker using the last valid path
+    // (which is fake-db.ts guaranteed by our fake-mod.ts)
     db.restart();
 
     if (!isFake) {
-      // Lógica isolada para cenários não-falsos, caso necessário
+      // Isolated logic for non-fake scenarios, if needed
     }
 
     await store.patch<Record<string, unknown>>("status", {
@@ -37,7 +37,7 @@ Deno.test({
     assertEquals(
       result?.phase,
       "restarted",
-      "Worker recriado pelo restart() falhou",
+      "Worker recreated by restart() failed",
     );
 
     db.terminate();
@@ -46,7 +46,7 @@ Deno.test({
 
 Deno.test({
   name:
-    "LIFECYCLE - Comportamento com requisições disparadas imediatamente após restart",
+    "LIFECYCLE - Behavior when requests are fired immediately after restart",
   sanitizeOps: false,
   sanitizeResources: false,
   async fn() {

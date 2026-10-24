@@ -1,8 +1,8 @@
 // src/ls.ts
 import {
   formatDbItem,
-  gerarId,
-  gerarIdComPrefixo,
+  generateId,
+  generateIdWithPrefix,
   prepareForSave,
   type WithId,
 } from "./utils/id.ts";
@@ -65,9 +65,9 @@ export interface WorkerLsAPI<TDefault = unknown> {
   /** Asynchronously restores LocalStorage records from OPFS. */
   restoreFromOpfs: (recordKey: string, fileName: string, clearFirst?: boolean) => Promise<void>;
   /** Generates a random unique ID. */
-  gerarId: () => string;
+  generateId: () => string;
   /** Generates a random unique ID with the store prefix. */
-  gerarIdComPrefixo: () => string;
+  generateIdWithPrefix: () => string;
 }
 
 function getAllPrefixedEntries(prefix = ""): [string, unknown][] {
@@ -323,8 +323,8 @@ function createScopedLs<TDefault = unknown>(prefix = ""): WorkerLsAPI<TDefault> 
       Object.entries(data).forEach(([k, v]) => api.set(k, v));
     },
 
-    gerarId,
-    gerarIdComPrefixo: () => (prefix ? gerarIdComPrefixo(prefix) : gerarId()),
+    generateId,
+    generateIdWithPrefix: () => (prefix ? generateIdWithPrefix(prefix) : generateId()),
   };
 }
 

@@ -8,31 +8,30 @@ import { ls, } from "../src/fake/fake-mod.ts";
 import { type WithId, } from "../src/utils/id.ts";
 
 Deno.test({
-  name:
-    "LS Advanced - Execução de Métodos Modernos de Array JS (query, getSome)",
+  name: "LS Advanced - Modern JS Array method execution (query, getSome)",
   fn() {
-    const store = ls("LS_FINANCAS_",);
+    const store = ls("LS_FINANCES_",);
     store.clear();
 
     store.importLS({
-      LS_FINANCAS_f1: { tag: "work", amount: 150, status: "paid", code: "x", },
-      LS_FINANCAS_f2: {
+      LS_FINANCES_f1: { tag: "work", amount: 150, status: "paid", code: "x", },
+      LS_FINANCES_f2: {
         tag: "personal",
         amount: 300,
         status: "pending",
         code: "y",
       },
-      LS_FINANCAS_f3: { tag: "work", amount: 500, status: "paid", code: "z", },
-      LS_FINANCAS_f4: {
+      LS_FINANCES_f3: { tag: "work", amount: 500, status: "paid", code: "z", },
+      LS_FINANCES_f4: {
         tag: "home",
         amount: 80,
         status: "pending",
         code: "w",
       },
-      LS_FINANCAS_f5: { tag: "work", amount: 200, status: "paid", code: "k", },
+      LS_FINANCES_f5: { tag: "work", amount: 200, status: "paid", code: "k", },
     },);
 
-    // Valida execução de funções avançadas síncronas de Array
+    // Validate synchronous advanced Array function execution
     const result = store.query((items,) => {
       const data = items as Record<string, unknown>[];
       return {
@@ -43,7 +42,7 @@ Deno.test({
         lastItem: data.at(-1,), // at
         hasPending: data.some((i,) => i.status === "pending"), // some
         allPositive: data.every((i,) => (i.amount as number) > 0), // every
-        tagsHaveHome: data.map((i,) => i.tag as string).includes("home",), // map e includes
+        tagsHaveHome: data.map((i,) => i.tag as string).includes("home",), // map and includes
         idxPersonal: data.findIndex((i,) => i.tag === "personal"), // findIndex
         lastIdxWork: data.findLastIndex((i,) => i.tag === "work"), // findLastIndex
         indexOfZ: data.map((i,) => i.code as string).indexOf("z",), // indexOf
@@ -82,9 +81,9 @@ Deno.test({
 },);
 
 Deno.test({
-  name: "LS Advanced - Erros de Tipagem Síncronos (Retornos Inválidos)",
+  name: "LS Advanced - Synchronous type errors (invalid return values)",
   fn() {
-    const store = ls("LS_ERROS_",);
+    const store = ls("LS_ERRORS_",);
     store.clear();
     store.set("1", { valid: true, },);
 
@@ -119,34 +118,33 @@ Deno.test({
 },);
 
 Deno.test({
-  name:
-    "LS Advanced - Transformações de Tipo, Mutação em Massa e Exclusão Segura",
+  name: "LS Advanced - Type transformations, bulk mutation and safe deletion",
   fn() {
-    const store = ls("LS_EMPRESA_",);
+    const store = ls("LS_COMPANY_",);
     store.clear();
 
     store.importLS({
-      LS_EMPRESA_e10: {
+      LS_COMPANY_e10: {
         name: "joão silva",
-        department: "tecnologia",
+        department: "technology",
         level: 2,
         active: true,
       },
-      LS_EMPRESA_e20: {
+      LS_COMPANY_e20: {
         name: "maria souza",
-        department: "rh",
+        department: "hr",
         level: 3,
         active: true,
       },
-      LS_EMPRESA_e30: {
+      LS_COMPANY_e30: {
         name: "pedro alves",
-        department: "vendas",
+        department: "sales",
         level: 1,
         active: false,
       },
     },);
 
-    // Atualiza nome para UPPERCASE e converte 'level' (number) para string
+    // Uppercase the name and convert `level` from number to string
     store.setSome(
       (items,) => {
         const data = items as Record<string, unknown>[];
@@ -160,7 +158,7 @@ Deno.test({
           ...data,
           name: (data.name as string).toUpperCase(),
           department: (data.department as string).toUpperCase(),
-          level: String(data.level as number,), // Mutação de tipo explícita!
+          level: String(data.level as number,), // explicit type mutation!
           _id: data._id as string,
         };
       },
@@ -168,15 +166,15 @@ Deno.test({
 
     const e10 = store.get<Record<string, unknown>>("e10",);
     assertEquals(e10?.name, "JOÃO SILVA",);
-    assertEquals(e10?.department, "TECNOLOGIA",);
+    assertEquals(e10?.department, "TECHNOLOGY",);
     assertEquals(typeof e10?.level, "string",);
     assertEquals(e10?.level, "2",);
 
     const e30 = store.get<Record<string, unknown>>("e30",);
-    assertEquals(e30?.department, "vendas",); // Permanece em lowercase pois active=false
-    assertEquals(typeof e30?.level, "number",); // Permanece tipo número
+    assertEquals(e30?.department, "sales",); // stays lowercase because active=false
+    assertEquals(typeof e30?.level, "number",); // stays a number
 
-    // Exclui funcionários inativos via delSome
+    // Delete inactive employees via delSome
     store.delSome((items,) => {
       const data = items as Record<string, unknown>[];
       return data.filter((i,) => (i.active as boolean) === false) as WithId<
@@ -184,12 +182,12 @@ Deno.test({
       >[];
     },);
 
-    // Checa deleção correta
+    // Verify correct deletion
     assertEquals(store.get("e30",), undefined,);
     const remainingKeys = store.keys();
     assertEquals(remainingKeys.length, 2,);
 
-    // Assegura integridade dos que ficaram
+    // Ensure integrity of remaining records
     const remaining = store.values<Record<string, unknown>>();
     assertNotEquals(remaining[0]?.name as string, "pedro alves",);
 

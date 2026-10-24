@@ -1,12 +1,12 @@
 import { assert, assertEquals, } from "@std/assert";
-import { gerarId, validarId, } from "../src/utils/id.ts";
+import { generateId, validateId, } from "../src/utils/id.ts";
 import { db, ls, } from "../src/fake/fake-mod.ts";
 
-Deno.test("MAIN - Validação de Utilitários de ID e Integração Global", () => {
-  const id = gerarId();
+Deno.test("MAIN - ID utility validation and global integration", () => {
+  const id = generateId();
   assert(id.length > 0,);
 
-  const isValid = validarId(id,);
+  const isValid = validateId(id,);
   assertEquals(isValid, true,);
 
   const dbInstance = db("MAIN_DB", "main",);
