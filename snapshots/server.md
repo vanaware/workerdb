@@ -1,17 +1,17 @@
-> **INSTRUÇÃO PARA A IA:** 
+> **AI INSTRUCTION:** 
 > O texto abaixo contém os arquivos de configuração e execução do SERVIDOR @workerdb/server e CI/CD.
-> Cada arquivo começa com um título indicando seu caminho relativo exato (ex: `## Arquivo: src/main.ts`).
-> Sempre que sugerir alterações, indique claramente qual arquivo deve ser modificado com base nesses caminhos e forneça o novo código completo do arquivo.
+> Each file starts with a title indicating its exact relative path (e.g., `## File: src/main.ts`).
+> Whenever suggesting changes, clearly indicate which file should be modified based on these paths and provide the complete new code for the file.
 
 ---
 
-# Contexto Exportado do Projeto WorkerDB [v0.4.1#mujy03ud] - Modo: SERVER
+# Exported Context from Project WorkerDB [v0.6.1#mvmsaqgv] - Mode: SERVER
 
-Gerado automaticamente em: 2026-09-27T15:22:02.870Z
+Automatically generated at: 2026-10-24T20:59:04.225Z
 
 ---
 
-## Arquivo: `.github/workflows/gh-pages.yml`
+## File: `.github/workflows/gh-pages.yml`
 
 ```yaml
 name: Deploy to GitHub Pages
@@ -47,8 +47,18 @@ jobs:
       - name: Install dependencies
         run: deno ci
 
+      - name: Verify code integrity
+        run: deno task tests
+
       - name: Build Application
-        run: deno task build noversion
+        run: deno task esbuild noversion
+
+      - name: Prepare static assets for GitHub Pages
+        run: |
+          # Disable Jekyll processing on GitHub Pages
+          touch ./packages/server/build/dist/.nojekyll
+          # Copy index.html to 404.html for SPA subfolder route fallback
+          cp ./packages/server/build/dist/index.html ./packages/server/build/dist/404.html
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
@@ -73,7 +83,7 @@ jobs:
 
 ---
 
-## Arquivo: `.github/workflows/jsr-publish.yml`
+## File: `.github/workflows/jsr-publish.yml`
 
 ```yaml
 name: Publish to JSR
@@ -104,10 +114,13 @@ jobs:
       - name: Install dependencies
         run: deno ci
 
+      - name: Verify code integrity
+        run: deno task tests
+
       - name: Sanitize Version
         run: |
-          deno run -A ./sanitize-version.ts ./packages/worker-db/deno.jsonc
-          deno run -A ./sanitize-version.ts ./packages/service-worker/deno.jsonc
+          deno task sanitize-version ./packages/worker-db/deno.jsonc
+          deno task sanitize-version ./packages/service-worker/deno.jsonc
 
       - name: Publish WorkerDB to JSR
         run: |
@@ -123,7 +136,7 @@ jobs:
 
 ---
 
-## Arquivo: `packages/server/.env.example`
+## File: `packages/server/.env.example`
 
 ```properties
 PORT=3000
@@ -131,7 +144,7 @@ PORT=3000
 
 ---
 
-## Arquivo: `packages/server/deno.jsonc`
+## File: `packages/server/deno.jsonc`
 
 ```json
 {
@@ -143,11 +156,12 @@ PORT=3000
     ]
   },
   "imports": {
-    "@std/http": "jsr:@std/http@^1.1.3"
+    "@std/http": "jsr:@std/http@^1.1.3",
+    "@std/path": "jsr:@std/path@^1.1.6"
   },
   "tasks": {
     "test": "deno test --allow-env --allow-net --allow-read tests/",
-    "check": "deno check src/**/*.{ts,tsx} tests/**/*.ts",
+    "check": "deno check src/**/*.{ts,tsx} tests/**/*test.ts",
     "tests": "deno task check && deno task test",
     "start": "deno run --allow-read --allow-write --allow-env --allow-net --env-file ./src/main.ts",
     "dev": "deno run --allow-read --allow-write --allow-env --allow-net --env-file --watch ./src/main.ts",
@@ -161,7 +175,7 @@ PORT=3000
 
 ---
 
-## Arquivo: `packages/server/src/main.ts`
+## File: `packages/server/src/main.ts`
 
 ```ts
 /// <reference lib="deno.ns" />
@@ -205,12 +219,12 @@ Deno.serve({ port, hostname: "0.0.0.0", }, async (req,) => {
     staticResponse.headers.set("Pragma", "no-cache",);
     staticResponse.headers.set("Expires", "0",);
 
-    // Permitir escopo global para Service Worker
+    // Allow global scope for Service Worker
     if (url.pathname === "/sw.js" || url.pathname.endsWith("/sw.js",)) {
       staticResponse.headers.set("Service-Worker-Allowed", "/",);
     }
 
-    // Fallback gracioso para rotas opfs caso o Service Worker não esteja registrado (ex: preview iframe)
+    // Graceful fallback for /opfs routes when the Service Worker is not registered (e.g. preview iframe)
     if (
       (url.pathname.endsWith("/opfs",) ||
         url.pathname.includes("/opfs/",) ||
@@ -266,7 +280,7 @@ Deno.serve({ port, hostname: "0.0.0.0", }, async (req,) => {
     return staticResponse;
   } catch (err) {
     console.warn(
-      `[STATIC] Falha ao servir arquivo estático. Build ainda não foi executado?`,
+      `[STATIC] Failed to serve static file. Has the build been run yet?`,
       err instanceof Error ? err.message : err,
     );
 

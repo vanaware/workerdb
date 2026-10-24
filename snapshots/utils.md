@@ -1,17 +1,17 @@
-> **INSTRUÇÃO PARA A IA:** 
+> **AI INSTRUCTION:** 
 > O texto abaixo contém o código e testes da biblioteca @workerdb/utils
-> Cada arquivo começa com um título indicando seu caminho relativo exato (ex: `## Arquivo: src/main.ts`).
-> Sempre que sugerir alterações, indique claramente qual arquivo deve ser modificado com base nesses caminhos e forneça o novo código completo do arquivo.
+> Each file starts with a title indicating its exact relative path (e.g., `## File: src/main.ts`).
+> Whenever suggesting changes, clearly indicate which file should be modified based on these paths and provide the complete new code for the file.
 
 ---
 
-# Contexto Exportado do Projeto WorkerDB - Modo: UTILS
+# Exported Context from Project WorkerDB - Mode: UTILS
 
-Gerado automaticamente em: 2026-09-27T15:22:02.885Z
+Automatically generated at: 2026-10-24T20:59:04.242Z
 
 ---
 
-## Arquivo: `packages/utils/README.md`
+## File: `packages/utils/README.md`
 
 ```md
 
@@ -19,7 +19,7 @@ Gerado automaticamente em: 2026-09-27T15:22:02.885Z
 
 ---
 
-## Arquivo: `packages/utils/deno.jsonc`
+## File: `packages/utils/deno.jsonc`
 
 ```json
 {
@@ -45,7 +45,7 @@ Gerado automaticamente em: 2026-09-27T15:22:02.885Z
 
 ---
 
-## Arquivo: `packages/utils/src/config/mod.ts`
+## File: `packages/utils/src/config/mod.ts`
 
 ```ts
 export { APP_VERSION, } from "../../../worker-db/src/utils/version.ts";
@@ -54,7 +54,7 @@ export { APP_VERSION, } from "../../../worker-db/src/utils/version.ts";
 
 ---
 
-## Arquivo: `packages/utils/src/mod.ts`
+## File: `packages/utils/src/mod.ts`
 
 ```ts
 /**
@@ -68,74 +68,30 @@ export * from "./config/mod.ts";
 
 ---
 
-## Arquivo: `packages/utils/tests/bdd_example_test.ts`
+## File: `packages/utils/tests/bdd_example_test.ts`
 
 ```ts
 /**
  * @workerdb/packages/utils/tests/bdd_example_test.ts
  *
- * Exemplo de uso do estilo BDD (describe/it) com @std/testing/bdd,
- * conforme definido na ADR 008.
+ * Example of the BDD style (describe/it) using @std/testing/bdd,
+ * as defined in ADR 008.
  */
 
 import { assert, assertEquals, } from "@std/assert";
 import { describe, it, } from "@std/testing/bdd";
 
 describe("bdd_example", () => {
-  it("deve passar com uma afirmação simples", () => {
+  it("should pass with a simple assertion", () => {
     assertEquals(1 + 1, 2,);
   });
 
-  it("deve falhar corretamente quando a condição não é atendida", () => {
-    // Este teste demonstra que o framework BDD funciona conforme esperado.
+  it("should fail correctly when the condition is not met", () => {
+    // This test demonstrates that the BDD framework works as expected.
     const value = "workerdb";
     assert(value.length > 0,);
   });
 });
-
-```
-
----
-
-## Arquivo: `sanitize-version.ts`
-
-```ts
-/// <reference lib="deno.ns" />
-
-/**
- * @file sanitize-version.ts
- * @description CLI de sanitização de versão semântica do deno.json[c].
- * Normaliza o campo "version" para o formato estrito semver (MAJOR.MINOR.PATCH).
- */
-
-import { sanitizeVersionCli, } from "@vanaware/buildit/cli/sanitize-version";
-
-if (import.meta.main) {
-  const cli = sanitizeVersionCli();
-  await cli.parse(Deno.args,);
-}
-
-```
-
----
-
-## Arquivo: `tag-version.ts`
-
-```ts
-/// <reference lib="deno.ns" />
-
-/**
- * @file tag-version.ts
- * @description CLI para criação e publicação de tag git baseada na versão do deno.json[c].
- * Gera tags no formato vMAJOR.MINOR e publica no repositório remoto.
- */
-
-import { tagVersionCli, }  from "@vanaware/buildit/cli/tag-version";
-
-if (import.meta.main) {
-  const cli = tagVersionCli();
-  await cli.parse(Deno.args,);
-}
 
 ```
 

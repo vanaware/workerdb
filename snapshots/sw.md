@@ -1,17 +1,17 @@
-> **INSTRUÇÃO PARA A IA:** 
+> **AI INSTRUCTION:** 
 > O texto abaixo contém experimentos e código da área de @workerDB/service-worker
-> Cada arquivo começa com um título indicando seu caminho relativo exato (ex: `## Arquivo: src/main.ts`).
-> Sempre que sugerir alterações, indique claramente qual arquivo deve ser modificado com base nesses caminhos e forneça o novo código completo do arquivo.
+> Each file starts with a title indicating its exact relative path (e.g., `## File: src/main.ts`).
+> Whenever suggesting changes, clearly indicate which file should be modified based on these paths and provide the complete new code for the file.
 
 ---
 
-# Contexto Exportado do Projeto WorkerDB [v0.4.1#mujy03ud] - Modo: SW
+# Exported Context from Project WorkerDB [v0.6.1#mvmsaqgv] - Mode: SW
 
-Gerado automaticamente em: 2026-09-27T15:22:02.889Z
+Automatically generated at: 2026-10-24T20:59:04.247Z
 
 ---
 
-## Arquivo: `packages/service-worker/README.md`
+## File: `packages/service-worker/README.md`
 
 ````md
 # @vanaware/opfs-explorer
@@ -244,12 +244,12 @@ MIT © [Vanaware](https://github.com/vanaware)
 
 ---
 
-## Arquivo: `packages/service-worker/deno.jsonc`
+## File: `packages/service-worker/deno.jsonc`
 
 ```json
 {
   "name": "@vanaware/opfs-explorer",
-  "version": "0.4.1#mujy03ud",
+  "version": "0.6.1#mvmsaqgv",
   "description": "Lightweight Service Worker middleware and UI Explorer for the Origin Private File System (OPFS).",
   "author": "Vanaware",
   "license": "MIT",
@@ -260,7 +260,11 @@ MIT © [Vanaware](https://github.com/vanaware)
     "lib": [
       "webworker",
       "webworker.asynciterable",
-      "webworker.iterable"
+      "webworker.iterable",
+      "dom",
+      "dom.iterable",
+      "dom.asynciterable",
+      "esnext"
     ]
   },
   "imports": {},
@@ -346,7 +350,7 @@ MIT © [Vanaware](https://github.com/vanaware)
 
 ---
 
-## Arquivo: `packages/service-worker/src/explorer.ts`
+## File: `packages/service-worker/src/explorer.ts`
 
 ````ts
 // packages/service-worker/src/explorer.ts
@@ -956,7 +960,7 @@ export function createOpfsFetchHandler(
 
 ---
 
-## Arquivo: `packages/service-worker/src/mod.ts`
+## File: `packages/service-worker/src/mod.ts`
 
 ````ts
 // packages/service-worker/src/mod.ts
@@ -1033,13 +1037,13 @@ export type { OpfsExplorerOptions, OpfsExplorerResponse, } from "./explorer.ts";
 
 ---
 
-## Arquivo: `packages/service-worker/src/sw.ts`
+## File: `packages/service-worker/src/sw.ts`
 
 ```ts
 // packages/service-worker/src/sw.ts
 /// <reference lib="webworker" />
 
-// Conteúdo de GENERATED_ASSETS: __GENERATED_ASSETS__
+// GENERATED_ASSETS content: __GENERATED_ASSETS__
 
 import { db, } from "@vanaware/workerdb/sw";
 import {
@@ -1084,7 +1088,7 @@ sw.addEventListener("message", async (event,) => {
       const insertedId = await msgStore.set("auto", {
         senderId: "system_sw",
         recipientId: "all",
-        content: "Mensagem gravada diretamente pelo Service Worker!",
+        content: "Message written directly by the Service Worker!",
         status: "delivered",
         priority: 99,
         timestamp: Date.now(),
@@ -1092,7 +1096,7 @@ sw.addEventListener("message", async (event,) => {
 
       const allMessages = await msgStore.values();
 
-      // Utilizando o padrão Record-Key ("auto_backups") dentro da pasta física global /backup
+      // Using the Record-Key pattern ("auto_backups") inside the global /backup physical folder
       const backupName = await msgStore.backupToOpfs(
         "auto_backups",
         "sw_auto_backup.json",
@@ -1121,7 +1125,7 @@ sw.addEventListener("message", async (event,) => {
 
 ---
 
-## Arquivo: `packages/service-worker/src/version.ts`
+## File: `packages/service-worker/src/version.ts`
 
 ```ts
 // Automatically generated file during build
@@ -1136,7 +1140,7 @@ export const APP_VERSION: string = typeof __APP_VERSION__ !== "undefined"
 
 ---
 
-## Arquivo: `packages/service-worker/tests/explorer_test.ts`
+## File: `packages/service-worker/tests/explorer_test.ts`
 
 ```ts
 // packages/service-worker/tests/explorer_test.ts
@@ -1271,7 +1275,7 @@ describe("@vanaware/opfs-explorer", () => {
       assertEquals(getScopePath("workerdb",), "/workerdb/",);
       assertEquals(getScopePath("/workerdb",), "/workerdb/",);
       assertEquals(getScopePath("/workerdb/",), "/workerdb/",);
-      assertEquals(getScopePath(" /workerdb/ "), "/workerdb/",);
+      assertEquals(getScopePath(" /workerdb/ ",), "/workerdb/",);
     });
 
     it("resolveRoutePrefix combines scope and route prefix correctly", () => {
@@ -1388,7 +1392,9 @@ describe("@vanaware/opfs-explorer", () => {
     it("createOpfsFetchHandler handles requests under scope /workerdb/", async () => {
       FakeOPFSDirectory.clear();
       const fakeRoot = new FakeOPFSDirectory("",);
-      const fileHandle = fakeRoot.getFileHandle("data.json", { create: true, },);
+      const fileHandle = fakeRoot.getFileHandle("data.json", {
+        create: true,
+      },);
       const writable = fileHandle.createWritable();
       await writable.write(JSON.stringify({ deployed: true, },),);
       writable.close();
@@ -1440,7 +1446,10 @@ describe("@vanaware/opfs-explorer", () => {
     it("resolveRoutePrefix handles custom subfolder strings and options", () => {
       assertEquals(resolveRoutePrefix("files",), "/files",);
       assertEquals(resolveRoutePrefix("arquivos",), "/arquivos",);
-      assertEquals(resolveRoutePrefix({ subfolder: "arquivos", },), "/arquivos",);
+      assertEquals(
+        resolveRoutePrefix({ subfolder: "arquivos", },),
+        "/arquivos",
+      );
       assertEquals(
         resolveRoutePrefix({ scopePath: "/my-app/", subfolder: "files", },),
         "/my-app/files",
